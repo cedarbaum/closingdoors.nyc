@@ -1,0 +1,26 @@
+html {
+  height: 100%;
+  background-color: black;
+}
+
+body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+div#root {
+  height: 100%; /* remove this line to see div.app is no more 100% height */
+  padding: 0;
+}
+
+div.app {
+  height: 100%;
+}
+
+.measure-layer {
+  display: inline-block;
+  position: absolute;
+  visibility: hidden;
+  z-index: -1;
+}
