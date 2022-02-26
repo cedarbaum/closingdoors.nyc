@@ -36,7 +36,6 @@ export const ErrorDisplay = styled.div<ErrorDisplayProps>(props => ({
     right: 0,
     background: '#FCCC0A',
     width: '100%',
-    minWidth: '480px',
     boxSizing: 'border-box',
     padding: '1em',
     overflow: 'hidden;',

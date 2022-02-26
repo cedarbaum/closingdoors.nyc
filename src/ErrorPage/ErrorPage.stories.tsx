@@ -9,11 +9,14 @@ export default {
 } as Meta;
 
 const Container = styled.div({
-    minWidth: '480px',
     minHeight: '720px',
     display: 'flex',
 })
 
 export const Default: React.VFC<{}> = () => <Container>
     <ErrorPage error={<>Something bad happened...</>} errorCode='42' />
+</Container>
+
+export const StaleData: React.VFC<{}> = () => <Container>
+    <ErrorPage errorCode='STALE_DATA' error={<>Data retrieved from server is out of date. Will retry to fetch new data shortly.</>} />
 </Container>
