@@ -1,4 +1,7 @@
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - '**/README.md'
 
 env:
   DNS_CERT_ARN: ${{ secrets.DNS_CERT_ARN }}
