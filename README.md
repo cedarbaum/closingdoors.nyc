@@ -1,6 +1,6 @@
 # closingdoors.nyc
 
-A minimalist subway schedule viewer written in React. See it live here: [https://closingdoors.nyc/](https://closingdoors.nyc/.
+A minimalist subway schedule viewer written in React. See it live here: [https://closingdoors.nyc/](https://closingdoors.nyc/).
 
 <p align="center">
   <img src="./.images/home.PNG" width="300" />
