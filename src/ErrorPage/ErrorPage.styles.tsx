@@ -1,7 +1,6 @@
 import styled from '@emotion/styled'
 
 export const Container = styled.div({
-    width: '100%',
     height: '100%',
     backgroundColor: '#FCCC0A',
     padding: '0.5em',
