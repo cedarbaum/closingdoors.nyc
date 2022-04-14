@@ -11,8 +11,7 @@ A minimalist subway schedule viewer written in React.
 ## Building and running locally
 
 1. `npm run build`
-2. `npm start`: starts page at [http://localhost:3000](http://localhost:3000) which communicates with the GraphQL endpoint [https://closingdoors.nyc/graphql](https://closingdoors.nyc/graphql)
-
+2. `npm start`: starts page at [http://localhost:3000](http://localhost:3000)
 To use storybook:
 
 1. `npm run storybook`
@@ -20,3 +19,7 @@ To use storybook:
 ### Deploying to AWS
 
 See the infrastructure [README](./infrastructure/README.md).
+
+## Licensing
+
+- Usage of the MTA's subway icons and other intellectual property has been granted through their [licensing program](https://new.mta.info/doing-business-with-us/licensing-program).
