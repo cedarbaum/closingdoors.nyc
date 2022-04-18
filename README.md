@@ -1,6 +1,6 @@
 # [closingdoors.nyc](https://closingdoors.nyc/)
 
-A minimalist subway schedule viewer written in React.
+A minimalist subway schedule viewer written in React. An implementation of the backend GraphQL interface can be found [here](https://github.com/cedarbaum/GraphQlMtaApiBackend).  
 
 <p align="center">
   <img src="./.images/home.PNG" width="300" />
