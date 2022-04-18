@@ -8,7 +8,13 @@ A minimalist subway schedule viewer written in React.
 </p>
 
 
-## Building and running locally
+## Setup and build
+
+### Initial setup
+
+Currently, this project requires Font Awesome Pro for some of it's icons. To configure NPM to pull in the required packages, see: https://fontawesome.com/docs/web/setup/packages#_1-configure-access 
+
+### Building
 
 1. `npm run build`
 2. `npm start`: starts page at [http://localhost:3000](http://localhost:3000)
