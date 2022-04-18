@@ -20,6 +20,7 @@ Currently, this project requires Font Awesome Pro for some of its icons (see: ht
 
 1. `npm run build`
 2. `npm start`: starts page at [http://localhost:3000](http://localhost:3000)
+
 To use storybook:
 
 1. `npm run storybook`
