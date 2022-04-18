@@ -12,7 +12,7 @@ A minimalist subway schedule viewer written in React.
 
 ### Initial setup
 
-Currently, this project requires Font Awesome Pro for some of it's icons (see: https://github.com/cedarbaum/closingdoors.nyc/issues/1). To configure NPM to pull in the required packages, see: https://fontawesome.com/docs/web/setup/packages#_1-configure-access 
+Currently, this project requires Font Awesome Pro for some of its icons (see: https://github.com/cedarbaum/closingdoors.nyc/issues/1). To configure NPM to pull in the required packages, [configure access](https://fontawesome.com/docs/web/setup/packages#_1-configure-access).
 
 ### Building
 
@@ -25,6 +25,11 @@ To use storybook:
 ### Deploying to AWS
 
 See the infrastructure [README](./infrastructure/README.md).
+
+## Similar projects
+
+- [realtimerail.nyc](https://github.com/jamespfennell/realtimerail.nyc-react)
+- [WTFT](https://github.com/jonthornton/WTFT)
 
 ## Licensing
 
