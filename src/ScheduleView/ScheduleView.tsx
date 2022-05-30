@@ -64,7 +64,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
         };
     }, []);
 
-    if (locationErrorMessage) {
+    if (loadingTimes || (loadingNearestStations && lastNearestStationData === undefined)) {
+        return <LoadingView />
+    }
+
+    if (locationErrorMessage || latitude === undefined || longitude === undefined) {
         return <ErrorPage errorCode='LOCATION_FAILURE' error={<>Failed to get current location. Please ensure location access is enabled.</>} />
     }
 
@@ -74,10 +78,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
 
     if (dataTimes?.trainTimes?.stationServiceTrips?.length === 0) {
         return <ErrorPage errorCode='NO_SERVICES' error={<>Selected services don't appear to be running.</>} />
-    }
-
-    if (loadingTimes || (loadingNearestStations && lastNearestStationData === undefined) || latitude === undefined || longitude === undefined) {
-        return <LoadingView />
     }
 
     const now = DateTime.now()
