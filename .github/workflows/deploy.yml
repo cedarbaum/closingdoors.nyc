@@ -32,7 +32,7 @@ jobs:
           npm config set '//npm.fontawesome.com/:_authToken' "${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}"
 
       - name: Build website
-        run: npm install && CI=false npm run build
+        run: npm install --legacy-peer-deps && CI=false npm run build
         
       - name: Build stack
         working-directory: ./infrastructure
