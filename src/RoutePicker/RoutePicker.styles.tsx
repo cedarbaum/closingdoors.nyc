@@ -18,6 +18,7 @@ export interface MaxHeightProps {
 export interface ShuttleTextProps {
   color: string;
   isBold: boolean;
+  increaseVisibility?: boolean;
 }
 
 export const AlertsHeaderContainer = styled.div<MaxHeightProps>((props) => ({
@@ -69,8 +70,9 @@ export const ArrowContainer = styled.div({
 export const ShuttleText = styled.span<ShuttleTextProps>((props) => ({
   fontFamily: '"Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif',
   fontSize: "40px",
-  color: `${props.color}`,
+  color: `white`,
   fontWeight: `${props.isBold ? "bold" : "normal"}`,
+  opacity: `${props.isBold ? "100%" : "40%"}`,
 }));
 
 export const SubmitButton = styled.button<SubmitButtonProps>((props) => ({
