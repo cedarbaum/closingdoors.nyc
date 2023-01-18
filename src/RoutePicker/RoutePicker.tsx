@@ -185,8 +185,8 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
         );
 
         return enHtmlHeader !== undefined
-          ? { header: enHtmlHeader?.text, desc: enHtmlDescription?.text }
-          : { header: enHeader?.text, desc: enDescription?.text };
+          ? { header: enHtmlHeader?.text, description: enHtmlDescription?.text }
+          : { header: enHeader?.text, description: enDescription?.text };
       })
       ?.filter(({ header }) => header !== undefined);
   }
