@@ -31,6 +31,9 @@ export const FilteredImage = styled.img<FilteredImageProps>((props) => ({
 
 export const SubwayIconContainer = styled.span<SubwayIconContainerProps>(
   (props) => ({
+    userSelect: "none",
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none",
     display: "inline-block",
     position: "relative",
     verticalAlign: "middle",
