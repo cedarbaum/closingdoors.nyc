@@ -193,23 +193,8 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
 
   return (
     <S.Container>
-      {false && visibleAlertMessages !== undefined && (
-        <Popup
-          modal
-          open
-          position={"top center"}
-          onClose={() => setFocusedRoute(undefined)}
-        >
-          {(close: () => void) => (
-            <div style={{ maxWidth: "480px" }}>
-              <AlertsHeader
-                alerts={visibleAlertMessages!}
-                behavior={Behavior.Closable}
-                onClose={close}
-              />
-            </div>
-          )}
-        </Popup>
+      {focusedRoute !== undefined && (
+        <S.FullscreenAlertBackdrop onClick={() => setFocusedRoute(undefined)} />
       )}
       <S.ArrowsContainer>
         <S.ArrowContainer onClick={() => setDirection(DIRECTION.UPTOWN)}>

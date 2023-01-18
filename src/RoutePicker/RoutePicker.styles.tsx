@@ -132,3 +132,12 @@ export const UpperRightIcon = styled(FontAwesomeIcon)<ColoredCircleProps>(
 export const SpanWithBlackText = styled.span({
   color: "black",
 });
+
+export const FullscreenAlertBackdrop = styled.div({
+  position: "absolute",
+  left: 0,
+  width: "100%",
+  height: "100%",
+  background: "transparent",
+  zIndex: 999,
+})
