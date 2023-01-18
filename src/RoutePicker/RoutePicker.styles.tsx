@@ -107,7 +107,7 @@ export const UpperRightIcon = styled(FontAwesomeIcon)<ColoredCircleProps>(
     top: "-7%",
     borderRadius: "100%",
     position: "absolute",
-    zIndex: 100,
+    zIndex: 50,
     ...(props.animate && {
       animation: `${flickerKeyFrames} 1.5s infinite alternate`,
       animationTimingFunction: "ease-in-out",
