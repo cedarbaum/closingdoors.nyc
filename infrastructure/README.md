@@ -10,5 +10,5 @@
 ## Deploy to AWS
 
 1. Ensure the website has been built from the root repository folder.
-2. `npm install && npm run build`   
+2. `npm install && npm run build`
 3. `cdk deploy --require-approval never`

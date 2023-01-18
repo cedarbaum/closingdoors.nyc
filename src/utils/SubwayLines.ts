@@ -1,5 +1,5 @@
 // http://web.mta.info/developers/resources/line_colors.htm
-export const enum LINE_COLORS {
+export const enum MTA_COLORS {
   red = "#EE352E",
   green = "#6CBE45",
   blue = "#0039A6",
@@ -12,96 +12,90 @@ export const enum LINE_COLORS {
 }
 
 export const enum TEXT_COLORS {
-    WHITE = "#fff",
-    BLACK = "#000"
+  WHITE = "#fff",
+  BLACK = "#000",
 }
 
 export const enum DIRECTION {
-    UPTOWN = 'N',
-    DOWNTOWN = 'S',
+  UPTOWN = "N",
+  DOWNTOWN = "S",
 }
 
-export interface Service {
-    name: string
-    isExpress?: boolean
+export interface Route {
+  name: string;
+  isDiamond?: boolean;
 }
 
 export interface Line {
-    name: string
-    services: Service[]
-    color: LINE_COLORS
-    unselectedColor?: string
-    textColor?: string
+  name: string;
+  routes: Route[];
+  color: MTA_COLORS;
+  textColor?: string;
 }
 
 export const allLines: Line[] = [
   {
     name: "IND Eighth Avenue Line",
-    color: LINE_COLORS.blue,
-    unselectedColor: '#497895',
-    services: [{ name: "A" }, { name: "C" }, { name: "E" }],
+    color: MTA_COLORS.blue,
+    routes: [{ name: "A" }, { name: "C" }, { name: "E" }],
   },
   {
     name: "IND Sixth Avenue Line",
-    color: LINE_COLORS.orange,
-    unselectedColor: '#ee8b5b',
-    services: [
+    color: MTA_COLORS.orange,
+    routes: [
       { name: "B" },
       { name: "D" },
       { name: "F" },
-      { name: "F", isExpress: true },
+      { name: "F", isDiamond: true },
       { name: "M" },
     ],
   },
   {
     name: "IND Crosstown Line",
-    color: LINE_COLORS.green2,
-    unselectedColor: '#93b562',
-    services: [{ name: "G" }],
+    color: MTA_COLORS.green2,
+    routes: [{ name: "G" }],
   },
   {
     name: "BMT Canarsie Line",
-    color: LINE_COLORS.gray,
-    unselectedColor: '#cecece',
-    services: [{ name: "L" }],
+    color: MTA_COLORS.gray,
+    routes: [{ name: "L" }],
   },
   {
     name: "BMT Nassau Street Line",
-    color: LINE_COLORS.brown,
-    unselectedColor: '#bf8a4f',
-    services: [{ name: "J" }, { name: "Z" }],
+    color: MTA_COLORS.brown,
+    routes: [{ name: "J" }, { name: "Z" }],
   },
   {
     name: "BMT Broadway Line",
-    color: LINE_COLORS.yellow,
-    unselectedColor: '#D5BC5B',
+    color: MTA_COLORS.yellow,
     textColor: TEXT_COLORS.BLACK,
-    services: [{ name: "N" }, { name: "Q" }, { name: "R" }, { name: "W" }],
+    routes: [{ name: "N" }, { name: "Q" }, { name: "R" }, { name: "W" }],
   },
   {
     name: "IRT Broadway-Seventh Avenue Line",
-    color: LINE_COLORS.red,
-    unselectedColor: '#bd4a4a',
-    services: [{ name: "1" }, { name: "2" }, { name: "3" }],
+    color: MTA_COLORS.red,
+    routes: [{ name: "1" }, { name: "2" }, { name: "3" }],
   },
   {
     name: "IRT Lexington Avenue Line",
-    color: LINE_COLORS.green,
-    unselectedColor: '#a1e6a18a',
-    services: [
+    color: MTA_COLORS.green,
+    routes: [
       { name: "4" },
       { name: "5" },
       { name: "6" },
-      { name: "6", isExpress: true },
+      { name: "6", isDiamond: true },
     ],
   },
   {
     name: "IRT Flushing Line",
-    color: LINE_COLORS.purple,
-    unselectedColor: '#ae56ae',
-    services: [{ name: "7" }, { name: "7", isExpress: true }],
+    color: MTA_COLORS.purple,
+    routes: [{ name: "7" }, { name: "7", isDiamond: true }],
+  },
+  {
+    name: "Shuttles",
+    color: MTA_COLORS.gray,
+    routes: [{ name: "H" }, { name: "FS" }, { name: "GS" }],
   },
 ];
 
-export const allServices = allLines.flatMap(line => line.services)
-export const serviceToLineMetadataMap = new Map(allLines.flatMap(line => line.services.map(service => [service.name, line])))
+export const allRoutes = allLines.flatMap((line) => line.routes);

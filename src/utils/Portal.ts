@@ -2,9 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 export interface PortalProps {
-    children: React.ReactNode
-    className: string,
-    el: string
+  children: React.ReactNode;
+  className: string;
+  el: string;
 }
 
 // https://stackoverflow.com/a/59154364
