@@ -2,12 +2,12 @@
 
 A minimalist subway schedule viewer written in React.
 
-An implementation of the backend GraphQL interface can be found [here](https://github.com/cedarbaum/GraphQlMtaApiBackend).
+An implementation of the backend GraphQL interface can be found [here](https://github.com/cedarbaum/transiter-graphql-proxy).
 
 <p align="center">
-  <img src="./.images/home.PNG" width="200" />
-  <img src="./.images/schedule.PNG" width="200" />
-  <img src="./.images/alert.PNG" width="200" />
+  <img src="./.images/home.PNG" width="250" />
+  <img src="./.images/schedule.PNG" width="250" />
+  <img src="./.images/alert.png" width="250" />
 </p>
 
 ## Setup and build
