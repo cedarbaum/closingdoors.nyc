@@ -24,6 +24,9 @@ export const enum DIRECTION {
 export interface Route {
   name: string;
   isDiamond?: boolean;
+  isShuttle?: boolean;
+  northAlias?: string;
+  southAlias?: string;
 }
 
 export interface Line {
@@ -58,7 +61,9 @@ export const allLines: Line[] = [
   {
     name: "BMT Canarsie Line",
     color: MTA_COLORS.gray,
-    routes: [{ name: "L" }],
+    routes: [
+      { name: "L", isShuttle: true, northAlias: "MH", southAlias: "BK" },
+    ],
   },
   {
     name: "BMT Nassau Street Line",
@@ -94,7 +99,11 @@ export const allLines: Line[] = [
   {
     name: "Shuttles",
     color: MTA_COLORS.gray,
-    routes: [{ name: "H" }, { name: "FS" }, { name: "GS" }],
+    routes: [
+      { name: "H", isShuttle: true, northAlias: "🏢", southAlias: "🏖️" },
+      { name: "FS", isShuttle: true, northAlias: "🏢", southAlias: "🌳" },
+      { name: "GS", isShuttle: true, northAlias: "TS", southAlias: "GC" },
+    ],
   },
 ];
 

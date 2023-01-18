@@ -15,6 +15,11 @@ export interface MaxHeightProps {
   maxHeight: number | undefined;
 }
 
+export interface ShuttleTextProps {
+  color: string;
+  isBold: boolean;
+}
+
 export const AlertsHeaderContainer = styled.div<MaxHeightProps>((props) => ({
   maxHeight: props.maxHeight,
   scrollbarWidth: "none",
@@ -22,7 +27,7 @@ export const AlertsHeaderContainer = styled.div<MaxHeightProps>((props) => ({
   "::-webkit-scrollbar": {
     display: "none",
   },
-}))
+}));
 
 export const Container = styled.div({
   overflow: "scroll",
@@ -60,6 +65,13 @@ export const ArrowContainer = styled.div({
   display: "flex",
   backgroundColor: "black",
 });
+
+export const ShuttleText = styled.span<ShuttleTextProps>((props) => ({
+  fontFamily: '"Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif',
+  fontSize: "40px",
+  color: `${props.color}`,
+  fontWeight: `${props.isBold ? "bold" : "normal"}`,
+}));
 
 export const SubmitButton = styled.button<SubmitButtonProps>((props) => ({
   backgroundColor: "black",
@@ -114,3 +126,7 @@ export const UpperRightIcon = styled(FontAwesomeIcon)<ColoredCircleProps>(
     }),
   })
 );
+
+export const SpanWithBlackText = styled.span({
+  color: "black",
+});

@@ -1,6 +1,6 @@
 import React from "react";
 import { SubwayIcon } from "../SubwayIcon/SubwayIcon";
-import { DIRECTION } from "../utils/SubwayLines";
+import { allRoutes, DIRECTION } from "../utils/SubwayLines";
 import * as S from "./TripView.styles";
 
 import { faArrowUp, faArrowDown } from "@fortawesome/pro-regular-svg-icons";
@@ -23,6 +23,12 @@ export interface TripViewProps {
 
 export const TripView: React.FC<TripViewProps> = (props) => {
   const isDiamond = props.route.endsWith("X");
+  const route = allRoutes.find(
+    (route) =>
+      route.name === props.route &&
+      (route.isDiamond === isDiamond ||
+        (!isDiamond && route.isDiamond === undefined))
+  );
   const normalizedRouteName = isDiamond
     ? props.route.substring(0, props.route.length - 1)
     : props.route;
@@ -76,13 +82,21 @@ export const TripView: React.FC<TripViewProps> = (props) => {
       <S.LeftContainer>
         <SubwayIcon name={normalizedRouteName} isDiamond={isDiamond} />
         <S.MarginLeft>
-          <FontAwesomeIcon
-            icon={
-              props.direction === DIRECTION.UPTOWN ? faArrowUp : faArrowDown
-            }
-            color={"white"}
-            size={"2x"}
-          />
+          {route?.isShuttle ? (
+            <S.ShuttleText>
+              {props.direction === DIRECTION.UPTOWN
+                ? route.northAlias
+                : route.southAlias}
+            </S.ShuttleText>
+          ) : (
+            <FontAwesomeIcon
+              icon={
+                props.direction === DIRECTION.UPTOWN ? faArrowUp : faArrowDown
+              }
+              color={"white"}
+              size={"2x"}
+            />
+          )}
         </S.MarginLeft>
       </S.LeftContainer>
       <S.RightContainer>

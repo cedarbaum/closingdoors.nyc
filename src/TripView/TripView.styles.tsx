@@ -53,3 +53,9 @@ export const RightContainer = styled.div({
   marginRight: "1em",
   backgroundColor: "black",
 });
+
+export const ShuttleText = styled.span({
+  fontFamily: '"Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif',
+  fontSize: "32px",
+  color: "white",
+});

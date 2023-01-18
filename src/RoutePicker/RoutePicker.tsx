@@ -40,8 +40,16 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
   const [focusedRoute, setFocusedRoute] = useState<string | undefined>(
     undefined
   );
+  const [northboundAlias, setNorthBoundAlias] = useState<string | undefined>(
+    undefined
+  );
+  const [southboundAlias, setSouthBoundAlias] = useState<string | undefined>(
+    undefined
+  );
   const [direction, setDirection] = useState<DIRECTION | null>(null);
-  const [popupAvailableHeight, setPopupAvailableHeight] = useState<number | undefined>(undefined);
+  const [popupAvailableHeight, setPopupAvailableHeight] = useState<
+    number | undefined
+  >(undefined);
 
   const navigate = useNavigate();
   const { loading, error, data } = useQuery<RouteStatusesQuery>(
@@ -115,12 +123,18 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
     ],
   });
 
-  const directionNotSetError = (
-    <>
-      Select <FontAwesomeIcon icon={boldFaArrowUp} color={"black"} /> or{" "}
-      <FontAwesomeIcon icon={boldFaArrowDown} color={"black"} />.
-    </>
-  );
+  const directionNotSetError =
+    northboundAlias !== undefined ? (
+      <>
+        Select <S.SpanWithBlackText>{northboundAlias}</S.SpanWithBlackText> or{" "}
+        <S.SpanWithBlackText>{southboundAlias}</S.SpanWithBlackText>.
+      </>
+    ) : (
+      <>
+        Select <FontAwesomeIcon icon={boldFaArrowUp} color={"black"} /> or{" "}
+        <FontAwesomeIcon icon={boldFaArrowDown} color={"black"} />.
+      </>
+    );
   const noRoutesSelected = <>Select at least 1 route.</>;
 
   const handleOnClick = useCallback(() => {
@@ -170,11 +184,11 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
           (header) => header.language === "en"
         );
 
-      return enHtmlHeader !== undefined
-        ? { header: enHtmlHeader?.text, desc: enHtmlDescription?.text }
-        : { header: enHeader?.text, desc: enDescription?.text }
+        return enHtmlHeader !== undefined
+          ? { header: enHtmlHeader?.text, desc: enHtmlDescription?.text }
+          : { header: enHeader?.text, desc: enDescription?.text };
       })
-      ?.filter(({header}) => header !== undefined);
+      ?.filter(({ header }) => header !== undefined);
   }
 
   return (
@@ -199,18 +213,36 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
       )}
       <S.ArrowsContainer>
         <S.ArrowContainer onClick={() => setDirection(DIRECTION.UPTOWN)}>
-          <FontAwesomeIcon
-            size={"lg"}
-            icon={uptownArrowIcon}
-            color={uptownArrowColor}
-          />
+          {northboundAlias !== undefined ? (
+            <S.ShuttleText
+              color={uptownArrowColor}
+              isBold={direction === DIRECTION.UPTOWN}
+            >
+              {northboundAlias}
+            </S.ShuttleText>
+          ) : (
+            <FontAwesomeIcon
+              size={"lg"}
+              icon={uptownArrowIcon}
+              color={uptownArrowColor}
+            />
+          )}
         </S.ArrowContainer>
         <S.ArrowContainer onClick={() => setDirection(DIRECTION.DOWNTOWN)}>
-          <FontAwesomeIcon
-            size={"lg"}
-            icon={downtownArrowIcon}
-            color={downtownArrowColor}
-          />
+          {northboundAlias !== undefined ? (
+            <S.ShuttleText
+              color={downtownArrowColor}
+              isBold={direction === DIRECTION.DOWNTOWN}
+            >
+              {southboundAlias}
+            </S.ShuttleText>
+          ) : (
+            <FontAwesomeIcon
+              size={"lg"}
+              icon={downtownArrowIcon}
+              color={downtownArrowColor}
+            />
+          )}
         </S.ArrowContainer>
       </S.ArrowsContainer>
       <S.RoutesContainer>
@@ -242,7 +274,7 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
                   >
                     {hasAlerts && (
                       <S.UpperRightIcon
-                        animate={'true'}
+                        animate={"true"}
                         icon={faExclamationCircle}
                         color={"yellow"}
                       />
@@ -258,7 +290,9 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
                           overflow: "visible",
                         }}
                       >
-                        <S.AlertsHeaderContainer maxHeight={popupAvailableHeight}>
+                        <S.AlertsHeaderContainer
+                          maxHeight={popupAvailableHeight}
+                        >
                           <AlertsHeader
                             alerts={visibleAlertMessages!}
                             behavior={Behavior.Closable}
@@ -291,7 +325,11 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
                       opacity={
                         selectedRoutes.has(routeKey) || isFocused ? 1.0 : 0.7
                       }
-                      border={selectedRoutes.has(routeKey) ? "3px solid white" : undefined}
+                      border={
+                        selectedRoutes.has(routeKey)
+                          ? "3px solid white"
+                          : undefined
+                      }
                       onClick={() => {
                         // Don't detect a normal click if a long press is happening
                         if (focusedRoute !== undefined) {
@@ -301,14 +339,37 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
                         // BUG: Below case shouldn't ne needed, but for some reason adding an element
                         // to the initial empty set doesn't correctly update state on next render.
                         // Creating a new set without relying on prevState fixes this.
-                        if (selectedRoutes.size === 0) {
+                        if (selectedRoutes.size === 0 || route.isShuttle) {
+                          setNorthBoundAlias(route.northAlias);
+                          setSouthBoundAlias(route.southAlias);
                           setSelectedRoutes(new Set([routeKey]));
                         }
+
                         if (!selectedRoutes.has(routeKey)) {
-                          setSelectedRoutes(
-                            (prevState) => new Set(prevState.add(routeKey))
-                          );
+                          if (!route.isShuttle) {
+                            setNorthBoundAlias(undefined);
+                            setSouthBoundAlias(undefined);
+                          }
+
+                          setSelectedRoutes((prevState) => {
+                            for (var line of allLines) {
+                              for (var route of line.routes) {
+                                if (route.isShuttle) {
+                                  const routeKey = route.isDiamond
+                                    ? `${route.name}X`
+                                    : route.name;
+                                  prevState.delete(routeKey);
+                                }
+                              }
+                            }
+
+                            return new Set(prevState.add(routeKey));
+                          });
                         } else {
+                          if (route.isShuttle) {
+                            setNorthBoundAlias(undefined);
+                            setSouthBoundAlias(undefined);
+                          }
                           setSelectedRoutes((prevState) => {
                             prevState.delete(routeKey);
                             return new Set(prevState);
