@@ -17,6 +17,10 @@ export interface FilteredImageProps {
 }
 
 export const FilteredImage = styled.img<FilteredImageProps>((props) => ({
+  pointerEvents: "none",
+  userSelect: "none",
+  WebkitTouchCallout: "none",
+  WebkitUserSelect: "none",
   ...(props.filter && { filter: props.filter }),
   ...(props.opacity && { opacity: props.opacity }),
   ...(props.border && {
