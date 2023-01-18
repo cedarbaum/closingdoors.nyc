@@ -115,6 +115,9 @@ const flickerKeyFrames = keyframes`
 
 export const UpperRightIcon = styled(FontAwesomeIcon)<ColoredCircleProps>(
   (props) => ({
+    userSelect: "none",
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none",
     width: "30%",
     height: "30%",
     right: "-7%",
