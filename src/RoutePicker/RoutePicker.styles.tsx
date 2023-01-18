@@ -140,4 +140,7 @@ export const FullscreenAlertBackdrop = styled.div({
   height: "100%",
   background: "transparent",
   zIndex: 999,
+  userSelect: "none",
+  WebkitTouchCallout: "none",
+  WebkitUserSelect: "none",
 })
