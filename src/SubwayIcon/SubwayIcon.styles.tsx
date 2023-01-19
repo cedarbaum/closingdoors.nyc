@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 export interface SubwayIconContainerProps {
   sizeEm?: number;
   clickable?: boolean;
+  verticalAlign?: string
 }
 
 export interface SubwayIconColorProps {
@@ -36,7 +37,7 @@ export const SubwayIconContainer = styled.span<SubwayIconContainerProps>(
     WebkitUserSelect: "none",
     display: "inline-block",
     position: "relative",
-    verticalAlign: "middle",
+    verticalAlign: props.verticalAlign ?? "middle",
     width: props.sizeEm ? `${props.sizeEm}em` : "3.1em",
     height: props.sizeEm ? `${props.sizeEm}em` : "3.1em",
     ...(props.clickable && { cursor: "pointer" }),

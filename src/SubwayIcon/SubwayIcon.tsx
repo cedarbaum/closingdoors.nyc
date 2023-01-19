@@ -85,6 +85,7 @@ export interface SubwayIconProps {
   name: string;
   isDiamond?: boolean;
   sizeEm?: number;
+  verticalAlign?: string
   opacity?: number;
   border?: string;
   onClick?(): void;
@@ -102,6 +103,7 @@ export const SubwayIcon: React.FC<SubwayIconProps> = (props) => {
       clickable={props.onClick !== undefined}
       onClick={() => props.onClick && props.onClick()}
       sizeEm={props.sizeEm}
+      verticalAlign={props.verticalAlign}
     >
       <S.FilteredImage
         src={routeIdToImage.get(imageKey)}

@@ -3,6 +3,7 @@ import * as S from "./Alert.styles";
 import { renderToString } from "react-dom/server";
 
 import { SubwayIcon, routeIdToImage } from "../SubwayIcon/SubwayIcon";
+import AccessibilityIcon from "./svg/International_Symbol_of_Access.svg";
 import DOMPurify from "dompurify";
 
 export interface AlertProps {
@@ -47,9 +48,20 @@ function processAlertText(alertText?: string) {
       return renderToString(
         <SubwayIcon
           name={innerText}
-          sizeEm={1.2}
-          border={routesToShowBorderFor.has(innerText) ? "1px solid black" : undefined}
+          sizeEm={1.25}
+          verticalAlign="text-bottom"
+          border={
+            routesToShowBorderFor.has(innerText) ? "1px solid black" : undefined
+          }
         />
+      );
+    }
+
+    if (innerText === "accessibility icon") {
+      return renderToString(
+        <S.IconContainer>
+          <img src={AccessibilityIcon} />
+        </S.IconContainer>
       );
     }
 

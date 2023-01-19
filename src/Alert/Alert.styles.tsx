@@ -37,3 +37,10 @@ export const NumberOfAlertsSpan = styled.span({
 export const RotatableIcon = styled(FontAwesomeIcon)({
   transition: "0.15s ease",
 });
+
+export const IconContainer = styled.span({
+  display: "inline-block",
+  verticalAlign: "text-bottom",
+  width: "1.25em",
+  height: "1.25em"
+})
