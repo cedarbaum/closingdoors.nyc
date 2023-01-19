@@ -7,6 +7,7 @@ export interface ContainerProps {
 }
 
 export const Container = styled.div<ContainerProps>((props) => ({
+  lineHeight: "1.2em",
   backgroundColor: "#FCCC0A",
   ...(props.paddingBottom && { paddingBottom: props.paddingBottom }),
   ...(props.showBottomBorder && { borderBottom: "2px dotted black" }),
