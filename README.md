@@ -16,9 +16,11 @@ An implementation of the backend GraphQL interface can be found [here](https://g
 
 Currently, this project requires Font Awesome Pro for some of its icons (see: https://github.com/cedarbaum/closingdoors.nyc/issues/1). To configure NPM to pull in the required packages, [configure access](https://fontawesome.com/docs/web/setup/packages#_1-configure-access).
 
-### Enabling a proxy
+### Using a proxy
 
-For this local app to communicate with the AppSync endpoint:
+By default, the app will proxy requests to the production endpoint ([https://closingdoors.nyc](https://closingdoors.nyc)).
+
+To change this to another AppSync endpoint that uses API key authentication:
 
 1. Set the "proxy" property in `package.json` to the base AppSync URL:
 

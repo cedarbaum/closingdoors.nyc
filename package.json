@@ -2,6 +2,7 @@
   "name": "closing-doors",
   "version": "0.1.0",
   "private": true,
+  "proxy": "https://closingdoors.nyc/",
   "dependencies": {
     "@apollo/client": "^3.4.17",
     "@emotion/react": "^11.7.1",
