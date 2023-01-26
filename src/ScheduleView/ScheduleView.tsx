@@ -199,31 +199,39 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
 
           const stopRows = stopRouteTrip?.routeTrips
             .flatMap((routeTrip) => {
-              return routeTrip!.trips!.slice(0, 2).map((trip, idx) => {
-                const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
-                const delta = estimatedArrival.diff(now);
+              return routeTrip!
+                .trips!.filter((trip) => {
+                  // Remove significantly stale trips (more than 30 seconds old)
+                  const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
+                  const delta = estimatedArrival.diff(now).toMillis();
+                  return delta >= -30 * 1000;
+                })
+                .slice(0, 2)
+                .map((trip, idx) => {
+                  const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
+                  const delta = estimatedArrival.diff(now);
 
-                return [
-                  trip!.arrival,
-                  <tr key={`${stopWithDirection}${trip!.tripId}${idx}`}>
-                    <S.Td>
-                      <TripView
-                        onClickTimeText={() => {
-                          setDurationFormat(
-                            durationFormat === DURATION_FORMAT.Exact
-                              ? DURATION_FORMAT.MinuteCeiling
-                              : DURATION_FORMAT.Exact
-                          );
-                        }}
-                        route={routeTrip!.route}
-                        timeUntilArrival={delta}
-                        durationFormat={durationFormat}
-                        direction={props.direction}
-                      />
-                    </S.Td>
-                  </tr>,
-                ] as [number, JSX.Element];
-              });
+                  return [
+                    trip!.arrival,
+                    <tr key={`${stopWithDirection}${trip!.tripId}${idx}`}>
+                      <S.Td>
+                        <TripView
+                          onClickTimeText={() => {
+                            setDurationFormat(
+                              durationFormat === DURATION_FORMAT.Exact
+                                ? DURATION_FORMAT.MinuteCeiling
+                                : DURATION_FORMAT.Exact
+                            );
+                          }}
+                          route={routeTrip!.route}
+                          timeUntilArrival={delta}
+                          durationFormat={durationFormat}
+                          direction={props.direction}
+                        />
+                      </S.Td>
+                    </tr>,
+                  ] as [number, JSX.Element];
+                });
             })
             .sort((t1, t2) => t1[0] - t2[0])
             .map((t) => t[1]);
