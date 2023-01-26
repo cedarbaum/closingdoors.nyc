@@ -204,7 +204,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
                   // Remove significantly stale trips (more than 30 seconds old)
                   const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
                   const delta = estimatedArrival.diff(now).toMillis();
-                  return delta >= -30 * 1000;
+                  return delta >= -15 * 1000;
                 })
                 .slice(0, 2)
                 .map((trip, idx) => {
