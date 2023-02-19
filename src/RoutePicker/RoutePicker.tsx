@@ -19,7 +19,6 @@ import {
   RouteStatusesQuery,
 } from "../graphql/generated";
 import { AlertsHeader, Behavior } from "../AlertsHeader/AlertsHeader";
-import Popup from "reactjs-popup";
 import { AlertProps } from "../Alert/Alert";
 import { useLongPress } from "use-long-press";
 import {
@@ -30,6 +29,7 @@ import {
   size,
   useFloating,
 } from "@floating-ui/react-dom";
+import { getAlertPropsFromRouteAlerts } from "../Alert/AlertHelpers";
 
 interface RoutePickerProps {
   onError?(error: JSX.Element): void;
@@ -167,28 +167,9 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
 
   let visibleAlertMessages: AlertProps[] | undefined = undefined;
   if (focusedRoute !== undefined && alertsByRoute?.has(focusedRoute)) {
-    visibleAlertMessages = alertsByRoute
-      .get(focusedRoute)
-      ?.map((alert) => {
-        const enHtmlHeader = alert?.messages?.headers?.find(
-          (header) => header.language === "en-html"
-        );
-        const enHtmlDescription = alert?.messages?.descriptions?.find(
-          (header) => header.language === "en-html"
-        );
-
-        const enHeader = alert?.messages?.headers?.find(
-          (header) => header.language === "en"
-        );
-        const enDescription = alert?.messages?.descriptions?.find(
-          (header) => header.language === "en"
-        );
-
-        return enHtmlHeader !== undefined
-          ? { header: enHtmlHeader?.text, description: enHtmlDescription?.text }
-          : { header: enHeader?.text, description: enDescription?.text };
-      })
-      ?.filter(({ header }) => header !== undefined);
+    visibleAlertMessages = getAlertPropsFromRouteAlerts(
+      alertsByRoute.get(focusedRoute) ?? []
+    );
   }
 
   return (

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client";
 import {
+  Alert,
   Direction,
   NearbyTrainTimesDocument,
   NearbyTrainTimesQuery,
@@ -16,6 +17,7 @@ import haversineDistance from "haversine-distance";
 import * as S from "./ScheduleView.styles";
 import { LoadingView } from "../LoadingView/LoadingView";
 import { AlertsHeader, Behavior } from "../AlertsHeader/AlertsHeader";
+import { getAlertPropsFromRouteAlerts } from "../Alert/AlertHelpers";
 
 export interface ScheduleViewProps {
   stops?: Set<string>;
@@ -154,28 +156,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
     }
   }
 
-  const alertMessages = data?.routeStatuses
-    ?.flatMap((routeStatus) => routeStatus.alerts)
-    ?.map((alert) => {
-      const enHtmlHeader = alert?.messages?.headers?.find(
-        (header) => header.language === "en-html"
-      );
-      const enHtmlDescription = alert?.messages?.descriptions?.find(
-        (header) => header.language === "en-html"
-      );
-
-      const enHeader = alert?.messages?.headers?.find(
-        (header) => header.language === "en"
-      );
-      const enDescription = alert?.messages?.descriptions?.find(
-        (header) => header.language === "en"
-      );
-
-      return enHtmlHeader !== undefined
-        ? { header: enHtmlHeader.text, description: enHtmlDescription?.text }
-        : { header: enHeader?.text, description: enDescription?.text };
-    })
-    ?.filter(({ header }) => header !== undefined);
+  const alertMessages = getAlertPropsFromRouteAlerts(
+    data?.routeStatuses?.flatMap(
+      (routeStatus) => routeStatus.alerts as Alert[]
+    ) ?? []
+  );
 
   return (
     <S.Container>
