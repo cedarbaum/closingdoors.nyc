@@ -5,18 +5,25 @@ export interface RotationProps {
   angledeg?: number;
 }
 
+export interface DropDownHeaderProps {
+  addLeftRightPadding?: boolean;
+}
+
 export const Container = styled.div({});
 
-export const DropDownHeader = styled.div({
+export const DropDownHeader = styled.div<DropDownHeaderProps>((props) => ({
   height: "1em",
   backgroundColor: "#FCCC0A",
-  padding: "1em",
+  ...(props.addLeftRightPadding && { paddingLeft: "1em" }),
+  ...(props.addLeftRightPadding && { paddingRight: "1em" }),
+  paddingTop: "1em",
+  paddingBottom: "1em",
   fontFamily: 'Helvetica, Arial, "Lucida Grande", sans-serif',
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   cursor: "pointer",
-});
+}));
 
 export const DropDownBody = styled.div({});
 

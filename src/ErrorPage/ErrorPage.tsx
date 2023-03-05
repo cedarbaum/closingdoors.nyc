@@ -5,13 +5,17 @@ import * as S from "./ErrorPage.styles";
 
 export interface ErrorPageProps {
   error: JSX.Element;
+  errorDetails?: JSX.Element;
 }
 
 export const ErrorPage: React.FC<ErrorPageProps> = (props) => {
   return (
     <S.Container>
-      <FontAwesomeIcon size={"lg"} icon={faExclamationTriangle} />
-      <p>{props.error}</p>
+      <S.ErrorTextContainer>
+        <FontAwesomeIcon size={"lg"} icon={faExclamationTriangle} />
+        <p>{props.error}</p>
+      </S.ErrorTextContainer>
+      {props.errorDetails}
     </S.Container>
   );
 };

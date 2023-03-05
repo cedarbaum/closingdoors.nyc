@@ -18,6 +18,8 @@ export enum Behavior {
 export interface AlertsHeaderProps {
   alerts: AlertProps[];
   behavior: Behavior;
+  hideAlertIcon?: boolean;
+  addLeftRightPadding?: boolean;
   onClose?(): void;
 }
 
@@ -53,21 +55,28 @@ export const AlertsHeader: React.FC<AlertsHeaderProps> = (props) => {
         onClick={() =>
           props.behavior === Behavior.Collapsable && setExpanded(!expanded)
         }
+        addLeftRightPadding={props.addLeftRightPadding}
       >
         <S.NumberOfAlertsSpan>
-          <FontAwesomeIcon icon={faExclamationTriangle} /> {numAlerts} active{" "}
-          {numAlerts > 1 ? "alerts" : "alert"}
+          {!props.hideAlertIcon && (
+            <>
+              <FontAwesomeIcon icon={faExclamationTriangle} />{" "}
+            </>
+          )}
+          {numAlerts} active {numAlerts > 1 ? "alerts" : "alert"}
         </S.NumberOfAlertsSpan>
-        <S.RotatableIcon
-          angledeg={expanded ? 180 : 0}
-          icon={
-            props.behavior === Behavior.Collapsable
-              ? faChevronDown
-              : faWindowClose
-          }
-          color={"black"}
-          onClick={onIconClick}
-        />
+        {props.behavior !== Behavior.None && (
+          <S.RotatableIcon
+            angledeg={expanded ? 180 : 0}
+            icon={
+              props.behavior === Behavior.Collapsable
+                ? faChevronDown
+                : faWindowClose
+            }
+            color={"black"}
+            onClick={onIconClick}
+          />
+        )}
       </S.DropDownHeader>
       <AnimateHeight
         duration={250}
@@ -84,6 +93,7 @@ export const AlertsHeader: React.FC<AlertsHeaderProps> = (props) => {
                 paddingBottom={
                   idx < props.alerts.length - 1 ? undefined : "1em"
                 }
+                addLeftRightPadding={props.addLeftRightPadding}
               />
             );
           })}

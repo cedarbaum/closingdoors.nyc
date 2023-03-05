@@ -11,6 +11,7 @@ export interface AlertProps {
   description?: string | null;
   showBottomBorder?: boolean;
   paddingBottom?: string | number;
+  addLeftRightPadding?: boolean;
 }
 
 const routesToShowBorderFor = new Set(["N", "Q", "R", "W"]);
@@ -20,6 +21,7 @@ export const Alert: React.FC<AlertProps> = (props) => {
     <S.Container
       showBottomBorder={props.showBottomBorder}
       paddingBottom={props.paddingBottom}
+      addLeftRightPadding={props.addLeftRightPadding}
     >
       {props.header && (
         <S.AlertHeader

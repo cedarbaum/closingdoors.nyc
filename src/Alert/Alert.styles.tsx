@@ -4,19 +4,20 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export interface ContainerProps {
   showBottomBorder?: boolean;
   paddingBottom?: string | number
+  addLeftRightPadding?: boolean;
 }
 
 export const Container = styled.div<ContainerProps>((props) => ({
   lineHeight: "1.2em",
   backgroundColor: "#FCCC0A",
+  ...(props.addLeftRightPadding && { paddingLeft: "1em" }),
+  ...(props.addLeftRightPadding && { paddingRight: "1em" }),
   ...(props.paddingBottom && { paddingBottom: props.paddingBottom }),
   ...(props.showBottomBorder && { borderBottom: "2px dotted black" }),
 }));
 
 export const AlertHeader = styled.div({
   backgroundColor: "#FCCC0A",
-  paddingRight: "1em",
-  paddingLeft: "1em",
   fontFamily: 'Helvetica, Arial, "Lucida Grande", sans-serif',
   alignItems: "center",
   justifyContent: "space-between",
@@ -25,8 +26,6 @@ export const AlertHeader = styled.div({
 
 export const AlertBody = styled.div({
   backgroundColor: "#FCCC0A",
-  paddingRight: "1em",
-  paddingLeft: "1em",
   fontFamily: 'Helvetica, Arial, "Lucida Grande", sans-serif',
 });
 

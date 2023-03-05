@@ -127,11 +127,28 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
     );
   }
 
+  const alertMessages = getAlertPropsFromRouteAlerts(
+    data?.routeStatuses?.flatMap(
+      (routeStatus) => routeStatus.alerts as Alert[]
+    ) ?? []
+  );
+
   if (data?.nearbyTrainTimes?.stopRouteTrips?.length === 0) {
     return (
       <ErrorPage
         error={
           <>Selected routes don't appear to be running at any stops near you.</>
+        }
+        errorDetails={
+          alertMessages?.length > 0 ? (
+            <S.AlertsErrorContainer>
+              <AlertsHeader
+                alerts={alertMessages}
+                behavior={Behavior.None}
+                hideAlertIcon
+              />
+            </S.AlertsErrorContainer>
+          ) : undefined
         }
       />
     );
@@ -156,16 +173,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
     }
   }
 
-  const alertMessages = getAlertPropsFromRouteAlerts(
-    data?.routeStatuses?.flatMap(
-      (routeStatus) => routeStatus.alerts as Alert[]
-    ) ?? []
-  );
-
   return (
     <S.Container>
       {alertMessages !== undefined && (
-        <AlertsHeader alerts={alertMessages} behavior={Behavior.Collapsable} />
+        <AlertsHeader
+          alerts={alertMessages}
+          behavior={Behavior.Collapsable}
+          addLeftRightPadding
+        />
       )}
       <S.Table>
         {data!.nearbyTrainTimes!.stopRouteTrips!.map((stopRouteTrip) => {

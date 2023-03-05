@@ -30,3 +30,5 @@ export const CenterContainer = styled.div({
 });
 
 export const Container = styled.div({});
+
+export const AlertsErrorContainer = styled.div({});

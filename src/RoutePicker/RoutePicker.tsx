@@ -263,6 +263,7 @@ export const RoutePicker: React.FC<RoutePickerProps> = (props) => {
                             alerts={visibleAlertMessages!}
                             behavior={Behavior.Closable}
                             onClose={() => setFocusedRoute(undefined)}
+                            addLeftRightPadding
                           />
                         </S.AlertsHeaderContainer>
                         <div
