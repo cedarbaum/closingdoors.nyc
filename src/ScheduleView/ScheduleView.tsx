@@ -145,6 +145,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = (props) => {
               <AlertsHeader
                 alerts={alertMessages}
                 behavior={Behavior.None}
+                headerFontSizeEm={1.5}
+                showHeaderBottomBorder
                 hideAlertIcon
               />
             </S.AlertsErrorContainer>

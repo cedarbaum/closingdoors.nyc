@@ -20,6 +20,8 @@ export interface AlertsHeaderProps {
   behavior: Behavior;
   hideAlertIcon?: boolean;
   addLeftRightPadding?: boolean;
+  headerFontSizeEm?: number;
+  showHeaderBottomBorder?: boolean;
   onClose?(): void;
 }
 
@@ -56,8 +58,10 @@ export const AlertsHeader: React.FC<AlertsHeaderProps> = (props) => {
           props.behavior === Behavior.Collapsable && setExpanded(!expanded)
         }
         addLeftRightPadding={props.addLeftRightPadding}
+        showBottomBorder={props.showHeaderBottomBorder}
+        usePointerCursor={props.behavior === Behavior.Collapsable}
       >
-        <S.NumberOfAlertsSpan>
+        <S.NumberOfAlertsSpan fontSizeEm={props.headerFontSizeEm}>
           {!props.hideAlertIcon && (
             <>
               <FontAwesomeIcon icon={faExclamationTriangle} />{" "}
