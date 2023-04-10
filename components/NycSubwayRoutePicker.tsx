@@ -210,7 +210,7 @@ export default function NycSubwayRoutePicker() {
 
                   return (
                     <div
-                      className="relative select-none ml-3 first-of-type:ml-0"
+                      className="relative select-none cursor-pointer ml-3 first-of-type:ml-0"
                       key={routeKey}
                       ref={isFocused && hasAlerts ? reference : null}
                       {...bind({ route: routeKey })}
