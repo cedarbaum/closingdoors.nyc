@@ -1,6 +1,5 @@
 import React from "react";
 import { allLines } from "@/utils/SubwayLines";
-import styles from "@/styles/NycSubwayLoadingView.module.css";
 
 const animationDelays = [0, -0.4, -0.8, -0.4, -0.8, -1.2, -0.8, -1.2, -1.6];
 
@@ -18,7 +17,7 @@ export const NycSubwayLoadingView: React.FC = () => {
           return (
             <div
               key={idx}
-              className={`absolute w-[16px] h-[16px] rounded-full ${styles["loading-dot-animation"]}`}
+              className="absolute w-[16px] h-[16px] rounded-full animate-nycSubwayLaodingKeyframesAnimation"
               style={{
                 top,
                 left,
