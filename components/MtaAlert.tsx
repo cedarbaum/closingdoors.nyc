@@ -4,7 +4,6 @@ import { allRoutesIds } from "@/utils/SubwayLines";
 import DOMPurify from "dompurify";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import styles from "@/styles/MtaAlert.module.css";
 
 export interface MtaAlertProps {
   header?: string | null;
@@ -35,7 +34,7 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({ header, description }) => {
   }, [header, description]);
 
   return (
-    <div className={styles["alert-container"]}>
+    <div className="alert-container">
       {header && <div dangerouslySetInnerHTML={{ __html: headerHtml }} />}
       {description && (
         <div dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
