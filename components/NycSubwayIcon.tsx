@@ -22,7 +22,7 @@ export const NycSubwayIcon: React.FC<SubwayIconProps> = ({
   return (
     <span
       {...rest}
-      className="inline-block relative"
+      className="inline-block relative select-none"
       style={{ width, height, opacity }}
     >
       <Image
