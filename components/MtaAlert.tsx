@@ -91,7 +91,7 @@ function processAlertText(alertText?: string) {
     if (innerText === "shuttle bus icon") {
       return convertReactComponentToHtml(
         <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
-          <Image src="/mta-alert-icons/bus" alt="Shuttle bus icon" fill />
+          <Image src="/mta-alert-icons/bus.svg" alt="Shuttle bus icon" fill />
         </span>
       );
     }
