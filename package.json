@@ -1,104 +1,47 @@
 {
-  "name": "closing-doors",
+  "name": "closingdoors.nyc",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://closingdoors.nyc/",
-  "dependencies": {
-    "@apollo/client": "^3.4.17",
-    "@emotion/react": "^11.7.1",
-    "@floating-ui/react-dom": "^0.7.1",
-    "@fortawesome/fontawesome-svg-core": "^1.2.36",
-    "@fortawesome/free-solid-svg-icons": "^5.15.4",
-    "@fortawesome/pro-duotone-svg-icons": "^5.15.4",
-    "@fortawesome/pro-light-svg-icons": "^5.15.4",
-    "@fortawesome/pro-regular-svg-icons": "^5.15.4",
-    "@fortawesome/pro-solid-svg-icons": "^5.15.4",
-    "@fortawesome/react-fontawesome": "^0.1.16",
-    "@graphql-codegen/cli": "^2.6.2",
-    "@graphql-codegen/typed-document-node": "^2.2.11",
-    "@graphql-codegen/typescript": "^2.4.11",
-    "@graphql-codegen/typescript-operations": "^2.4.0",
-    "@testing-library/jest-dom": "^5.15.0",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^12.8.3",
-    "@types/dompurify": "^2.3.3",
-    "@types/jest": "^26.0.24",
-    "@types/luxon": "^2.0.8",
-    "@types/node": "^12.20.36",
-    "@types/react": "^17.0.34",
-    "@types/react-dom": "^17.0.11",
-    "dompurify": "^2.3.8",
-    "graphql": "^15.7.2",
-    "haversine-distance": "^1.2.1",
-    "history": "^5.2.0",
-    "humanize-duration": "^3.27.1",
-    "lodash": "^4.17.21",
-    "luxon": "^2.2.0",
-    "react": "^17.0.2",
-    "react-animate-height": "^2.1.2",
-    "react-dom": "^17.0.2",
-    "react-hook-geolocation": "^1.0.9",
-    "react-modal-sheet": "^1.5.1",
-    "react-popper": "^2.3.0",
-    "react-router-dom": "^6.2.1",
-    "react-scripts": "^5.0.0",
-    "reactjs-popup": "^2.0.5",
-    "typescript": "^4.4.4",
-    "use-long-press": "^2.0.2",
-    "use-position": "^1.0.0",
-    "web-vitals": "^1.1.2"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "storybook": "start-storybook -p 6006 -s public",
-    "build-storybook": "build-storybook -s public",
-    "generate": "graphql-codegen"
+    "dev": "next dev -p 8080",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "codegen": "graphql-codegen"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "overrides": [
-      {
-        "files": [
-          "**/*.stories.*"
-        ],
-        "rules": {
-          "import/no-anonymous-default-export": "off"
-        }
-      }
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "dependencies": {
+    "@floating-ui/react": "^0.22.3",
+    "@heroicons/react": "^2.0.17",
+    "@types/dompurify": "^3.0.1",
+    "@types/humanize-duration": "^3.27.1",
+    "@types/luxon": "^3.3.0",
+    "@types/node": "18.15.11",
+    "@types/react": "18.0.32",
+    "@types/react-dom": "18.0.11",
+    "@types/styled-components": "^5.1.26",
+    "dompurify": "^3.0.1",
+    "eslint": "8.37.0",
+    "eslint-config-next": "13.2.4",
+    "framer-motion": "^10.11.2",
+    "haversine-distance": "^1.2.1",
+    "humanize-duration": "^3.28.0",
+    "luxon": "^3.3.0",
+    "next": "13.2.4",
+    "react": "18.2.0",
+    "react-animate-height": "^3.1.1",
+    "react-dom": "18.2.0",
+    "styled-components": "^5.3.9",
+    "tailwind-scrollbar-hide": "^1.1.7",
+    "urql": "^4.0.0",
+    "use-long-press": "^2.0.3"
   },
   "devDependencies": {
-    "@storybook/addon-actions": "^6.4.19",
-    "@storybook/addon-essentials": "^6.4.19",
-    "@storybook/addon-links": "^6.4.19",
-    "@storybook/builder-webpack5": "^6.4.19",
-    "@storybook/manager-webpack5": "^6.4.19",
-    "@storybook/node-logger": "^6.4.19",
-    "@storybook/preset-create-react-app": "^4.0.1",
-    "@storybook/react": "^6.4.19",
-    "@types/humanize-duration": "^3.27.1",
-    "@types/lodash": "^4.14.178",
-    "@types/react-router-dom": "^5.3.2",
-    "@types/use-position": "^0.0.0",
-    "prettier": "2.6.2",
-    "webpack": "^5.69.1"
+    "@graphql-codegen/cli": "^3.2.2",
+    "@graphql-codegen/client-preset": "^2.1.1",
+    "autoprefixer": "^10.4.14",
+    "graphql": "^16.6.0",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.3.1",
+    "typescript": "^5.0.3"
   }
 }
