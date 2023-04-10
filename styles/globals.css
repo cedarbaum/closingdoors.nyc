@@ -12,7 +12,7 @@ main {
 }
 
 /* Below should be in a CSS module, but since the schedule view
-is dynamically imported to aavoid SSR, it runs into this
+is dynamically imported to avoid SSR, it runs into this
 bug: https://github.com/vercel/next.js/issues/33286 */
 .alert-container {
   line-height: 1.5em;
