@@ -33,6 +33,10 @@ APPSYNC_API_KEY="YOUR APPSYNC API KEY"
 - [realtimerail.nyc](https://github.com/jamespfennell/realtimerail.nyc-react)
 - [WTFT](https://github.com/jonthornton/WTFT)
 
+## Attributions
+
+- Subway icons are directly from or based on this project: https://github.com/louh/mta-subway-bullets
+
 ## Licensing
 
 - Usage of the MTA's subway icons and other intellectual property has been granted through their [licensing program](https://new.mta.info/doing-business-with-us/licensing-program).
