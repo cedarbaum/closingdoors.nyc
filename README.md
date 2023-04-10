@@ -12,60 +12,21 @@ An implementation of the backend GraphQL interface can be found [here](https://g
 
 ## Setup and build
 
-### Initial setup
+### Building and running
 
-Currently, this project requires Font Awesome Pro for some of its icons (see: https://github.com/cedarbaum/closingdoors.nyc/issues/1). To configure NPM to pull in the required packages, [configure access](https://fontawesome.com/docs/web/setup/packages#_1-configure-access).
+1. `npm install`
+2. `npm run dev`
 
-### Using a proxy
+### Using a custom AppSync endpoint
 
 By default, the app will proxy requests to the production endpoint ([https://closingdoors.nyc](https://closingdoors.nyc)).
 
-To change this to another AppSync endpoint that uses API key authentication:
-
-1. Set the "proxy" property in `package.json` to the base AppSync URL:
-
-```json
-  "proxy": "https://XXXXXXXXXXXXXXXXXXXXXXXXXX.appsync-api.us-east-1.amazonaws.com/",
-```
-
-2. In `App.tsx`, uncomment the `httpLink` and `authLink` constructs and pass the composite link to the `ApolloClient`:
-
-```typescript
-
-const httpLink = createHttpLink({
-  uri: "/graphql",
-});
-
-const authLink = setContext((_, { headers }) => {
-  return {
-    headers: {
-      ...headers,
-      "x-api-key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    },
-  };
-});
-
-const client = new ApolloClient({
-  // uri: '/graphql',
-  link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
-});
+To change this to another AppSync (AWS managed GraphQL) endpoint, set the following environment variables in a `.env.local` file:
 
 ```
-
-### Building
-
-1. `npm install`
-2. `npm run build`
-3. `npm start`: starts page at [http://localhost:3000](http://localhost:3000)
-
-To use storybook:
-
-1. `npm run storybook`
-
-### Deploying to AWS
-
-See the infrastructure [README](./infrastructure/README.md).
+APPSYNC_ENDPOINT="YOUR FULL APPSYNC URL"
+APPSYNC_API_KEY="YOUR APPSYNC API KEY"
+```
 
 ## Similar projects
 
