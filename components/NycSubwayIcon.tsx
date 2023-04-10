@@ -27,7 +27,7 @@ export const NycSubwayIcon: React.FC<SubwayIconProps> = ({
     >
       <Image
         style={{ border }}
-        className={`select-none ${border ? "rounded-[100%]" : ""}`}
+        className={`select-none pointer-events-none ${border ? "rounded-[100%]" : ""}`}
         src={`/nyc-subway-icons/${imageKey.toLowerCase()}.svg`}
         alt={imageKey}
         fill
