@@ -128,8 +128,11 @@ async function getNearbyStops(
         sort_mode: "DISTANCE",
         latitude: latitude,
         longitude: longitude,
-        max_distance: "3.2",
+        max_distance: "3.0",
+        skip_service_maps: "true",
+        skip_transfers: "true",
       })
   );
+
   return ((await stopsDataResp.json()) as ListStopsReply).stops;
 }
