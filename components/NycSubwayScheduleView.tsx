@@ -198,8 +198,8 @@ const NycSubwayScheduleView: React.FC = () => {
       <FullScreenError
         error={
           <>
-            Selected routes don&apos;t appear to be running at any stops near
-            you.
+            Selected routes don&apos;t appear to be running at any stops within
+            ~1 MI of you.
           </>
         }
         errorDetails={
