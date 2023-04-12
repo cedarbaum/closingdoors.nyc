@@ -18,7 +18,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RouteStatuses[] | { error: string }>
 ) {
-  const { system, routes, get_is_running } = req.query;
+  const { system, routes, get_is_running, get_is_running_best_effort } =
+    req.query;
   if (system === undefined) {
     res.status(400).json({ error: "system is required" });
     return;
@@ -31,11 +32,26 @@ export default async function handler(
       ? allRoutes.filter((route) => routesSet.has(route.id))
       : allRoutes;
 
-  let routeToTripStatus: Map<string, boolean> | null = null;
+  let routeToTripStatus: Map<string, boolean | undefined> | null = null;
   if (get_is_running === "true") {
     const routeTripCalls = allRoutes.map(async (route) => {
-      const trips = await getTrips(system as string, route.id);
-      return [route.id, trips?.length > 0] as [string, boolean];
+      try {
+        const trips = await getTrips(system as string, route.id);
+        return [route.id, trips?.length > 0] as [string, boolean];
+      } catch (err: any) {
+        if (
+          get_is_running_best_effort === undefined ||
+          get_is_running_best_effort !== "true"
+        ) {
+          throw err;
+        }
+
+        console.error(
+          `Failed to get route trips for ${route.id} with error ${err}, returning undefined for running`
+        );
+
+        return [route.id, undefined] as [string, boolean | undefined];
+      }
     });
 
     const routeTripStatus = await Promise.all(routeTripCalls);

@@ -51,6 +51,7 @@ export default function NycSubwayRoutePicker() {
           new URLSearchParams({
             system: "us-ny-subway",
             get_is_running: "true",
+            get_is_running_best_effort: "true",
           })
       );
       if (!routeStatusesResp.ok) {
@@ -69,7 +70,11 @@ export default function NycSubwayRoutePicker() {
   if (data && !error) {
     runningRoutes = new Set(
       data
-        .filter((routeStatus) => routeStatus.running)
+        .filter(
+          (routeStatus) =>
+            // If a running status could not be determined, assume it's running
+            routeStatus.running === undefined || routeStatus.running
+        )
         .map((routeStatus) => routeStatus.route)
     );
 
