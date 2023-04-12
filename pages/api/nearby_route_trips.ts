@@ -127,12 +127,10 @@ async function getNearbyStops(
         search_mode: "DISTANCE",
         latitude: latitude,
         longitude: longitude,
-        max_distance: "1.6",
+        max_distance: "4.8",
+        limit: "500",
         skip_service_maps: "true",
         skip_transfers: "true",
-
-        // Backwards compatibility with old adhoc deployment to enable geographic search
-        filter_by_distance: "true",
       })
   );
 

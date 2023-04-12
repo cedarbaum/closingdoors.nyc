@@ -199,7 +199,7 @@ const NycSubwayScheduleView: React.FC = () => {
         error={
           <>
             Selected routes don&apos;t appear to be running at any stops within
-            ~1 MI of you.
+            ~3 MI of you.
           </>
         }
         errorDetails={
