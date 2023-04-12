@@ -124,8 +124,7 @@ async function getNearbyStops(
   const stopsDataResp = await fetch(
     `${TRANSITER_URL}/systems/${system}/stops?` +
       new URLSearchParams({
-        filter_by_distance: "true",
-        sort_mode: "DISTANCE",
+        search_mode: "DISTANCE",
         latitude: latitude,
         longitude: longitude,
         max_distance: "1.6",
