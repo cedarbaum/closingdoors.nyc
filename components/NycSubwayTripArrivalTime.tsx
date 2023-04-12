@@ -21,7 +21,7 @@ export interface NycSubwayTripArrivalTimeProps {
 export const NycSubwayTripArrivalTime: React.FC<
   NycSubwayTripArrivalTimeProps
 > = (props) => {
-  const isDiamond = props.route.endsWith("X");
+  const isDiamond = props.route.toLowerCase().endsWith("x");
   const route = allRoutes.find(
     (route) =>
       route.name === props.route &&
