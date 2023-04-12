@@ -41,7 +41,8 @@ function routesQueryParamToSet(queryParam: string | null) {
 }
 
 function directionQueryParamToDirection(queryParam: string | null) {
-  return queryParam?.toLowerCase() === "n"
+  return queryParam?.toLowerCase() === "n" ||
+    queryParam?.toLowerCase() === "north"
     ? SubwayDirection.North
     : SubwayDirection.South;
 }
