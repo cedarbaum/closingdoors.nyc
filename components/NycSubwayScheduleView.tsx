@@ -1,11 +1,4 @@
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  Direction,
-  NearbyTrainTimesDocument,
-  NearbyTrainTimesQuery,
-  NearbyTrainTimesQueryVariables,
-} from "@/generated/gql/graphql";
 import { usePosition } from "@/utils/usePosition";
 import { NycSubwayStopHeader } from "@/components/NycSubwayStopHeader";
 import {
@@ -19,12 +12,16 @@ import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
 import { useRouter } from "next/router";
-import useQueryWithPolling from "@/utils/useQueryWithPolling";
+import { useQuery } from "react-query";
+import { RouteStatuses } from "@/pages/api/route_statuses";
+import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
+import { Alert } from "@/generated/proto/transiter/public";
+import { SubwayDirection } from "@/utils/SubwayLines";
 
 export interface ScheduleViewProps {
   stops?: Set<string>;
   routes: Set<string>;
-  direction: Direction;
+  direction: SubwayDirection;
 }
 
 export interface StatusIconProps {
@@ -44,9 +41,9 @@ function routesQueryParamToSet(queryParam: string | null) {
 }
 
 function directionQueryParamToDirection(queryParam: string | null) {
-  return queryParam?.toLowerCase() === "north"
-    ? Direction.North
-    : Direction.South;
+  return queryParam?.toLowerCase() === "n"
+    ? SubwayDirection.North
+    : SubwayDirection.South;
 }
 
 const NycSubwayScheduleView: React.FC = () => {
@@ -86,24 +83,60 @@ const NycSubwayScheduleView: React.FC = () => {
     }
   }
 
-  const [result] = useQueryWithPolling<
-    NearbyTrainTimesQuery,
-    NearbyTrainTimesQueryVariables
-  >(
-    {
-      query: NearbyTrainTimesDocument,
-      variables: {
-        lat: latitude,
-        lon: longitude,
-        direction,
-        routes: Array.from(routes),
-      },
-      pause: latitude === undefined || longitude === undefined,
+  const {
+    data: routeStatusData,
+    isLoading: routeStatusLoading,
+    error: routeStatusError,
+  } = useQuery(
+    ["route_statuses", routes],
+    async () => {
+      const routeStatusesResp = await fetch(
+        "/api/route_statuses?" +
+          new URLSearchParams({
+            system: "us-ny-subway",
+            routes: Array.from(routes).join(","),
+          })
+      );
+      if (!routeStatusesResp.ok) {
+        throw new Error("Failed to fetch route statuses");
+      }
+
+      return (await routeStatusesResp.json()) as RouteStatuses[];
     },
-    10000
+    {
+      refetchInterval: 10000,
+    }
   );
 
-  const { data, fetching, error } = result;
+  const {
+    data: nearbyTripsData,
+    isLoading: nearbyTripsLoading,
+    error: nearbyTripsError,
+  } = useQuery(
+    ["nearby_trips", latitude, longitude, routes, direction],
+    async () => {
+      const nearbyRouteTrips = await fetch(
+        "/api/nearby_route_trips?" +
+          new URLSearchParams({
+            system: "us-ny-subway",
+            latitude: latitude!.toString(),
+            longitude: longitude!.toString(),
+            routes: Array.from(routes).join(","),
+            stop_id_suffix: direction,
+          })
+      );
+
+      if (!nearbyRouteTrips.ok) {
+        throw new Error("Failed to fetch nearby route trips");
+      }
+
+      return (await nearbyRouteTrips.json()) as StopRouteTrips[];
+    },
+    {
+      enabled: latitude !== undefined && longitude !== undefined,
+      refetchInterval: 10000,
+    }
+  );
 
   useEffect(() => {
     if (latitude !== undefined && longitude !== undefined) {
@@ -119,7 +152,8 @@ const NycSubwayScheduleView: React.FC = () => {
   }, []);
 
   if (
-    fetching ||
+    nearbyTripsLoading ||
+    routeStatusLoading ||
     (!locationErrorMessage &&
       (latitude === undefined || longitude === undefined))
   ) {
@@ -142,7 +176,7 @@ const NycSubwayScheduleView: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (nearbyTripsError || routeStatusError) {
     return (
       <FullScreenError
         error={
@@ -153,16 +187,18 @@ const NycSubwayScheduleView: React.FC = () => {
   }
 
   const alertMessages = getMtaAlertPropsFromRouteAlerts(
-    data?.routeStatuses?.flatMap(
-      (routeStatus) => routeStatus.alerts as Alert[]
-    ) ?? []
+    routeStatusData?.flatMap((routeStatus) => routeStatus.alerts as Alert[]) ??
+      []
   );
 
-  if (data?.nearbyTrainTimes?.stopRouteTrips?.length === 0) {
+  if (nearbyTripsData?.length === 0) {
     return (
       <FullScreenError
         error={
-          <>Selected routes don&apos;t appear to be running at any stops near you.</>
+          <>
+            Selected routes don&apos;t appear to be running at any stops near
+            you.
+          </>
         }
         errorDetails={
           alertMessages?.length > 0 ? (
@@ -178,34 +214,14 @@ const NycSubwayScheduleView: React.FC = () => {
   }
 
   const now = DateTime.now();
-  if (data?.nearbyTrainTimes?.updatedAt) {
-    const updateDelta = now.diff(
-      DateTime.fromSeconds(data?.nearbyTrainTimes?.updatedAt)
-    );
-    if (updateDelta.toMillis() >= 2 * 60 * 1000) {
-      return (
-        <FullScreenError
-          error={
-            <>
-              Data retrieved from server is out of date. Will retry to fetch new
-              data shortly.
-            </>
-          }
-        />
-      );
-    }
-  }
-
   return (
     <>
       {alertMessages !== undefined && (
         <MtaAlertList alerts={alertMessages} behavior={Behavior.Collapsable} />
       )}
       <table className="w-full border-spacing-0 border-collapse">
-        {data!.nearbyTrainTimes!.stopRouteTrips!.map((stopRouteTrip) => {
-          const stopWithDirection = `${
-            stopRouteTrip!.stop!.stopId
-          }${direction}`;
+        {nearbyTripsData?.map((stopRouteTrip) => {
+          const stopWithDirection = `${stopRouteTrip!.stop!.id}${direction}`;
           const header = (
             <thead key={stopWithDirection} className="p-0 sticky top-0 z-50">
               <tr>
@@ -232,7 +248,7 @@ const NycSubwayScheduleView: React.FC = () => {
 
                   return [
                     trip!.arrival,
-                    <tr key={`${stopWithDirection}${trip!.tripId}${idx}`}>
+                    <tr key={`${stopWithDirection}${trip!.id}${idx}`}>
                       <td className="p-0">
                         <NycSubwayTripArrivalTime
                           onClickTimeText={() => {

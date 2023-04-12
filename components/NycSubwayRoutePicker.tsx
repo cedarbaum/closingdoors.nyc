@@ -1,12 +1,5 @@
-import Head from "next/head";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
-import {
-  Alert,
-  Direction,
-  RouteStatusesDocument,
-  RouteStatusesQuery,
-} from "@/generated/gql/graphql";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import {
   autoUpdate,
@@ -23,11 +16,13 @@ import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertProps } from "@/components/MtaAlert";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
 import { ReactNode } from "react";
-import { MtaColors, allLines } from "@/utils/SubwayLines";
+import { MtaColors, SubwayDirection, allLines } from "@/utils/SubwayLines";
 import { NycSubwayIcon } from "@/components/NycSubwayIcon";
 import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
 import { PopoverAlertContext } from "@/components/Layout";
-import useQueryWithPolling from "@/utils/useQueryWithPolling";
+import { useQuery } from "react-query";
+import { RouteStatuses } from "@/pages/api/route_statuses";
+import { Alert } from "@/generated/proto/transiter/public";
 
 const noRoutesSelected = <>Select at least 1 route.</>;
 
@@ -43,33 +38,43 @@ export default function NycSubwayRoutePicker() {
   const [southboundAlias, setSouthBoundAlias] = useState<string | undefined>(
     undefined
   );
-  const [direction, setDirection] = useState<Direction | null>(null);
+  const [direction, setDirection] = useState<SubwayDirection | null>(null);
   const [popupAvailableHeight, setPopupAvailableHeight] = useState<
     number | undefined
   >(undefined);
 
-  const [result] = useQueryWithPolling<RouteStatusesQuery>(
-    {
-      query: RouteStatusesDocument,
+  const { data, isLoading, error } = useQuery(
+    ["all_route_statuses"],
+    async () => {
+      const routeStatusesResp = await fetch(
+        "/api/route_statuses?" +
+          new URLSearchParams({
+            system: "us-ny-subway",
+            get_is_running: "true",
+          })
+      );
+      if (!routeStatusesResp.ok) {
+        throw new Error("Failed to fetch route statuses");
+      }
+
+      return (await routeStatusesResp.json()) as RouteStatuses[];
     },
-    30000
+    {
+      refetchInterval: 30000,
+    }
   );
-  const { data, fetching, error } = result;
 
   let runningRoutes: Set<string> | undefined = undefined;
   let alertsByRoute: Map<string, Alert[]> | undefined = undefined;
   if (data && !error) {
     runningRoutes = new Set(
-      data!
-        .routeStatuses!.filter((routeStatus) => routeStatus.running)
-        .map((routeStatus) => routeStatus.routeId)
+      data
+        .filter((routeStatus) => routeStatus.running)
+        .map((routeStatus) => routeStatus.route)
     );
 
     alertsByRoute = new Map(
-      data!.routeStatuses.map((routeStatus) => [
-        routeStatus.routeId,
-        routeStatus.alerts,
-      ])
+      data.map((routeStatus) => [routeStatus.route, routeStatus.alerts])
     );
   }
 
@@ -148,7 +153,7 @@ export default function NycSubwayRoutePicker() {
   }, [push, selectedRoutes, direction, directionNotSetError, setAlert]);
 
   const formIsValid = selectedRoutes.size > 0 && direction !== null;
-  if (fetching) {
+  if (isLoading) {
     return <NycSubwayLoadingView />;
   }
 
@@ -325,8 +330,8 @@ export default function NycSubwayRoutePicker() {
 }
 
 interface DirectionsSelectorProps {
-  direction: Direction | null;
-  directionChanged: (direction: Direction) => void;
+  direction: SubwayDirection | null;
+  directionChanged: (direction: SubwayDirection) => void;
   northBoundAlias?: string;
   southBoundAlias?: string;
 }
@@ -340,8 +345,8 @@ function DirectionSelectors({
   return (
     <div className="w-full bg-black flex sticky top-0 z-50 text-2xl">
       <DirectionSelector
-        onClick={() => directionChanged(Direction.North)}
-        selected={direction === Direction.North}
+        onClick={() => directionChanged(SubwayDirection.North)}
+        selected={direction === SubwayDirection.North}
       >
         {(selected) =>
           northBoundAlias ? (
@@ -362,8 +367,8 @@ function DirectionSelectors({
         }
       </DirectionSelector>
       <DirectionSelector
-        onClick={() => directionChanged(Direction.South)}
-        selected={direction === Direction.South}
+        onClick={() => directionChanged(SubwayDirection.South)}
+        selected={direction === SubwayDirection.South}
       >
         {(selected) =>
           southBoundAlias ? (

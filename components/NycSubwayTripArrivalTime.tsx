@@ -1,10 +1,9 @@
 import React from "react";
 import { NycSubwayIcon } from "./NycSubwayIcon";
-import { allRoutes } from "@/utils/SubwayLines";
+import { SubwayDirection, allRoutes } from "@/utils/SubwayLines";
 import { Duration } from "luxon";
 import humanizeDuration from "humanize-duration";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
-import { Direction } from "@/generated/gql/graphql";
 
 export enum DurationFormat {
   MinuteCeiling,
@@ -13,7 +12,7 @@ export enum DurationFormat {
 
 export interface NycSubwayTripArrivalTimeProps {
   route: string;
-  direction: Direction;
+  direction: SubwayDirection;
   timeUntilArrival: Duration;
   durationFormat?: DurationFormat;
   onClickTimeText?(): void;
@@ -78,7 +77,7 @@ export const NycSubwayTripArrivalTime: React.FC<
   }
 
   const directionArrow =
-    props.direction === Direction.North ? (
+    props.direction === SubwayDirection.North ? (
       <ArrowUpIcon className="w-[40px] h-[40px] text-white" />
     ) : (
       <ArrowDownIcon className="w-[40px] h-[40px] text-white" />
@@ -96,7 +95,7 @@ export const NycSubwayTripArrivalTime: React.FC<
         <div className="ml-4">
           {route?.isShuttle ? (
             <span className="text-white text-4xl">
-              {props.direction === Direction.North
+              {props.direction === SubwayDirection.North
                 ? route.northAlias
                 : route.southAlias}
             </span>

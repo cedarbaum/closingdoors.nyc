@@ -1,3 +1,0 @@
-[submodule "graphql"]
-	path = graphql
-	url = git@github.com:cedarbaum/closingdoors.nyc-GraphQL-Schema.git

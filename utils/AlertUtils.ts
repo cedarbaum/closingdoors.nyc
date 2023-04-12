@@ -1,20 +1,22 @@
-import { Alert } from "@/generated/gql/graphql";
+import { Alert } from "@/generated/proto/transiter/public";
 import { MtaAlertProps } from "@/components/MtaAlert";
 
-export function getMtaAlertPropsFromRouteAlerts(alerts: Alert[]): MtaAlertProps[] {
+export function getMtaAlertPropsFromRouteAlerts(
+  alerts: Alert[]
+): MtaAlertProps[] {
   const allAlertProps = alerts
     ?.map((alert) => {
-      const enHtmlHeader = alert?.messages?.headers?.find(
+      const enHtmlHeader = alert?.header?.find(
         (header) => header.language === "en-html"
       );
-      const enHtmlDescription = alert?.messages?.descriptions?.find(
+      const enHtmlDescription = alert?.description?.find(
         (header) => header.language === "en-html"
       );
 
-      const enHeader = alert?.messages?.headers?.find(
+      const enHeader = alert?.header?.find(
         (header) => header.language === "en"
       );
-      const enDescription = alert?.messages?.descriptions?.find(
+      const enDescription = alert?.description?.find(
         (header) => header.language === "en"
       );
 
