@@ -63,7 +63,9 @@ export default async function handler(
     ])
   );
 
-  const routesSet = new Set(routes as string[]);
+  const routesSet = new Set(
+    (routes as string).split(",").map((r) => r.toUpperCase())
+  );
   const stopRouteTrips = stops
     .filter(
       (stop) =>

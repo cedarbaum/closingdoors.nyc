@@ -25,7 +25,9 @@ export default async function handler(
     return;
   }
 
-  const routesSet = routes ? new Set(routes as string[]) : null;
+  const routesSet = routes
+    ? new Set((routes as string).split(",").map((r) => r.toUpperCase()))
+    : null;
   let allRoutes = await getRoutes(system as string);
   allRoutes =
     routesSet !== null
