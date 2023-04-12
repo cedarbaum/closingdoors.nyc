@@ -182,7 +182,7 @@ export default function NycSubwayRoutePicker() {
         <div className="m-2">
           {allLines.map((line) => {
             return (
-              <div className="flex mb-2" key={line.name}>
+              <div className="flex mb-3" key={line.name}>
                 {line.routes.map((route, routeIdx) => {
                   const routeKey = route.isDiamond
                     ? `${route.name}X`
@@ -203,7 +203,7 @@ export default function NycSubwayRoutePicker() {
 
                   return (
                     <div
-                      className="relative select-none cursor-pointer ml-3 first-of-type:ml-0"
+                      className="relative select-none cursor-pointer ml-3 first-of-type:ml-0 w-[50px] h-[50px]"
                       key={routeKey}
                       ref={isFocused && hasAlerts ? reference : null}
                       {...bind({ route: routeKey })}
