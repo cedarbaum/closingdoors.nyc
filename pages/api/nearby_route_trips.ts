@@ -127,7 +127,7 @@ async function getNearbyStops(
         search_mode: "DISTANCE",
         latitude: latitude,
         longitude: longitude,
-        max_distance: "4.8",
+        max_distance: "3.2",
         limit: "500",
         skip_service_maps: "true",
         skip_transfers: "true",
