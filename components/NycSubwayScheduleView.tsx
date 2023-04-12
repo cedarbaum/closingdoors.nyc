@@ -53,6 +53,7 @@ const NycSubwayScheduleView: React.FC = () => {
     router.query.direction as string | null
   );
   const routes = routesQueryParamToSet(router.query.routes as string | null);
+  const routesString = Array.from(routes).join(",");
 
   let {
     latitude,
@@ -89,13 +90,13 @@ const NycSubwayScheduleView: React.FC = () => {
     isLoading: routeStatusLoading,
     error: routeStatusError,
   } = useQuery(
-    ["route_statuses", routes],
+    ["route_statuses", routesString],
     async () => {
       const routeStatusesResp = await fetch(
         "/api/route_statuses?" +
           new URLSearchParams({
             system: "us-ny-subway",
-            routes: Array.from(routes).join(","),
+            routes: routesString,
           })
       );
       if (!routeStatusesResp.ok) {
@@ -114,7 +115,7 @@ const NycSubwayScheduleView: React.FC = () => {
     isLoading: nearbyTripsLoading,
     error: nearbyTripsError,
   } = useQuery(
-    ["nearby_trips", latitude, longitude, routes, direction],
+    ["nearby_trips", latitude, longitude, routesString, direction],
     async () => {
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +
@@ -122,7 +123,7 @@ const NycSubwayScheduleView: React.FC = () => {
             system: "us-ny-subway",
             latitude: latitude!.toString(),
             longitude: longitude!.toString(),
-            routes: Array.from(routes).join(","),
+            routes: routesString,
             stop_id_suffix: direction,
           })
       );
