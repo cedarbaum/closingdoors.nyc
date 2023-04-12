@@ -18,7 +18,7 @@ export const NycSubwayIcon: React.FC<SubwayIconProps> = ({
   height,
   ...rest
 }) => {
-  const imageKey = isDiamond ? route + "X" : route;
+  const imageKey = isDiamond ? route + "x" : route;
   return (
     <span
       {...rest}
