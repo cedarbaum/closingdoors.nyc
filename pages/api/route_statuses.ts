@@ -80,22 +80,39 @@ export default async function handler(
 }
 
 async function getRoutes(system: string) {
-  const stopsDataResp = await fetch(
-    `${TRANSITER_URL}/systems/${system}/routes`
-  );
-  return ((await stopsDataResp.json()) as ListRoutesReply).routes;
+  const routesResp = await fetch(`${TRANSITER_URL}/systems/${system}/routes`);
+
+  if (!routesResp.ok) {
+    throw new Error(
+      `Failed to get routes for system ${system} with status ${routesResp.status}`
+    );
+  }
+
+  return ((await routesResp.json()) as ListRoutesReply).routes;
 }
 
 async function getAlerts(system: string) {
-  const stopsDataResp = await fetch(
-    `${TRANSITER_URL}/systems/${system}/alerts`
-  );
-  return ((await stopsDataResp.json()) as ListAlertsReply).alerts;
+  const alertsResp = await fetch(`${TRANSITER_URL}/systems/${system}/alerts`);
+
+  if (!alertsResp.ok) {
+    throw new Error(
+      `Failed to get alerts for system ${system} with status ${alertsResp.status}`
+    );
+  }
+
+  return ((await alertsResp.json()) as ListAlertsReply).alerts;
 }
 
 async function getTrips(system: string, route: string) {
-  const stopsDataResp = await fetch(
+  const tripsResp = await fetch(
     `${TRANSITER_URL}/systems/${system}/routes/${route}/trips`
   );
-  return ((await stopsDataResp.json()) as ListTripsReply).trips;
+
+  if (!tripsResp.ok) {
+    throw new Error(
+      `Failed to get trips for route ${route} with status ${tripsResp.status}`
+    );
+  }
+
+  return ((await tripsResp.json()) as ListTripsReply).trips;
 }
