@@ -136,5 +136,9 @@ async function getNearbyStops(
       })
   );
 
+  if (!stopsDataResp.ok) {
+    throw new Error(`Failed to fetch stops for ${system}`);
+  }
+
   return ((await stopsDataResp.json()) as ListStopsReply).stops;
 }
