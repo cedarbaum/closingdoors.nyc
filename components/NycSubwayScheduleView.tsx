@@ -49,8 +49,12 @@ function directionQueryParamToDirection(queryParam: string | null) {
 
 function applyQaToStopRouteTrips(
   now: DateTime,
-  stopRouteTrips: StopRouteTrips[]
-): StopRouteTrips[] {
+  stopRouteTrips: StopRouteTrips[] | undefined
+): StopRouteTrips[] | undefined {
+  if (stopRouteTrips === undefined) {
+    return undefined;
+  }
+
   return stopRouteTrips
     .map((stopRouteTrip) => {
       const stopRouteTrips = stopRouteTrip.routeTrips.map((routeTrip) => {
@@ -220,7 +224,16 @@ const NycSubwayScheduleView: React.FC = () => {
       []
   );
 
-  if (nearbyTripsData?.length === 0 || nearbyTripsData === undefined) {
+  const now = DateTime.now();
+  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(
+    now,
+    nearbyTripsData
+  );
+
+  if (
+    sanitizedNearbyTripsData?.length === 0 ||
+    sanitizedNearbyTripsData === undefined
+  ) {
     return (
       <FullScreenError
         error={
@@ -241,12 +254,6 @@ const NycSubwayScheduleView: React.FC = () => {
       />
     );
   }
-
-  const now = DateTime.now();
-  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(
-    now,
-    nearbyTripsData
-  );
 
   return (
     <>
