@@ -51,7 +51,6 @@ export default function NycSubwayRoutePicker() {
           new URLSearchParams({
             system: "us-ny-subway",
             get_is_running: "true",
-            get_is_running_best_effort: "true",
           })
       );
       if (!routeStatusesResp.ok) {
