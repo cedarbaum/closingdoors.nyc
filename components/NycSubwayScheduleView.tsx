@@ -47,6 +47,27 @@ function directionQueryParamToDirection(queryParam: string | null) {
     : SubwayDirection.South;
 }
 
+function applyQaToStopRouteTrips(
+  now: DateTime,
+  stopRouteTrips: StopRouteTrips[]
+) {
+  return stopRouteTrips
+    .filter((stopRouteTrip) => {
+      const stopRouteTrips = stopRouteTrip.routeTrips.filter((routeTrip) => {
+        const trips = routeTrip.trips.filter((trip) => {
+          // Remove significantly stale trips (more than 30 seconds old)
+          const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
+          const delta = estimatedArrival.diff(now).toMillis();
+          return delta >= -15 * 1000;
+        });
+
+        return trips.length > 0;
+      });
+      return stopRouteTrips.length > 0;
+    })
+    .filter((stopRouteTrip) => stopRouteTrip.routeTrips.length > 0);
+}
+
 const NycSubwayScheduleView: React.FC = () => {
   const router = useRouter();
   const direction = directionQueryParamToDirection(
@@ -193,7 +214,7 @@ const NycSubwayScheduleView: React.FC = () => {
       []
   );
 
-  if (nearbyTripsData?.length === 0) {
+  if (nearbyTripsData?.length === 0 || nearbyTripsData === undefined) {
     return (
       <FullScreenError
         error={
@@ -216,13 +237,15 @@ const NycSubwayScheduleView: React.FC = () => {
   }
 
   const now = DateTime.now();
+  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(now, nearbyTripsData);
+
   return (
     <>
       {alertMessages !== undefined && (
         <MtaAlertList alerts={alertMessages} behavior={Behavior.Collapsable} />
       )}
       <table className="w-full border-spacing-0 border-collapse">
-        {nearbyTripsData?.map((stopRouteTrip) => {
+        {sanitizedNearbyTripsData.map((stopRouteTrip) => {
           const stopWithDirection = `${stopRouteTrip!.stop!.id}${direction}`;
           const header = (
             <thead key={stopWithDirection} className="p-0 sticky top-0 z-50">
