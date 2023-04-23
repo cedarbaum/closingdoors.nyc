@@ -50,20 +50,26 @@ function directionQueryParamToDirection(queryParam: string | null) {
 function applyQaToStopRouteTrips(
   now: DateTime,
   stopRouteTrips: StopRouteTrips[]
-) {
+): StopRouteTrips[] {
   return stopRouteTrips
-    .filter((stopRouteTrip) => {
-      const stopRouteTrips = stopRouteTrip.routeTrips.filter((routeTrip) => {
-        const trips = routeTrip.trips.filter((trip) => {
-          // Remove significantly stale trips (more than 30 seconds old)
-          const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
+    .map((stopRouteTrip) => {
+      const stopRouteTrips = stopRouteTrip.routeTrips.map((routeTrip) => {
+        const nonStaleTrips = routeTrip.trips.filter((trip) => {
+          // Remove significantly stale trips (more than 15 seconds old)
+          const estimatedArrival = DateTime.fromSeconds(trip.arrival);
           const delta = estimatedArrival.diff(now).toMillis();
           return delta >= -15 * 1000;
         });
 
-        return trips.length > 0;
+        return {
+          ...routeTrip,
+          trips: nonStaleTrips,
+        };
       });
-      return stopRouteTrips.length > 0;
+      return {
+        ...stopRouteTrip,
+        routeTrips: stopRouteTrips,
+      };
     })
     .filter((stopRouteTrip) => stopRouteTrip.routeTrips.length > 0);
 }
@@ -237,7 +243,10 @@ const NycSubwayScheduleView: React.FC = () => {
   }
 
   const now = DateTime.now();
-  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(now, nearbyTripsData);
+  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(
+    now,
+    nearbyTripsData
+  );
 
   return (
     <>
@@ -246,12 +255,12 @@ const NycSubwayScheduleView: React.FC = () => {
       )}
       <table className="w-full border-spacing-0 border-collapse">
         {sanitizedNearbyTripsData.map((stopRouteTrip) => {
-          const stopWithDirection = `${stopRouteTrip!.stop!.id}${direction}`;
+          const stopWithDirection = `${stopRouteTrip.stop.id}${direction}`;
           const header = (
             <thead key={stopWithDirection} className="p-0 sticky top-0 z-50">
               <tr>
                 <th className="p-0">
-                  <NycSubwayStopHeader stopName={stopRouteTrip!.stop!.name} />
+                  <NycSubwayStopHeader stopName={stopRouteTrip.stop.name} />
                 </th>
               </tr>
             </thead>
@@ -259,39 +268,31 @@ const NycSubwayScheduleView: React.FC = () => {
 
           const stopRows = stopRouteTrip?.routeTrips
             .flatMap((routeTrip) => {
-              return routeTrip!
-                .trips!.filter((trip) => {
-                  // Remove significantly stale trips (more than 30 seconds old)
-                  const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
-                  const delta = estimatedArrival.diff(now).toMillis();
-                  return delta >= -15 * 1000;
-                })
-                .slice(0, 2)
-                .map((trip, idx) => {
-                  const estimatedArrival = DateTime.fromSeconds(trip!.arrival);
-                  const delta = estimatedArrival.diff(now);
+              return routeTrip.trips.slice(0, 2).map((trip, idx) => {
+                const estimatedArrival = DateTime.fromSeconds(trip.arrival);
+                const delta = estimatedArrival.diff(now);
 
-                  return [
-                    trip!.arrival,
-                    <tr key={`${stopWithDirection}${trip!.id}${idx}`}>
-                      <td className="p-0">
-                        <NycSubwayTripArrivalTime
-                          onClickTimeText={() => {
-                            setDurationFormat(
-                              durationFormat === DurationFormat.Exact
-                                ? DurationFormat.MinuteCeiling
-                                : DurationFormat.Exact
-                            );
-                          }}
-                          route={routeTrip!.route}
-                          timeUntilArrival={delta}
-                          durationFormat={durationFormat}
-                          direction={direction}
-                        />
-                      </td>
-                    </tr>,
-                  ] as [number, JSX.Element];
-                });
+                return [
+                  trip.arrival,
+                  <tr key={`${stopWithDirection}${trip.id}${idx}`}>
+                    <td className="p-0">
+                      <NycSubwayTripArrivalTime
+                        onClickTimeText={() => {
+                          setDurationFormat(
+                            durationFormat === DurationFormat.Exact
+                              ? DurationFormat.MinuteCeiling
+                              : DurationFormat.Exact
+                          );
+                        }}
+                        route={routeTrip.route}
+                        timeUntilArrival={delta}
+                        durationFormat={durationFormat}
+                        direction={direction}
+                      />
+                    </td>
+                  </tr>,
+                ] as [number, JSX.Element];
+              });
             })
             .sort((t1, t2) => t1[0] - t2[0])
             .map((t) => t[1]);
