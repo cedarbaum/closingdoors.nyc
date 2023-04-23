@@ -72,7 +72,9 @@ function applyQaToStopRouteTrips(
       });
       return {
         ...stopRouteTrip,
-        routeTrips: stopRouteTrips,
+        routeTrips: stopRouteTrips.filter(
+          (stopRouteTrip) => stopRouteTrip.trips.length > 0
+        ),
       };
     })
     .filter((stopRouteTrip) => stopRouteTrip.routeTrips.length > 0);
