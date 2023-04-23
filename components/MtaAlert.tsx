@@ -17,6 +17,8 @@ const routesToShowBorderFor = new Set(
   ["N", "Q", "R", "W"].map((r) => r.toLowerCase())
 );
 
+const additionalRouteIcons = new Set(["S"].map((r) => r.toLowerCase()));
+
 export const MtaAlert: React.FC<MtaAlertProps> = ({ header, description }) => {
   const [headerHtml, setHeaderHtml] = useState("");
   const [descriptionHtml, setDescriptionHtml] = useState("");
@@ -50,7 +52,7 @@ function processAlertText(alertText?: string) {
 
   const innerHtml = alertText.replaceAll(/\[.*?\]/g, (match: string) => {
     const innerText = match.substring(1, match.length - 1).toLowerCase();
-    if (allRoutesIds.has(innerText)) {
+    if (allRoutesIds.has(innerText) || additionalRouteIcons.has(innerText)) {
       return convertReactComponentToHtml(
         <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
           <NycSubwayIcon
