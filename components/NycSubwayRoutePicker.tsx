@@ -15,14 +15,14 @@ import { useRouter } from "next/router";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertProps } from "@/components/MtaAlert";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
-import { ReactNode } from "react";
-import { MtaColors, SubwayDirection, allLines } from "@/utils/SubwayLines";
+import { MtaColors, allLines } from "@/utils/SubwayLines";
 import { NycSubwayIcon } from "@/components/NycSubwayIcon";
 import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
 import { PopoverAlertContext } from "@/components/Layout";
 import { useQuery } from "react-query";
 import { RouteStatuses } from "@/pages/api/route_statuses";
 import { Alert } from "@/generated/proto/transiter/public";
+import DirectionSelectors, { Direction } from "./DirectionsSelector";
 
 const noRoutesSelected = <>Select at least 1 route.</>;
 
@@ -38,7 +38,7 @@ export default function NycSubwayRoutePicker() {
   const [southboundAlias, setSouthBoundAlias] = useState<string | undefined>(
     undefined
   );
-  const [direction, setDirection] = useState<SubwayDirection | null>(null);
+  const [direction, setDirection] = useState<Direction | null>(null);
   const [popupAvailableHeight, setPopupAvailableHeight] = useState<
     number | undefined
   >(undefined);
@@ -116,7 +116,7 @@ export default function NycSubwayRoutePicker() {
       size({
         apply({ availableWidth, availableHeight, elements }) {
           Object.assign(elements.floating.style, {
-            minWidth: "min(432px, 100vw)",
+            minWidth: "min(448px, 100vw)",
             maxWidth: `${availableWidth}px`,
             maxHeight: `${availableHeight}px`,
           });
@@ -173,16 +173,18 @@ export default function NycSubwayRoutePicker() {
       <div className="overflow-scroll h-full scrollbar-hide text-white">
         {focusedRoute !== undefined && (
           <div
-            className="absolute left-0 w-full h-full bg-transparent z-30 select-none"
+            className="fixed left-0 w-full h-full bg-transparent z-30 select-none"
             onClick={() => setFocusedRoute(undefined)}
           />
         )}
-        <DirectionSelectors
-          direction={direction}
-          directionChanged={setDirection}
-          northBoundAlias={northboundAlias}
-          southBoundAlias={southboundAlias}
-        />
+        <div className="sticky top-0 z-50">
+          <DirectionSelectors
+            direction={direction}
+            directionChanged={setDirection}
+            northBoundAlias={northboundAlias}
+            southBoundAlias={southboundAlias}
+          />
+        </div>
         <div className="m-2">
           {allLines.map((line) => {
             return (
@@ -330,86 +332,5 @@ export default function NycSubwayRoutePicker() {
         </button>
       </div>
     </>
-  );
-}
-
-interface DirectionsSelectorProps {
-  direction: SubwayDirection | null;
-  directionChanged: (direction: SubwayDirection) => void;
-  northBoundAlias?: string;
-  southBoundAlias?: string;
-}
-
-function DirectionSelectors({
-  direction,
-  directionChanged,
-  northBoundAlias,
-  southBoundAlias,
-}: DirectionsSelectorProps) {
-  return (
-    <div className="w-full bg-black flex sticky top-0 z-50 text-2xl">
-      <DirectionSelector
-        onClick={() => directionChanged(SubwayDirection.North)}
-        selected={direction === SubwayDirection.North}
-      >
-        {(selected) =>
-          northBoundAlias ? (
-            <span
-              className={`text-white text-[40px] ${
-                selected ? "font-bold" : "opacity-50"
-              }`}
-            >
-              {northBoundAlias}
-            </span>
-          ) : (
-            <ArrowUpIcon
-              className={`h-full w-full ${
-                selected ? "stroke-[3px]" : "opacity-50"
-              }`}
-            />
-          )
-        }
-      </DirectionSelector>
-      <DirectionSelector
-        onClick={() => directionChanged(SubwayDirection.South)}
-        selected={direction === SubwayDirection.South}
-      >
-        {(selected) =>
-          southBoundAlias ? (
-            <span
-              className={`text-white text-[40px] ${
-                selected ? "font-bold" : "opacity-50"
-              }`}
-            >
-              {southBoundAlias}
-            </span>
-          ) : (
-            <ArrowDownIcon
-              className={`h-full w-full ${
-                selected ? "stroke-[3px]" : "opacity-50"
-              }`}
-            />
-          )
-        }
-      </DirectionSelector>
-    </div>
-  );
-}
-
-interface DirectionSelectorProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
-  children: (selected: boolean) => ReactNode;
-  selected?: boolean;
-}
-
-function DirectionSelector({
-  children,
-  selected,
-  ...rest
-}: DirectionSelectorProps) {
-  return (
-    <div className="flex justify-center items-center w-1/2 h-20 p-4" {...rest}>
-      {children(selected ?? false)}
-    </div>
   );
 }

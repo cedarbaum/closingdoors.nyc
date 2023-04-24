@@ -1,23 +1,9 @@
 import { FullScreenError } from "@/components/FullScreenError";
-import dynamic from "next/dynamic";
+import NycSubwayRoutePicker from "@/components/NycSubwayRoutePicker";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-const NycSubwayScheduleViewer = dynamic(
-  () => import("@/components/NycSubwayScheduleView"),
-  {
-    ssr: false,
-  }
-);
-
-const PathScheduleView = dynamic(
-  () => import("@/components/PathScheduleView"),
-  {
-    ssr: false,
-  }
-);
-
-const Schedule: React.FC = () => {
+export default function System() {
   const router = useRouter();
   const system = router.query.system as string;
 
@@ -26,9 +12,7 @@ const Schedule: React.FC = () => {
   }
 
   if (system === "us-ny-subway") {
-    return <NycSubwayScheduleViewer />;
-  } else if (system === "us-ny-path") {
-    return <PathScheduleView />;
+    return <NycSubwayRoutePicker />;
   }
 
   return (
@@ -44,6 +28,4 @@ const Schedule: React.FC = () => {
       }
     />
   );
-};
-
-export default Schedule;
+}

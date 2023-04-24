@@ -33,7 +33,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StopRouteTrips[] | { error: string }>
 ) {
-  const { system, latitude, longitude, routes, stop_id_suffix } = req.query;
+  const { system, latitude, longitude, routes, stop_id_suffix, direction_id } =
+    req.query;
   if (latitude === undefined || longitude === undefined) {
     res.status(400).json({ error: "Missing latitude or longitude" });
     return;
@@ -63,9 +64,10 @@ export default async function handler(
     ])
   );
 
-  const routesSet = new Set(
-    (routes as string).split(",").map((r) => r.toUpperCase())
-  );
+  const routesSet = routes
+    ? new Set((routes as string).split(",").map((r) => r.toUpperCase()))
+    : null;
+
   const stopRouteTrips = stops
     .filter(
       (stop) =>
@@ -78,7 +80,11 @@ export default async function handler(
         name: stop.name!,
         distance: stopDistanceByStopId.get(stop.id)!,
       },
-      routeTrips: getTripsByRouteForStop(stop, routesSet),
+      routeTrips: getTripsByRouteForStop(
+        stop,
+        routesSet,
+        direction_id !== undefined ? direction_id === "true" : null
+      ),
     }))
     .filter(({ routeTrips }) => routeTrips.length > 0)
     .sort((a, b) => a.stop.distance - b.stop.distance) as StopRouteTrips[];
@@ -86,9 +92,17 @@ export default async function handler(
   res.status(200).json(stopRouteTrips);
 }
 
-function getTripsByRouteForStop(stop: TransiterStop, routes: Set<string>) {
+function getTripsByRouteForStop(
+  stop: TransiterStop,
+  routes: Set<string> | null,
+  direction_id: boolean | null
+) {
   const stopTimesByRoute = stop.stopTimes
-    .filter((stopTime) => stopTime.trip !== undefined)
+    .filter(
+      (stopTime) =>
+        stopTime.trip !== undefined &&
+        (direction_id === null || stopTime.directionId === direction_id)
+    )
     .reduce((grouped, stopTime) => {
       const route = stopTime.trip!.route!.id!;
       const routeGroup = grouped.get(route) || [];
@@ -96,7 +110,7 @@ function getTripsByRouteForStop(stop: TransiterStop, routes: Set<string>) {
     }, new Map<string, StopTime[]>());
 
   return Array.from(stopTimesByRoute.entries())
-    .filter(([route, _]) => routes.has(route))
+    .filter(([route, _]) => routes === null || routes.has(route))
     .map(([route, stopTimes]) => ({
       route,
       trips: stopTimes
@@ -129,7 +143,7 @@ async function getNearbyStops(
         search_mode: "DISTANCE",
         latitude: latitude,
         longitude: longitude,
-        max_distance: "3.2",
+        max_distance: getMaxStopDistance(system),
         limit: "500",
         skip_service_maps: "true",
         skip_transfers: "true",
@@ -141,4 +155,15 @@ async function getNearbyStops(
   }
 
   return ((await stopsDataResp.json()) as ListStopsReply).stops;
+}
+
+function getMaxStopDistance(system: string) {
+  switch (system) {
+    case "us-ny-subway":
+      return process.env.NEXT_PUBLIC_US_NY_SUBWAY_MAX_STOP_DISTANCE_KM!;
+    case "us-ny-path":
+      return process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!;
+    default:
+      return process.env.NEXT_PUBLIC_MAX_STOP_DISTANCE_KM!;
+  }
 }

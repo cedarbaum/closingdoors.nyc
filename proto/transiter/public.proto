@@ -797,6 +797,9 @@ message StopTime {
   optional string headsign = 7;
   // Track, from the NYCT realtime extension.
   optional string track = 8;
+
+  // Direction ID of the trip.
+  bool direction_id = 9;
 }
 
 message Trip {

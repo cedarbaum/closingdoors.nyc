@@ -1,13 +1,31 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { createContext, useEffect, useState } from "react";
 import Head from "next/head";
+import { SystemSelectorHeader } from "./SystemSelectorHeader";
+import { useRouter } from "next/router";
 
 export const PopoverAlertContext = createContext(
   (_alert: React.ReactNode) => {}
 );
 
+const pathToTabName = new Map([
+  ["/us-ny-subway", "subway"],
+  ["/us-ny-path/schedule", "path"],
+]);
+
+const tabNameToPath = new Map(
+  Array.from(pathToTabName.entries()).map(([key, value]) => [value, key])
+);
+
+const pathsToShowTabbarFor = new Set(pathToTabName.keys());
+
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [alert, setAlert] = useState<React.ReactNode | null>(null);
+
+  const system = router.query.system as string;
+  const path = router.pathname as string;
+  const pathWithSystem = path.replace("[system]", system);
 
   useEffect(() => {
     if (!alert) return;
@@ -49,7 +67,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </AnimatePresence>
-          <main className="bg-black max-w-md mx-auto">{children}</main>
+          <div className="flex flex-col bg-black max-w-md mx-auto w-full h-full">
+            {pathsToShowTabbarFor.has(pathWithSystem) && (
+              <SystemSelectorHeader
+                tabs={Array.from(pathToTabName.entries()).map(
+                  ([_, value]) => value
+                )}
+                activeTab={pathToTabName.get(pathWithSystem)!}
+                onTabClick={(tab) => {
+                  router.push(tabNameToPath.get(tab)!);
+                }}
+              />
+            )}
+            <main className="w-full">{children}</main>
+          </div>
         </div>
       </PopoverAlertContext.Provider>
     </>

@@ -859,7 +859,11 @@ export interface StopTime {
     | string
     | undefined;
   /** Track, from the NYCT realtime extension. */
-  track?: string | undefined;
+  track?:
+    | string
+    | undefined;
+  /** Direction ID of the trip. */
+  directionId: boolean;
 }
 
 /**
@@ -5069,6 +5073,7 @@ function createBaseStopTime(): StopTime {
     stopSequence: 0,
     headsign: undefined,
     track: undefined,
+    directionId: false,
   };
 }
 
@@ -5097,6 +5102,9 @@ export const StopTime = {
     }
     if (message.track !== undefined) {
       writer.uint32(66).string(message.track);
+    }
+    if (message.directionId === true) {
+      writer.uint32(72).bool(message.directionId);
     }
     return writer;
   },
@@ -5164,6 +5172,13 @@ export const StopTime = {
 
           message.track = reader.string();
           continue;
+        case 9:
+          if (tag != 72) {
+            break;
+          }
+
+          message.directionId = reader.bool();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5183,6 +5198,7 @@ export const StopTime = {
       stopSequence: isSet(object.stopSequence) ? Number(object.stopSequence) : 0,
       headsign: isSet(object.headsign) ? String(object.headsign) : undefined,
       track: isSet(object.track) ? String(object.track) : undefined,
+      directionId: isSet(object.directionId) ? Boolean(object.directionId) : false,
     };
   },
 
@@ -5198,6 +5214,7 @@ export const StopTime = {
     message.stopSequence !== undefined && (obj.stopSequence = Math.round(message.stopSequence));
     message.headsign !== undefined && (obj.headsign = message.headsign);
     message.track !== undefined && (obj.track = message.track);
+    message.directionId !== undefined && (obj.directionId = message.directionId);
     return obj;
   },
 
@@ -5223,6 +5240,7 @@ export const StopTime = {
     message.stopSequence = object.stopSequence ?? 0;
     message.headsign = object.headsign ?? undefined;
     message.track = object.track ?? undefined;
+    message.directionId = object.directionId ?? false;
     return message;
   },
 };

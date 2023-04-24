@@ -1,60 +1,33 @@
-import React, { useEffect, useState } from "react";
 import { usePosition } from "@/utils/usePosition";
-import { StopHeader } from "@/components/StopHeader";
-import { NycSubwayTripArrivalTime } from "@/components/NycSubwayTripArrivalTime";
-import { DateTime } from "luxon";
-import { FullScreenError } from "@/components/FullScreenError";
-import haversineDistance from "haversine-distance";
-import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
-import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
-import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
-import { useRouter } from "next/router";
-import { useQuery } from "react-query";
-import { RouteStatuses } from "@/pages/api/route_statuses";
-import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
-import { Alert } from "@/generated/proto/transiter/public";
-import { SubwayDirection } from "@/utils/SubwayLines";
+import { useEffect, useState } from "react";
 import { DurationFormat } from "./TripArrivalTime";
+import { useQuery } from "react-query";
+import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
+import haversineDistance from "haversine-distance";
+import { NycSubwayLoadingView } from "./NycSubwayLoadingView";
+import { FullScreenError } from "./FullScreenError";
+import { DateTime } from "luxon";
 import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
+import { StopHeader } from "./StopHeader";
+import DirectionSelectors, { Direction } from "./DirectionsSelector";
+import { PathTripArrivalTime } from "./PathTripArrivalTime";
+import { queryTypes, useQueryState } from "next-usequerystate";
 import { kmToMi } from "@/utils/GeoUtils";
-
-export interface ScheduleViewProps {
-  stops?: Set<string>;
-  routes: Set<string>;
-  direction: SubwayDirection;
-}
-
-export interface StatusIconProps {
-  color: string;
-  onClick?(): void;
-}
 
 interface LatLonPair {
   lat: number;
   lon: number;
 }
 
-function routesQueryParamToSet(queryParam: string | null) {
-  return queryParam == null
-    ? new Set<string>()
-    : new Set<string>(queryParam.split(","));
+export enum NjOrNy {
+  NJ = "NJ",
+  NY = "NY",
 }
 
-function directionQueryParamToDirection(queryParam: string | null) {
-  return queryParam?.toLowerCase() === "n" ||
-    queryParam?.toLowerCase() === "north"
-    ? SubwayDirection.North
-    : SubwayDirection.South;
-}
+// Newark - Harrison Shuttle Train
+const excludedPathRoutes = new Set(["74320"]);
 
-const NycSubwayScheduleView: React.FC = () => {
-  const router = useRouter();
-  const direction = directionQueryParamToDirection(
-    router.query.direction as string | null
-  );
-  const routes = routesQueryParamToSet(router.query.routes as string | null);
-  const routesString = Array.from(routes).join(",");
-
+export default function PathScheduleView() {
   let {
     latitude,
     longitude,
@@ -64,6 +37,11 @@ const NycSubwayScheduleView: React.FC = () => {
     timeout: 30 * 1000,
     enableHighAccuracy: false,
   });
+  const [direction, setDirection] = useQueryState(
+    "direction",
+    queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ)
+  );
+
   const [lastLocation, setLastLocation] = useState<LatLonPair | undefined>(
     undefined
   );
@@ -86,45 +64,19 @@ const NycSubwayScheduleView: React.FC = () => {
   }
 
   const {
-    data: routeStatusData,
-    isLoading: routeStatusLoading,
-    error: routeStatusError,
-  } = useQuery(
-    ["route_statuses", routesString],
-    async () => {
-      const routeStatusesResp = await fetch(
-        "/api/route_statuses?" +
-          new URLSearchParams({
-            system: "us-ny-subway",
-            routes: routesString,
-          })
-      );
-      if (!routeStatusesResp.ok) {
-        throw new Error("Failed to fetch route statuses");
-      }
-
-      return (await routeStatusesResp.json()) as RouteStatuses[];
-    },
-    {
-      refetchInterval: 10000,
-    }
-  );
-
-  const {
     data: nearbyTripsData,
     isLoading: nearbyTripsLoading,
     error: nearbyTripsError,
   } = useQuery(
-    ["nearby_trips", latitude, longitude, routesString, direction],
+    ["nearby_trips_path", latitude, longitude, direction],
     async () => {
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +
           new URLSearchParams({
-            system: "us-ny-subway",
+            system: "us-ny-path",
             latitude: latitude!.toString(),
             longitude: longitude!.toString(),
-            routes: routesString,
-            stop_id_suffix: direction,
+            direction_id: direction === NjOrNy.NY ? "true" : "false",
           })
       );
 
@@ -153,13 +105,32 @@ const NycSubwayScheduleView: React.FC = () => {
     };
   }, []);
 
+  const directionSelectors = (
+    <DirectionSelectors
+      direction={direction === NjOrNy.NJ ? Direction.North : Direction.South}
+      directionChanged={(dir) => {
+        if (dir === Direction.North) {
+          setDirection(NjOrNy.NJ);
+        } else {
+          setDirection(NjOrNy.NY);
+        }
+      }}
+      northBoundAlias={NjOrNy.NJ}
+      southBoundAlias={NjOrNy.NY}
+    />
+  );
+
   if (
     nearbyTripsLoading ||
-    routeStatusLoading ||
     (!locationErrorMessage &&
       (latitude === undefined || longitude === undefined))
   ) {
-    return <NycSubwayLoadingView />;
+    return (
+      <>
+        {directionSelectors}
+        <NycSubwayLoadingView />;
+      </>
+    );
   }
 
   if (
@@ -178,7 +149,7 @@ const NycSubwayScheduleView: React.FC = () => {
     );
   }
 
-  if (nearbyTripsError || routeStatusError) {
+  if (nearbyTripsError) {
     return (
       <FullScreenError
         error={
@@ -188,15 +159,12 @@ const NycSubwayScheduleView: React.FC = () => {
     );
   }
 
-  const alertMessages = getMtaAlertPropsFromRouteAlerts(
-    routeStatusData?.flatMap((routeStatus) => routeStatus.alerts as Alert[]) ??
-      []
-  );
-
   const now = DateTime.now();
   const sanitizedNearbyTripsData = applyQaToStopRouteTrips(
     now,
-    nearbyTripsData
+    nearbyTripsData,
+    excludedPathRoutes,
+    30
   );
 
   if (
@@ -207,20 +175,13 @@ const NycSubwayScheduleView: React.FC = () => {
       <FullScreenError
         error={
           <>
-            {`Selected routes don't appear to be running at any stops within
+            {`No PATH routes appear to be running at any stops within
             ~${kmToMi(
-              parseFloat(process.env.NEXT_PUBLIC_US_NY_SUBWAY_MAX_STOP_DISTANCE_KM!)
+              parseFloat(
+                process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!
+              )
             ).toPrecision(1)} MI of you.`}
           </>
-        }
-        errorDetails={
-          alertMessages?.length > 0 ? (
-            <MtaAlertList
-              alerts={alertMessages}
-              behavior={Behavior.None}
-              hideAlertIcon
-            />
-          ) : undefined
         }
       />
     );
@@ -228,14 +189,14 @@ const NycSubwayScheduleView: React.FC = () => {
 
   return (
     <>
-      {alertMessages !== undefined && (
-        <MtaAlertList alerts={alertMessages} behavior={Behavior.Collapsable} />
-      )}
+      {directionSelectors}
       <table className="w-full border-spacing-0 border-collapse">
         {sanitizedNearbyTripsData.map((stopRouteTrip) => {
-          const stopWithDirection = `${stopRouteTrip.stop.id}${direction}`;
           const header = (
-            <thead key={stopWithDirection} className="p-0 sticky top-0 z-50">
+            <thead
+              key={stopRouteTrip.stop.id}
+              className="p-0 sticky top-0 z-50"
+            >
               <tr>
                 <th className="p-0">
                   <StopHeader stopName={stopRouteTrip.stop.name} />
@@ -252,9 +213,9 @@ const NycSubwayScheduleView: React.FC = () => {
 
                 return [
                   trip.arrival,
-                  <tr key={`${stopWithDirection}${trip.id}${idx}`}>
+                  <tr key={`${stopRouteTrip.stop.id}${trip.id}${idx}`}>
                     <td className="p-0">
-                      <NycSubwayTripArrivalTime
+                      <PathTripArrivalTime
                         onClickTimeText={() => {
                           setDurationFormat(
                             durationFormat === DurationFormat.Exact
@@ -262,9 +223,9 @@ const NycSubwayScheduleView: React.FC = () => {
                               : DurationFormat.Exact
                           );
                         }}
-                        route={routeTrip.route}
                         timeUntilArrival={delta}
                         durationFormat={durationFormat}
+                        route={routeTrip.route}
                         direction={direction}
                       />
                     </td>
@@ -276,7 +237,7 @@ const NycSubwayScheduleView: React.FC = () => {
             .map((t) => t[1]);
 
           const tbody = (
-            <tbody key={`${stopWithDirection}header`}>{stopRows}</tbody>
+            <tbody key={`${stopRouteTrip.stop.id}header`}>{stopRows}</tbody>
           );
 
           return [header, tbody];
@@ -284,6 +245,4 @@ const NycSubwayScheduleView: React.FC = () => {
       </table>
     </>
   );
-};
-
-export default NycSubwayScheduleView;
+}

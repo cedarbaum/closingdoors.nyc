@@ -27,6 +27,7 @@
     "humanize-duration": "^3.28.0",
     "luxon": "^3.3.0",
     "next": "13.2.4",
+    "next-usequerystate": "^1.7.2",
     "react": "18.2.0",
     "react-animate-height": "^3.1.1",
     "react-dom": "18.2.0",
