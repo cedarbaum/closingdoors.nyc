@@ -12,7 +12,7 @@ A minimalist subway schedule viewer written in React.
 
 This project relies on [Transiter](https://github.com/jamespfennell/transiter) for fetching data. After running Transiter locally or hosting it, set the `TRANSITER_URL` environment variable (it is recommended to use a `.env.local` file) to the base URL of the HTTP endpoint.
 
-### Generating protobuf types
+Note that while we try to stay in sync with the mainline of Transiter, the version used in this application is a forked version that can sometimes be incompatible with the official version: [Transiter (closingdoors branch)](https://github.com/cedarbaum/transiter/tree/closingdoors). This version can be found on [Docker Hub](https://hub.docker.com/r/scedarbaum/transiter).
 
 Transiter uses gRPC protobuf definitions for it's API. TypeScript types can be generated from this, which are then used to annotate the data returned from Transiter. To generate new types:
 
