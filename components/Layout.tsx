@@ -79,7 +79,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 }}
               />
             )}
-            <main className="w-full">{children}</main>
+            <main className="w-full overflow-auto scrollbar-hide">{children}</main>
           </div>
         </div>
       </PopoverAlertContext.Provider>

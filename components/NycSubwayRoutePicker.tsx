@@ -170,7 +170,7 @@ export default function NycSubwayRoutePicker() {
 
   return (
     <>
-      <div className="overflow-scroll h-full scrollbar-hide text-white">
+      <div className="h-full text-white">
         {focusedRoute !== undefined && (
           <div
             className="fixed left-0 w-full h-full bg-transparent z-30 select-none"
