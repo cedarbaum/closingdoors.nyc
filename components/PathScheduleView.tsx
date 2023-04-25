@@ -62,6 +62,7 @@ export default function PathScheduleView() {
   const {
     data: nearbyTripsData,
     isLoading: nearbyTripsLoading,
+    isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
   } = useQuery(
     ["nearby_trips_path", latitude, longitude, direction],
@@ -116,17 +117,19 @@ export default function PathScheduleView() {
     />
   );
 
+  const loadingView = (
+    <div className="flex flex-col w-full h-full">
+      {directionSelectors}
+      <PathLoadingView excludedPathRoutes={excludedPathRoutes} />;
+    </div>
+  );
+
   if (
     nearbyTripsLoading ||
     (!locationErrorMessage &&
       (latitude === undefined || longitude === undefined))
   ) {
-    return (
-      <div className="flex flex-col w-full h-full">
-        {directionSelectors}
-        <PathLoadingView excludedPathRoutes={excludedPathRoutes} />;
-      </div>
-    );
+    return loadingView;
   }
 
   if (
@@ -162,6 +165,11 @@ export default function PathScheduleView() {
     excludedPathRoutes,
     30
   );
+
+  // If data is stale, show loading view
+  if (nearbyTripsFetching && sanitizedNearbyTripsData?.length === 0) {
+    return loadingView;
+  }
 
   if (
     sanitizedNearbyTripsData?.length === 0 ||
