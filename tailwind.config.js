@@ -38,14 +38,20 @@ module.exports = {
           "0%,100%": { opacity: 1 },
           "50%": { opacity: 0.5 },
         },
+        pathLoadingKeyframes: {
+          "0%,100%": { opacity: 1 },
+          "50%": { opacity: 0.5 },
+        },
       },
       animation: {
         alertIconAnimation:
           "alertIconFlickerKeyframes 1.5s ease-in-out infinite alternate",
         arrivalTimeFadeInOutAnimation:
           "arrivalTimeFadeInOutKeyframes 1s infinite alternate",
-        nycSubwayLaodingKeyframesAnimation:
+        nycSubwayLoadingKeyframesAnimation:
           "nycSubwayLoadingKeyframes 1.2s linear infinite",
+        pathLoadingKeyframesAnimation:
+          "pathLoadingKeyframes 1.2s linear infinite",
       },
     },
   },

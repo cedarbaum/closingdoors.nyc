@@ -17,7 +17,7 @@ export const NycSubwayLoadingView: React.FC = () => {
           return (
             <div
               key={idx}
-              className="absolute w-[16px] h-[16px] rounded-full animate-nycSubwayLaodingKeyframesAnimation"
+              className="absolute w-[16px] h-[16px] rounded-full animate-nycSubwayLoadingKeyframesAnimation"
               style={{
                 top,
                 left,

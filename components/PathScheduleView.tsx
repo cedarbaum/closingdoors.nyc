@@ -4,7 +4,6 @@ import { DurationFormat } from "./TripArrivalTime";
 import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import haversineDistance from "haversine-distance";
-import { NycSubwayLoadingView } from "./NycSubwayLoadingView";
 import { FullScreenError } from "./FullScreenError";
 import { DateTime } from "luxon";
 import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
@@ -13,19 +12,16 @@ import DirectionSelectors, { Direction } from "./DirectionsSelector";
 import { PathTripArrivalTime } from "./PathTripArrivalTime";
 import { queryTypes, useQueryState } from "next-usequerystate";
 import { kmToMi } from "@/utils/GeoUtils";
+import { NjOrNy, PathRoute } from "@/utils/PathRoutes";
+import { PathLoadingView } from "./PathLoadingView";
 
 interface LatLonPair {
   lat: number;
   lon: number;
 }
 
-export enum NjOrNy {
-  NJ = "NJ",
-  NY = "NY",
-}
-
 // Newark - Harrison Shuttle Train
-const excludedPathRoutes = new Set(["74320"]);
+const excludedPathRoutes = new Set<PathRoute>(["74320"]);
 
 export default function PathScheduleView() {
   let {
@@ -126,10 +122,10 @@ export default function PathScheduleView() {
       (latitude === undefined || longitude === undefined))
   ) {
     return (
-      <>
+      <div className="flex flex-col w-full h-full">
         {directionSelectors}
-        <NycSubwayLoadingView />;
-      </>
+        <PathLoadingView excludedPathRoutes={excludedPathRoutes} />;
+      </div>
     );
   }
 
@@ -225,7 +221,7 @@ export default function PathScheduleView() {
                         }}
                         timeUntilArrival={delta}
                         durationFormat={durationFormat}
-                        route={routeTrip.route}
+                        route={routeTrip.route as PathRoute}
                         direction={direction}
                       />
                     </td>
