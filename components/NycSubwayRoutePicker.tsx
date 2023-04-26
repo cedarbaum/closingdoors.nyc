@@ -247,7 +247,7 @@ export default function NycSubwayRoutePicker() {
                             }}
                           />
                           <div
-                            className="scrollbar-hide overflow-scroll"
+                            className="relative scrollbar-hide overflow-scroll"
                             style={{ maxHeight: popupAvailableHeight }}
                           >
                             <MtaAlertList
