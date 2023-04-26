@@ -126,7 +126,7 @@ const NycSubwayScheduleView: React.FC = () => {
             routes: routesString,
             // Northbound = 0,false and Southbound = 1,true
             direction_id: direction === "N" ? "false" : "true",
-            exclude_parent_stops: "true",
+            stop_type: "parent",
           })
       );
 

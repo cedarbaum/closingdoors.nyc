@@ -33,14 +33,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StopRouteTrips[] | { error: string }>
 ) {
-  const {
-    system,
-    latitude,
-    longitude,
-    routes,
-    direction_id,
-    exclude_parent_stops,
-  } = req.query;
+  const { system, latitude, longitude, routes, direction_id, stop_type } =
+    req.query;
   if (latitude === undefined || longitude === undefined) {
     res.status(400).json({ error: "Missing latitude or longitude" });
     return;
@@ -76,7 +70,10 @@ export default async function handler(
 
   const stopRouteTrips = stops
     .filter(
-      (stop) => exclude_parent_stops !== "true" || stop.parentStop === undefined
+      (stop) =>
+        stop_type === undefined ||
+        (stop_type === "parent" && stop.parentStop === undefined) ||
+        (stop_type === "child" && stop.parentStop !== undefined)
     )
     .map((stop) => ({
       stop: {
