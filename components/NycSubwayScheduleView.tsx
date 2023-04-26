@@ -124,7 +124,9 @@ const NycSubwayScheduleView: React.FC = () => {
             latitude: latitude!.toString(),
             longitude: longitude!.toString(),
             routes: routesString,
-            stop_id_suffix: direction,
+            // Northbound = 0,false and Southbound = 1,true
+            direction_id: direction === "N" ? "false" : "true",
+            exclude_parent_stops: "true",
           })
       );
 
@@ -209,7 +211,9 @@ const NycSubwayScheduleView: React.FC = () => {
           <>
             {`Selected routes don't appear to be running at any stops within
             ~${kmToMi(
-              parseFloat(process.env.NEXT_PUBLIC_US_NY_SUBWAY_MAX_STOP_DISTANCE_KM!)
+              parseFloat(
+                process.env.NEXT_PUBLIC_US_NY_SUBWAY_MAX_STOP_DISTANCE_KM!
+              )
             ).toPrecision(1)} MI of you.`}
           </>
         }
