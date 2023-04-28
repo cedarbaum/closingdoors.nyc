@@ -18,7 +18,7 @@ const nextConfig = {
           has: [
             {
               type: "host",
-              value: "subwaygpt.app",
+              value: "www.subwaygpt.app",
             },
           ],
           destination: "/chat",
