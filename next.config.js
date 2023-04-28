@@ -10,22 +10,6 @@ const nextConfig = {
       },
     ];
   },
-  rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: "/:path*",
-          has: [
-            {
-              type: "host",
-              value: "www.subwaygpt.app",
-            },
-          ],
-          destination: "/chat",
-        },
-      ],
-    };
-  },
 };
 
 module.exports = nextConfig;
