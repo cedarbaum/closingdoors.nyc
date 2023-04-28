@@ -31,7 +31,7 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({ header, description }) => {
       }
 
       if (description) {
-        setDescriptionHtml(processMtaText(description));
+        setDescriptionHtml(processMtaText(description, routesToShowBorderFor));
       }
     });
   }, [header, description]);
