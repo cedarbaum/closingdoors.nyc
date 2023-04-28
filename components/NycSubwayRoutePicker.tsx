@@ -60,7 +60,7 @@ export default function NycSubwayRoutePicker() {
       return (await routeStatusesResp.json()) as RouteStatuses[];
     },
     {
-      refetchInterval: 30000,
+      refetchInterval: 10000,
     }
   );
 
