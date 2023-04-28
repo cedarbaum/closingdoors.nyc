@@ -3,6 +3,7 @@ import { convertReactComponentToHtml } from "./ReactUtils";
 import Image from "next/image";
 import DOMPurify from "dompurify";
 import { allRoutesIds } from "./SubwayLines";
+import { setUnion, setIntersection } from "./CollectionUtils";
 
 const additionalRouteIcons = new Set(["S", "SI"].map((r) => r.toLowerCase()));
 
@@ -16,21 +17,31 @@ export function processMtaText(
 
   const innerHtml = text.replaceAll(/\[.*?\]/g, (match: string) => {
     const innerText = match.substring(1, match.length - 1).toLowerCase();
-    if (allRoutesIds.has(innerText) || additionalRouteIcons.has(innerText)) {
-      return convertReactComponentToHtml(
-        <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
-          <NycSubwayIcon
-            route={innerText}
-            width={"1.25em"}
-            height={"1.25em"}
-            border={
-              routesToShowBorderFor?.has(innerText)
-                ? "1px solid black"
-                : undefined
-            }
-          />
-        </span>
-      );
+    const containedRouteIds = innerText.split(",").map((r) => r.trim());
+    if (
+      setIntersection(
+        new Set(containedRouteIds),
+        setUnion(allRoutesIds, additionalRouteIcons)
+      ).size > 0
+    ) {
+      return containedRouteIds
+        .map((r) =>
+          convertReactComponentToHtml(
+            <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
+              <NycSubwayIcon
+                route={r}
+                width={"1.25em"}
+                height={"1.25em"}
+                border={
+                  routesToShowBorderFor?.has(innerText)
+                    ? "1px solid black"
+                    : undefined
+                }
+              />
+            </span>
+          )
+        )
+        .join();
     }
 
     if (innerText === "accessibility icon") {
