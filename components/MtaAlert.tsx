@@ -1,6 +1,7 @@
 import { NycSubwayIcon } from "./NycSubwayIcon";
 import { convertReactComponentToHtml } from "@/utils/ReactUtils";
 import { allRoutesIds } from "@/utils/SubwayLines";
+import { processMtaText } from "@/utils/TextProcessing";
 import DOMPurify from "dompurify";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -26,11 +27,11 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({ header, description }) => {
   useEffect(() => {
     queueMicrotask(() => {
       if (header) {
-        setHeaderHtml(processAlertText(header));
+        setHeaderHtml(processMtaText(header, routesToShowBorderFor));
       }
 
       if (description) {
-        setDescriptionHtml(processAlertText(description));
+        setDescriptionHtml(processMtaText(description));
       }
     });
   }, [header, description]);
@@ -44,53 +45,3 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({ header, description }) => {
     </div>
   );
 };
-
-function processAlertText(alertText?: string) {
-  if (!alertText) {
-    return "";
-  }
-
-  const innerHtml = alertText.replaceAll(/\[.*?\]/g, (match: string) => {
-    const innerText = match.substring(1, match.length - 1).toLowerCase();
-    if (allRoutesIds.has(innerText) || additionalRouteIcons.has(innerText)) {
-      return convertReactComponentToHtml(
-        <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
-          <NycSubwayIcon
-            route={innerText}
-            width={"1.25em"}
-            height={"1.25em"}
-            border={
-              routesToShowBorderFor.has(innerText)
-                ? "1px solid black"
-                : undefined
-            }
-          />
-        </span>
-      );
-    }
-
-    if (innerText === "accessibility icon") {
-      return convertReactComponentToHtml(
-        <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
-          <Image
-            src="/mta-alert-icons/International_Symbol_of_Access.svg"
-            alt="Accessibility icon"
-            fill
-          />
-        </span>
-      );
-    }
-
-    if (innerText === "shuttle bus icon") {
-      return convertReactComponentToHtml(
-        <span className="relative align-text-bottom inline-block w-[1.25em] h-[1.25em]">
-          <Image src="/mta-alert-icons/bus.svg" alt="Shuttle bus icon" fill />
-        </span>
-      );
-    }
-
-    return match;
-  });
-
-  return DOMPurify.sanitize(innerHtml);
-}

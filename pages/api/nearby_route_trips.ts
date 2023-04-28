@@ -1,12 +1,10 @@
 import {
   Stop as TransiterStop,
-  ListStopsReply,
   StopTime,
 } from "@/generated/proto/transiter/public";
+import { getNearbyStops } from "@/utils/TransiterUtils";
 import haversineDistance from "haversine-distance";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-const TRANSITER_URL = process.env.TRANSITER_URL!;
 
 export type Stop = {
   id: string;
@@ -48,7 +46,8 @@ export default async function handler(
   const stops = await getNearbyStops(
     system as string,
     latitude as string,
-    longitude as string
+    longitude as string,
+    getMaxStopDistance(system as string)
   );
 
   const stopDistanceByStopId = new Map<string, number>(
@@ -131,31 +130,6 @@ function getTripsByRouteForStop(
         })),
     }))
     .filter(({ trips }) => trips.length > 0);
-}
-
-async function getNearbyStops(
-  system: string,
-  latitude: string,
-  longitude: string
-) {
-  const stopsDataResp = await fetch(
-    `${TRANSITER_URL}/systems/${system}/stops?` +
-      new URLSearchParams({
-        search_mode: "DISTANCE",
-        latitude: latitude,
-        longitude: longitude,
-        max_distance: getMaxStopDistance(system),
-        limit: "500",
-        skip_service_maps: "true",
-        skip_transfers: "true",
-      })
-  );
-
-  if (!stopsDataResp.ok) {
-    throw new Error(`Failed to fetch stops for ${system}`);
-  }
-
-  return ((await stopsDataResp.json()) as ListStopsReply).stops;
 }
 
 function getMaxStopDistance(system: string) {

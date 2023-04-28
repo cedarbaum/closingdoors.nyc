@@ -1,16 +1,41 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { createContext, useEffect, useState } from "react";
 import Head from "next/head";
-import { SystemSelectorHeader } from "./SystemSelectorHeader";
+import { PageSelectorHeader, Tab } from "./PageSelectorHeader";
 import { useRouter } from "next/router";
+
+import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/solid";
 
 export const PopoverAlertContext = createContext(
   (_alert: React.ReactNode) => {}
 );
 
+const tabs: Tab[] = [
+  {
+    name: "subway",
+    content: "subway",
+    widthPercent: 40,
+  },
+  {
+    name: "path",
+    content: "path",
+    widthPercent: 40,
+  },
+  {
+    name: "chat",
+    content: (
+      <div className="w-6 h-6">
+        <ChatBubbleLeftEllipsisIcon />
+      </div>
+    ),
+    widthPercent: 20,
+  },
+];
+
 const pathToTabName = new Map([
   ["/us-ny-subway", "subway"],
   ["/us-ny-path/schedule", "path"],
+  ["/chat", "chat"],
 ]);
 
 const tabNameToPath = new Map(
@@ -69,17 +94,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
           <div className="flex flex-col bg-black max-w-md mx-auto w-full h-full">
             {pathsToShowTabbarFor.has(pathWithSystem) && (
-              <SystemSelectorHeader
-                tabs={Array.from(pathToTabName.entries()).map(
-                  ([_, value]) => value
-                )}
+              <PageSelectorHeader
+                tabs={tabs}
                 activeTab={pathToTabName.get(pathWithSystem)!}
                 onTabClick={(tab) => {
                   router.push(tabNameToPath.get(tab)!);
                 }}
               />
             )}
-            <main className="w-full overflow-auto scrollbar-hide">{children}</main>
+            <main className="w-full overflow-auto scrollbar-hide">
+              {children}
+            </main>
           </div>
         </div>
       </PopoverAlertContext.Provider>

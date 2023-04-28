@@ -1,12 +1,10 @@
+import { Alert } from "@/generated/proto/transiter/public";
 import {
-  Alert,
-  ListAlertsReply,
-  ListRoutesReply,
-  Route,
-} from "@/generated/proto/transiter/public";
+  getAlerts,
+  getRouteIsRunning,
+  getRoutes,
+} from "@/utils/TransiterUtils";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-const TRANSITER_URL = process.env.TRANSITER_URL!;
 
 export type RouteStatuses = {
   route: string;
@@ -50,44 +48,4 @@ export default async function handler(
   }) as RouteStatuses[];
 
   res.status(200).json(routeStatusesResp);
-}
-
-function getRouteIsRunning(route: Route): boolean | undefined {
-  const stops = route.serviceMaps?.find(
-    (map) => map.configId === "realtime"
-  )?.stops;
-  if (stops === undefined) {
-    return undefined;
-  }
-
-  return stops.length > 0;
-}
-
-async function getRoutes(system: string, skip_service_maps = false) {
-  const routesResp = await fetch(
-    `${TRANSITER_URL}/systems/${system}/routes?` +
-      new URLSearchParams({
-        skip_service_maps: skip_service_maps.toString(),
-      })
-  );
-
-  if (!routesResp.ok) {
-    throw new Error(
-      `Failed to get routes for system ${system} with status ${routesResp.status}`
-    );
-  }
-
-  return ((await routesResp.json()) as ListRoutesReply).routes;
-}
-
-async function getAlerts(system: string) {
-  const alertsResp = await fetch(`${TRANSITER_URL}/systems/${system}/alerts`);
-
-  if (!alertsResp.ok) {
-    throw new Error(
-      `Failed to get alerts for system ${system} with status ${alertsResp.status}`
-    );
-  }
-
-  return ((await alertsResp.json()) as ListAlertsReply).alerts;
 }

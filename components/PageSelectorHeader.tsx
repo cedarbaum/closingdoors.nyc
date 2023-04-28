@@ -1,12 +1,18 @@
 import { motion } from "framer-motion";
 
+export type Tab = {
+  name: string;
+  content: React.ReactNode;
+  widthPercent: number;
+};
+
 type SystemSelectorHeaderProps = {
-  tabs: string[];
+  tabs: Tab[];
   activeTab: string;
   onTabClick: (tab: string) => void;
 };
 
-export const SystemSelectorHeader: React.FC<SystemSelectorHeaderProps> = ({
+export const PageSelectorHeader: React.FC<SystemSelectorHeaderProps> = ({
   tabs,
   activeTab,
   onTabClick,
@@ -16,18 +22,18 @@ export const SystemSelectorHeader: React.FC<SystemSelectorHeaderProps> = ({
       {tabs.map((tab) => (
         <button
           className="relative p-4"
-          style={{ width: `${100 / tabs.length}%` }}
-          key={tab}
-          onClick={() => onTabClick(tab)}
+          style={{ width: `${tab.widthPercent}%` }}
+          key={tab.name}
+          onClick={() => onTabClick(tab.name)}
         >
           <motion.div
-            className="font-medium uppercase"
-            initial={{ opacity: activeTab === tab ? "100%" : "50%" }}
-            animate={{ opacity: activeTab === tab ? "100%" : "50%" }}
+            className="flex items-center justify-center font-medium uppercase"
+            initial={{ opacity: activeTab === tab.name ? "100%" : "50%" }}
+            animate={{ opacity: activeTab === tab.name ? "100%" : "50%" }}
           >
-            {tab}
+            {tab.content}
           </motion.div>
-          {activeTab === tab && (
+          {activeTab === tab.name && (
             <motion.div
               layoutId="tab-underline"
               className="absolute top-0 left-0 border-b-4 text-white h-full w-full"
