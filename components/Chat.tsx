@@ -164,9 +164,7 @@ export default function Chat() {
 
     return allMessages.map((message) => (
       <div key={message.id}>
-        <div className="px-4">
-          <MessageBubble message={message} />
-        </div>
+        <MessageBubble message={message} />
         {message.chips && (
           <div className="pl-4">
             <Chips
@@ -253,15 +251,21 @@ function MessageBubble({ message }: { message: Message }) {
     );
   }
 
-  let bubbleClass = "ml-auto bg-blue-500 text-white";
+  let bubbleClass = "bg-blue-500 text-white ml-8";
   if (message.intent === "error") {
-    bubbleClass = "bg-mtaYellow text-black";
+    bubbleClass = "bg-mtaYellow text-black mr-8";
   } else if (message.role === "assistant" || message.role === "system") {
-    bubbleClass = "mr-auto bg-gray-700 text-white";
+    bubbleClass = "bg-gray-700 text-white mr-8";
   }
 
   return (
-    <div className={`p-3 mb-2 max-w-sm w-fit ${bubbleClass}`}>{innerHtml}</div>
+    <div
+      className={`flex ${
+        message.role === "user" ? "justify-end" : "justify-start"
+      } w-full mb-2`}
+    >
+      <div className={`p-3 w-fit ${bubbleClass}`}>{innerHtml}</div>
+    </div>
   );
 }
 
