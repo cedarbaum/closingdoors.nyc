@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { DurationFormat } from "./TripArrivalTime";
 import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
-import haversineDistance from "haversine-distance";
 import { FullScreenError } from "./FullScreenError";
 import { DateTime } from "luxon";
 import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
@@ -24,40 +23,28 @@ interface LatLonPair {
 const excludedPathRoutes = new Set<PathRoute>(["74320"]);
 
 export default function PathScheduleView() {
-  let {
+  const {
     latitude,
     longitude,
     error: locationErrorMessage,
-  } = usePosition(true, {
-    maximumAge: 60 * 1000,
-    timeout: 30 * 1000,
-    enableHighAccuracy: false,
-  });
+  } = usePosition(
+    true,
+    {
+      maximumAge: 60 * 1000,
+      timeout: 30 * 1000,
+      enableHighAccuracy: false,
+    },
+    { minDistanceToUpdateMeters: 50 }
+  );
   const [direction, setDirection] = useQueryState(
     "direction",
     queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ)
   );
 
-  const [lastLocation, setLastLocation] = useState<LatLonPair | undefined>(
-    undefined
-  );
   const [, setTime] = useState(Date.now());
   const [durationFormat, setDurationFormat] = useState(
     DurationFormat.MinuteCeiling
   );
-
-  if (
-    latitude !== undefined &&
-    longitude !== undefined &&
-    lastLocation !== undefined
-  ) {
-    if (
-      haversineDistance(lastLocation, { lat: latitude, lon: longitude }) < 50
-    ) {
-      latitude = lastLocation.lat;
-      longitude = lastLocation.lon;
-    }
-  }
 
   const {
     data: nearbyTripsData,
@@ -88,12 +75,6 @@ export default function PathScheduleView() {
       refetchInterval: 10000,
     }
   );
-
-  useEffect(() => {
-    if (latitude !== undefined && longitude !== undefined) {
-      setLastLocation({ lat: latitude, lon: longitude });
-    }
-  }, [latitude, longitude]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 1000);

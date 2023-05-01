@@ -1,3 +1,4 @@
+import haversineDistance from "haversine-distance";
 import { useState, useEffect } from "react";
 
 const defaultSettings = {
@@ -6,6 +7,10 @@ const defaultSettings = {
   timeout: Infinity,
   maximumAge: 0,
 };
+
+export interface PositionCacheSettings {
+  minDistanceToUpdateMeters?: number;
+}
 
 interface GeolocationPositionWithTimestamp {
   readonly accuracy: number;
@@ -16,7 +21,11 @@ interface GeolocationPositionWithTimestamp {
   readonly timestamp: EpochTimeStamp;
 }
 
-export const usePosition = (watch = false, userSettings = {}) => {
+export const usePosition = (
+  watch = false,
+  userSettings: PositionOptions = {},
+  positionCacheSettings: PositionCacheSettings = {}
+) => {
   const settings = {
     ...defaultSettings,
     ...userSettings,
@@ -25,10 +34,30 @@ export const usePosition = (watch = false, userSettings = {}) => {
   const [position, setPosition] = useState<
     GeolocationPositionWithTimestamp | undefined
   >(undefined);
+  const [lastPosition, setLastPosition] = useState<
+    GeolocationPositionWithTimestamp | undefined
+  >(undefined);
   const [error, setError] = useState<string | null>(null);
 
   const onChange = ({ coords, timestamp }: GeolocationPosition) => {
     setError(null);
+
+    if (positionCacheSettings.minDistanceToUpdateMeters) {
+      if (
+        lastPosition &&
+        haversineDistance(
+          {
+            latitude: lastPosition.latitude,
+            longitude: lastPosition.longitude,
+          },
+          { latitude: coords.latitude, longitude: coords.longitude }
+        ) < positionCacheSettings.minDistanceToUpdateMeters
+      ) {
+        return;
+      }
+    }
+
+    setLastPosition(position);
     setPosition({
       latitude: coords.latitude,
       longitude: coords.longitude,
@@ -64,6 +93,7 @@ export const usePosition = (watch = false, userSettings = {}) => {
 
     navigator.geolocation.getCurrentPosition(onChange, onError, settings);
   }, [
+    watch,
     settings.enableHighAccuracy,
     settings.timeout,
     settings.maximumAge,

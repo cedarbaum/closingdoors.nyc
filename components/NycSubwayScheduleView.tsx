@@ -4,7 +4,6 @@ import { StopHeader } from "@/components/StopHeader";
 import { NycSubwayTripArrivalTime } from "@/components/NycSubwayTripArrivalTime";
 import { DateTime } from "luxon";
 import { FullScreenError } from "@/components/FullScreenError";
-import haversineDistance from "haversine-distance";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
@@ -29,11 +28,6 @@ export interface StatusIconProps {
   onClick?(): void;
 }
 
-interface LatLonPair {
-  lat: number;
-  lon: number;
-}
-
 function routesQueryParamToSet(queryParam: string | null) {
   return queryParam == null
     ? new Set<string>()
@@ -55,35 +49,23 @@ const NycSubwayScheduleView: React.FC = () => {
   const routes = routesQueryParamToSet(router.query.routes as string | null);
   const routesString = Array.from(routes).join(",");
 
-  let {
+  const {
     latitude,
     longitude,
     error: locationErrorMessage,
-  } = usePosition(true, {
-    maximumAge: 60 * 1000,
-    timeout: 30 * 1000,
-    enableHighAccuracy: false,
-  });
-  const [lastLocation, setLastLocation] = useState<LatLonPair | undefined>(
-    undefined
+  } = usePosition(
+    true,
+    {
+      maximumAge: 60 * 1000,
+      timeout: 30 * 1000,
+      enableHighAccuracy: false,
+    },
+    { minDistanceToUpdateMeters: 50 }
   );
   const [, setTime] = useState(Date.now());
   const [durationFormat, setDurationFormat] = useState(
     DurationFormat.MinuteCeiling
   );
-
-  if (
-    latitude !== undefined &&
-    longitude !== undefined &&
-    lastLocation !== undefined
-  ) {
-    if (
-      haversineDistance(lastLocation, { lat: latitude, lon: longitude }) < 50
-    ) {
-      latitude = lastLocation.lat;
-      longitude = lastLocation.lon;
-    }
-  }
 
   const {
     data: routeStatusData,
@@ -141,12 +123,6 @@ const NycSubwayScheduleView: React.FC = () => {
       refetchInterval: 10000,
     }
   );
-
-  useEffect(() => {
-    if (latitude !== undefined && longitude !== undefined) {
-      setLastLocation({ lat: latitude, lon: longitude });
-    }
-  }, [latitude, longitude]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 1000);
