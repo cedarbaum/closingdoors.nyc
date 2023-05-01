@@ -85,7 +85,7 @@ export default async function handler(
     )
     .map(
       (a) =>
-        `*** ${a.header.find((h) => h.language === "en")?.text ?? ""}: ${
+        `- ${a.header.find((h) => h.language === "en")?.text ?? ""}: ${
           a.description.find((d) => d.language === "en")?.text ?? ""
         }`
     )
@@ -98,7 +98,7 @@ export default async function handler(
 Whenever you reference a subway route letter or number, always enclose it in square brackets.
 You are aware that the following routes are running, separated by commas. When you reference this, be sure to enclose each route in square brackets:
 ${runningRoutesText}
-You are aware of the below active MTA alerts. Each alert starts with *** and starts with a header followed by an optional description:
+You are aware of the below active MTA alerts. Each alert starts with a '-' character and has a header followed by an optional description. If a user asks you about the status of a route, you provide them with any active alerts below that are associated with the route(s) in question:
 ${activeAlertsText}
 `,
   };
