@@ -859,11 +859,7 @@ export interface StopTime {
     | string
     | undefined;
   /** Track, from the NYCT realtime extension. */
-  track?:
-    | string
-    | undefined;
-  /** Direction ID of the trip. */
-  directionId: boolean;
+  track?: string | undefined;
 }
 
 /**
@@ -902,6 +898,7 @@ export interface Trip_Reference {
   route: Route_Reference | undefined;
   destination: Stop_Reference | undefined;
   vehicle?: Vehicle_Reference | undefined;
+  directionId: boolean;
 }
 
 export interface Vehicle {
@@ -5073,7 +5070,6 @@ function createBaseStopTime(): StopTime {
     stopSequence: 0,
     headsign: undefined,
     track: undefined,
-    directionId: false,
   };
 }
 
@@ -5102,9 +5098,6 @@ export const StopTime = {
     }
     if (message.track !== undefined) {
       writer.uint32(66).string(message.track);
-    }
-    if (message.directionId === true) {
-      writer.uint32(72).bool(message.directionId);
     }
     return writer;
   },
@@ -5172,13 +5165,6 @@ export const StopTime = {
 
           message.track = reader.string();
           continue;
-        case 9:
-          if (tag != 72) {
-            break;
-          }
-
-          message.directionId = reader.bool();
-          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5198,7 +5184,6 @@ export const StopTime = {
       stopSequence: isSet(object.stopSequence) ? Number(object.stopSequence) : 0,
       headsign: isSet(object.headsign) ? String(object.headsign) : undefined,
       track: isSet(object.track) ? String(object.track) : undefined,
-      directionId: isSet(object.directionId) ? Boolean(object.directionId) : false,
     };
   },
 
@@ -5214,7 +5199,6 @@ export const StopTime = {
     message.stopSequence !== undefined && (obj.stopSequence = Math.round(message.stopSequence));
     message.headsign !== undefined && (obj.headsign = message.headsign);
     message.track !== undefined && (obj.track = message.track);
-    message.directionId !== undefined && (obj.directionId = message.directionId);
     return obj;
   },
 
@@ -5240,7 +5224,6 @@ export const StopTime = {
     message.stopSequence = object.stopSequence ?? 0;
     message.headsign = object.headsign ?? undefined;
     message.track = object.track ?? undefined;
-    message.directionId = object.directionId ?? false;
     return message;
   },
 };
@@ -5485,7 +5468,14 @@ export const Trip = {
 };
 
 function createBaseTrip_Reference(): Trip_Reference {
-  return { id: "", resource: undefined, route: undefined, destination: undefined, vehicle: undefined };
+  return {
+    id: "",
+    resource: undefined,
+    route: undefined,
+    destination: undefined,
+    vehicle: undefined,
+    directionId: false,
+  };
 }
 
 export const Trip_Reference = {
@@ -5504,6 +5494,9 @@ export const Trip_Reference = {
     }
     if (message.vehicle !== undefined) {
       Vehicle_Reference.encode(message.vehicle, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.directionId === true) {
+      writer.uint32(48).bool(message.directionId);
     }
     return writer;
   },
@@ -5550,6 +5543,13 @@ export const Trip_Reference = {
 
           message.vehicle = Vehicle_Reference.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag != 48) {
+            break;
+          }
+
+          message.directionId = reader.bool();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5566,6 +5566,7 @@ export const Trip_Reference = {
       route: isSet(object.route) ? Route_Reference.fromJSON(object.route) : undefined,
       destination: isSet(object.destination) ? Stop_Reference.fromJSON(object.destination) : undefined,
       vehicle: isSet(object.vehicle) ? Vehicle_Reference.fromJSON(object.vehicle) : undefined,
+      directionId: isSet(object.directionId) ? Boolean(object.directionId) : false,
     };
   },
 
@@ -5578,6 +5579,7 @@ export const Trip_Reference = {
       (obj.destination = message.destination ? Stop_Reference.toJSON(message.destination) : undefined);
     message.vehicle !== undefined &&
       (obj.vehicle = message.vehicle ? Vehicle_Reference.toJSON(message.vehicle) : undefined);
+    message.directionId !== undefined && (obj.directionId = message.directionId);
     return obj;
   },
 
@@ -5600,6 +5602,7 @@ export const Trip_Reference = {
     message.vehicle = (object.vehicle !== undefined && object.vehicle !== null)
       ? Vehicle_Reference.fromPartial(object.vehicle)
       : undefined;
+    message.directionId = object.directionId ?? false;
     return message;
   },
 };

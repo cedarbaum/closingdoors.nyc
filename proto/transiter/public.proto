@@ -797,9 +797,6 @@ message StopTime {
   optional string headsign = 7;
   // Track, from the NYCT realtime extension.
   optional string track = 8;
-
-  // Direction ID of the trip.
-  bool direction_id = 9;
 }
 
 message Trip {
@@ -823,6 +820,7 @@ message Trip {
     Route.Reference route = 3;
     Stop.Reference destination = 4;
     optional Vehicle.Reference vehicle = 5;
+    bool direction_id = 6;
   }
 }
 

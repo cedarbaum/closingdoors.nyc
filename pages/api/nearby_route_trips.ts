@@ -101,7 +101,7 @@ function getTripsByRouteForStop(
     .filter(
       (stopTime) =>
         stopTime.trip !== undefined &&
-        (direction_id === null || stopTime.directionId === direction_id)
+        (direction_id === null || stopTime?.trip.directionId === direction_id)
     )
     .reduce((grouped, stopTime) => {
       const route = stopTime.trip!.route!.id!;
