@@ -52,7 +52,7 @@ export default function PathScheduleView() {
     isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
   } = useQuery(
-    ["nearby_trips_path", latitude, longitude, direction],
+    ["nearby_trips_us_ny_path", direction],
     async () => {
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +

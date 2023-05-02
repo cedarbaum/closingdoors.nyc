@@ -97,7 +97,7 @@ const NycSubwayScheduleView: React.FC = () => {
     isLoading: nearbyTripsLoading,
     error: nearbyTripsError,
   } = useQuery(
-    ["nearby_trips", latitude, longitude, routesString, direction],
+    ["nearby_trips_us_ny_subway", routesString, direction],
     async () => {
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +
