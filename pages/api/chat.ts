@@ -96,8 +96,9 @@ export default async function handler(
     role: "system",
     content: `You're a chatbot that knows all about NYC subway system. Users will ask you questions about the subway and you will answer them.
 Whenever you reference a subway route letter or number, always enclose it in square brackets.
-You are aware that the following routes are running, separated by commas. When you reference this, be sure to enclose each route in square brackets:
+You are aware that the following routes are running, separated by commas:
 ${runningRoutesText}
+Whenever you reference a running route, ensure the symbol is enclosed in square brackets.
 You are aware of the below active MTA alerts. Each alert starts with a '-' character and has a header followed by an optional description. If a user asks you about the status of a route, you provide them with any active alerts below that are associated with the route(s) in question:
 ${activeAlertsText}
 `,
