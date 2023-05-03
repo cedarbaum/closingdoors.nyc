@@ -27,15 +27,11 @@ export default function PathScheduleView() {
     latitude,
     longitude,
     error: locationErrorMessage,
-  } = usePosition(
-    true,
-    {
-      maximumAge: 60 * 1000,
-      timeout: 30 * 1000,
-      enableHighAccuracy: false,
-    },
-    { minDistanceToUpdateMeters: 50 }
-  );
+  } = usePosition(true, {
+    maximumAge: 60 * 1000,
+    timeout: 30 * 1000,
+    enableHighAccuracy: false,
+  });
   const [direction, setDirection] = useQueryState(
     "direction",
     queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ)

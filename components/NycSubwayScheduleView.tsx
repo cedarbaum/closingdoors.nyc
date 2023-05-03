@@ -53,15 +53,11 @@ const NycSubwayScheduleView: React.FC = () => {
     latitude,
     longitude,
     error: locationErrorMessage,
-  } = usePosition(
-    true,
-    {
-      maximumAge: 60 * 1000,
-      timeout: 30 * 1000,
-      enableHighAccuracy: false,
-    },
-    { minDistanceToUpdateMeters: 50 }
-  );
+  } = usePosition(true, {
+    maximumAge: 60 * 1000,
+    timeout: 30 * 1000,
+    enableHighAccuracy: false,
+  });
   const [, setTime] = useState(Date.now());
   const [durationFormat, setDurationFormat] = useState(
     DurationFormat.MinuteCeiling
