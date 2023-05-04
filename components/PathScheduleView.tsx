@@ -1,4 +1,4 @@
-import { usePosition } from "@/utils/usePosition";
+import { WatchMode, usePosition } from "@/utils/usePosition";
 import { useEffect, useState } from "react";
 import { DurationFormat } from "./TripArrivalTime";
 import { useQuery } from "react-query";
@@ -14,11 +14,6 @@ import { kmToMi } from "@/utils/GeoUtils";
 import { NjOrNy, PathRoute } from "@/utils/PathRoutes";
 import { PathLoadingView } from "./PathLoadingView";
 
-interface LatLonPair {
-  lat: number;
-  lon: number;
-}
-
 // Newark - Harrison Shuttle Train
 const excludedPathRoutes = new Set<PathRoute>(["74320"]);
 
@@ -27,11 +22,14 @@ export default function PathScheduleView() {
     latitude,
     longitude,
     error: locationErrorMessage,
-  } = usePosition(true, {
-    maximumAge: 60 * 1000,
-    timeout: 30 * 1000,
-    enableHighAccuracy: false,
-  });
+  } = usePosition(
+    { mode: WatchMode.Poll, interval: 10000 },
+    {
+      maximumAge: 60 * 1000,
+      timeout: 30 * 1000,
+      enableHighAccuracy: false,
+    }
+  );
   const [direction, setDirection] = useQueryState(
     "direction",
     queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ)

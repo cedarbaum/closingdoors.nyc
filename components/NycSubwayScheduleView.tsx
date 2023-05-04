@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { usePosition } from "@/utils/usePosition";
+import { WatchMode, usePosition } from "@/utils/usePosition";
 import { StopHeader } from "@/components/StopHeader";
 import { NycSubwayTripArrivalTime } from "@/components/NycSubwayTripArrivalTime";
 import { DateTime } from "luxon";
@@ -53,11 +53,14 @@ const NycSubwayScheduleView: React.FC = () => {
     latitude,
     longitude,
     error: locationErrorMessage,
-  } = usePosition(true, {
-    maximumAge: 60 * 1000,
-    timeout: 30 * 1000,
-    enableHighAccuracy: false,
-  });
+  } = usePosition(
+    { mode: WatchMode.Poll, interval: 10000 },
+    {
+      maximumAge: 60 * 1000,
+      timeout: 30 * 1000,
+      enableHighAccuracy: false,
+    }
+  );
   const [, setTime] = useState(Date.now());
   const [durationFormat, setDurationFormat] = useState(
     DurationFormat.MinuteCeiling

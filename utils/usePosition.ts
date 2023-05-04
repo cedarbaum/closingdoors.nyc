@@ -16,8 +16,19 @@ interface GeolocationPositionWithTimestamp {
   readonly timestamp: EpochTimeStamp;
 }
 
+export enum WatchMode {
+  None,
+  Watch,
+  Poll,
+}
+
+export interface WatchOptions {
+  mode: WatchMode;
+  interval?: number;
+}
+
 export const usePosition = (
-  watch = false,
+  { mode, interval }: WatchOptions = { mode: WatchMode.None },
   userSettings: PositionOptions = {}
 ) => {
   const settings = {
@@ -56,18 +67,26 @@ export const usePosition = (
       return;
     }
 
-    if (watch) {
+    if (mode === WatchMode.Watch) {
       const watcher = navigator.geolocation.watchPosition(
         onChange,
         onError,
         settings
       );
       return () => navigator.geolocation.clearWatch(watcher);
+    } else if (mode == WatchMode.Poll) {
+      navigator.geolocation.getCurrentPosition(onChange, onError, settings);
+      const poller = setInterval(
+        () => navigator.geolocation.getCurrentPosition(onChange, onError),
+        interval
+      );
+      return () => clearInterval(poller);
     }
 
     navigator.geolocation.getCurrentPosition(onChange, onError, settings);
   }, [
-    watch,
+    mode,
+    interval,
     settings.enableHighAccuracy,
     settings.timeout,
     settings.maximumAge,
