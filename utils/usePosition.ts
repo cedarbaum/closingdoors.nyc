@@ -77,7 +77,8 @@ export const usePosition = (
     } else if (mode == WatchMode.Poll) {
       navigator.geolocation.getCurrentPosition(onChange, onError, settings);
       const poller = setInterval(
-        () => navigator.geolocation.getCurrentPosition(onChange, onError),
+        () =>
+          navigator.geolocation.getCurrentPosition(onChange, onError, settings),
         interval
       );
       return () => clearInterval(poller);
