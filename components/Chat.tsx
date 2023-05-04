@@ -193,14 +193,14 @@ export default function Chat() {
   };
 
   return (
-    <div className="bg-black flex flex-col h-full">
+    <div className="px-2 bg-black flex flex-col h-full">
       <div
         ref={messageContainerRef}
         className="overflow-scroll h-full flex-grow scrollbar-hide"
       >
         <div className="pt-4">{renderMessages()}</div>
       </div>
-      <div className="p-4 flex items-center border-color-white">
+      <div className="py-6 flex items-center border-color-white">
         <input
           id="message-input"
           type="text"
