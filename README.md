@@ -20,7 +20,7 @@ Transiter uses gRPC protobuf definitions for it's API. TypeScript types can be g
 2. Copy the newest `public.proto` file from Transiter to `proto/transiter/`
 3. From the `proto/` directory, run `buf generate`
 
-The above only needs to be done if the API definition changes, as generated files are checked in.
+The above only needs to be done if the API definition changes, since generated files are checked in.
 
 ## Building and running
 
