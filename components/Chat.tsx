@@ -20,7 +20,7 @@ type Message = {
 };
 
 const MESSAGE_HISTORY_LIMIT = parseInt(
-  process.env.NEXT_PUBLIC_MESSAGE_HISTORY_LIMIT || "5"
+  process.env.NEXT_PUBLIC_CHAT_MESSAGE_HISTORY_LIMIT || "5"
 );
 
 export default function Chat() {
