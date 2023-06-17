@@ -20,17 +20,37 @@ export function getMtaAlertPropsFromRouteAlerts(
         (header) => header.language === "en"
       );
 
+      const baseAlertProps = {
+        id: alert?.id,
+        startsAt:
+          alert?.currentActivePeriod?.startsAt !== undefined
+            ? parseInt(
+                alert?.currentActivePeriod?.startsAt as unknown as string
+              )
+            : undefined,
+        endsAt:
+          alert?.currentActivePeriod?.endsAt !== undefined
+            ? parseInt(alert?.currentActivePeriod?.endsAt as unknown as string)
+            : undefined,
+      };
+
       return enHtmlHeader !== undefined
-        ? { header: enHtmlHeader?.text, description: enHtmlDescription?.text }
-        : { header: enHeader?.text, description: enDescription?.text };
+        ? {
+            ...baseAlertProps,
+            header: enHtmlHeader?.text,
+            description: enHtmlDescription?.text,
+          }
+        : {
+            ...baseAlertProps,
+            header: enHeader?.text,
+            description: enDescription?.text,
+          };
     })
     ?.filter(({ header }) => header !== undefined);
 
   // Deduplicate
   return allAlertProps.filter(
-    ({ header, description }, idx) =>
-      allAlertProps.findIndex(
-        ({ header: h, description: d }) => h === header && d === description
-      ) === idx
+    ({ id }, idx) =>
+      allAlertProps.findIndex(({ id: otherId }) => otherId === id) === idx
   );
 }

@@ -1,4 +1,5 @@
 import { Alert } from "@/generated/proto/transiter/public";
+import { getNycDateTimeStringFromSeconds } from "@/utils/DateTimeUtils";
 import apiQuotaAvailable from "@/utils/RateLimiting";
 import {
   getAlerts,
@@ -262,9 +263,4 @@ async function getRouteAlerts(system: string, routes?: string[]) {
           })) ?? [],
     };
   });
-}
-
-function getNycDateTimeStringFromSeconds(seconds: number) {
-  const dt = DateTime.fromSeconds(seconds).setZone("America/New_York");
-  return dt.toLocaleString(DateTime.DATETIME_FULL);
 }
