@@ -89,7 +89,7 @@ export const MtaAlertList: React.FC<MtaAlertListProps> = ({
             <ExclamationTriangleIcon className="mr-2 inline-block h-6 w-6 stroke-[2px]" />
           )}
           <h1 className="inline-block font-bold">
-            {numAlerts} active {numAlerts > 1 ? "alerts" : "alert"}
+            {numAlerts} service {numAlerts > 1 ? "alerts" : "alert"}
           </h1>
         </div>
         {headerRightIcon}
