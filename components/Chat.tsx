@@ -10,7 +10,7 @@ type Chip = {
 };
 
 type Message = {
-  id: number;
+  id: string | number;
   text?: string;
   html?: string;
   role: "user" | "assistant" | "system";
@@ -155,20 +155,9 @@ export default function Chat() {
         ...allMessages,
         {
           role: "assistant",
-          id: messages.length + 1,
+          id: "fetching",
           isTyping: true,
           text: undefined,
-        },
-      ];
-    } else if (error) {
-      allMessages = [
-        ...allMessages,
-        {
-          role: "system",
-          id: messages.length + 1,
-          isTyping: false,
-          text: "Something went wrong. Please try again.",
-          intent: "error",
         },
       ];
     }
