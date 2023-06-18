@@ -38,7 +38,7 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({
   if (startsAt && endsAt) {
     currentActivePeriod = (
       <span className="text-sm text-slate-800">
-        Current active period from{" "}
+        Active period from{" "}
         <span className="text-black font-bold">
           {getNycDateTimeStringFromSeconds(startsAt)}
         </span>{" "}
@@ -51,7 +51,7 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({
   } else if (startsAt) {
     currentActivePeriod = (
       <span className="text-sm text-slate-800">
-        Current active period from{" "}
+        Active period from{" "}
         <span className="text-black font-bold">
           {getNycDateTimeStringFromSeconds(startsAt)}
         </span>
@@ -61,11 +61,15 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({
 
   return (
     <div className="alert-container">
+      {currentActivePeriod && (
+        <div className="mb-2 p-2 border border-black">
+          {currentActivePeriod}
+        </div>
+      )}
       {header && <div dangerouslySetInnerHTML={{ __html: headerHtml }} />}
       {description && (
         <div dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
       )}
-      {currentActivePeriod && <div className="mt-2">{currentActivePeriod}</div>}
     </div>
   );
 };
