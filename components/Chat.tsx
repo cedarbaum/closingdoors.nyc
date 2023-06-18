@@ -4,8 +4,9 @@ import { useQuery } from "react-query";
 import { processMtaText } from "@/utils/TextProcessing";
 
 type Chip = {
-  message: string;
+  message?: string;
   label: string;
+  onClick?: () => void;
 };
 
 type Message = {
@@ -79,6 +80,16 @@ export default function Chat() {
             text: errorMessage,
             contentType: "text",
             intent: "error",
+            chips: [
+              {
+                label: "Retry",
+                onClick: () => {
+                  setMessages((messages) => [
+                    ...messages.slice(0, messages.length - 1),
+                  ]);
+                },
+              },
+            ],
           },
         ]);
 
@@ -162,18 +173,20 @@ export default function Chat() {
       ];
     }
 
-    return allMessages.map((message) => (
+    return allMessages.map((message, msgIdx) => (
       <div key={message.id}>
         <MessageBubble message={message} />
-        {message.chips && (
-          <div className="pl-4">
-            <Chips
-              chips={message.chips}
-              onClick={(chip) => {
-                if (isFetching) {
-                  return;
-                }
+        {message.chips && msgIdx === messages.length - 1 && (
+          <Chips
+            chips={message.chips}
+            onClick={(chip) => {
+              if (isFetching) {
+                return;
+              }
 
+              if (chip.onClick) {
+                chip.onClick();
+              } else if (chip.message) {
                 setMessages((messages) => [
                   ...messages,
                   {
@@ -184,9 +197,9 @@ export default function Chat() {
                     contentType: "text",
                   },
                 ]);
-              }}
-            />
-          </div>
+              }
+            }}
+          />
         )}
       </div>
     ));
@@ -278,7 +291,7 @@ function Chips({
 }) {
   return (
     <div
-      className={`w-full scrollbar-hide overflow-scroll pt-2 mb-2 max-w-sm w-fit flex`}
+      className={`w-full scrollbar-hide overflow-scroll mb-2 max-w-sm w-fit flex`}
     >
       {chips.map((chip) => {
         return (
