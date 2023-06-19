@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import styles from "@/styles/loadingdots.module.css";
 import { useQuery } from "react-query";
 import { processMtaText } from "@/utils/TextProcessing";
+import { ChatData, Datasource, DatasourceType } from "@/pages/api/chat";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 type Chip = {
   message?: string;
@@ -18,11 +20,21 @@ type Message = {
   contentType?: "text" | "html";
   intent?: "info" | "error";
   chips?: Chip[];
+  datasources?: Datasource[];
 };
 
 const MESSAGE_HISTORY_LIMIT = parseInt(
   process.env.NEXT_PUBLIC_CHAT_MESSAGE_HISTORY_LIMIT || "5"
 );
+
+function getAttributionPrefix(datasourceType: DatasourceType) {
+  switch (datasourceType) {
+    case "google_maps":
+      return "Uses data from Google Maps";
+    default:
+      throw new Error(`Unknown datasource type ${datasourceType}`);
+  }
+}
 
 export default function Chat() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -31,21 +43,26 @@ export default function Chat() {
     {
       id: 1,
       text: `Hey there! I am an <b>experimental</b> chatbot to help you with the NYC Subway! You can ask me things like:\n
-1. How can I get from midtown to downtown Brooklyn?
+1. How can I get from Times Square to downtown Brooklyn?
 2. What's going on with the [G] train today?
 3. What routes are currently running?
 
-<b>Note that my answers may be incorrect, so always double-check with official MTA sources.</b>`,
+<b>Note that my answers and directions may be incorrect, so always double-check with official MTA sources.</b>`,
       role: "system",
     },
   ]);
 
   const [processedMessages, setProcessedMessages] = useState<Message[]>([]);
 
-  const handleAssistantResponse = (response: string, id: number) => {
+  const handleAssistantResponse = (chatData: ChatData, id: number) => {
     setMessages((messages) => [
       ...messages,
-      { id, text: response, role: "assistant" },
+      {
+        id,
+        text: chatData.nextMessage,
+        datasources: chatData.datasources,
+        role: "assistant",
+      },
     ]);
   };
 
@@ -96,12 +113,10 @@ export default function Chat() {
         throw new Error("Failed to fetch message");
       }
 
-      const resJson = await res.json();
+      const chatData = (await res.json()) as ChatData;
+      handleAssistantResponse(chatData, messages.length + 1);
 
-      const nextMessage = resJson.nextMessage as string;
-      handleAssistantResponse(nextMessage, messages.length + 1);
-
-      return nextMessage;
+      return chatData;
     },
     {
       enabled: false,
@@ -163,8 +178,20 @@ export default function Chat() {
     }
 
     return allMessages.map((message, msgIdx) => (
-      <div key={message.id}>
+      <div className="w-full" key={message.id}>
         <MessageBubble message={message} />
+        {message.datasources &&
+          message.datasources.map((ds) => (
+            <div
+              key={ds.type}
+              className="w-fit mb-2 mr-8 bg-gray-700 text-white p-1 px-2 flex"
+            >
+              <InformationCircleIcon className="w-4 h-4 mr-1" />
+              <span className="text-xs">
+                {getAttributionPrefix(ds.type)}, {ds.attributions.join(", ")}
+              </span>
+            </div>
+          ))}
         {message.chips && msgIdx === messages.length - 1 && (
           <Chips
             chips={message.chips}

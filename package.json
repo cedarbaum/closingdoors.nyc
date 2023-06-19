@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.22.3",
+    "@googlemaps/google-maps-services-js": "^3.3.31",
     "@grpc/grpc-js": "^1.8.13",
     "@heroicons/react": "^2.0.17",
     "@types/dompurify": "^3.0.1",

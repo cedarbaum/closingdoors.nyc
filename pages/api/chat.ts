@@ -6,7 +6,6 @@ import {
   getRouteIsRunning,
   getRoutes,
 } from "@/utils/TransiterUtils";
-import { DateTime } from "luxon";
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   ChatCompletionFunctions,
@@ -14,14 +13,29 @@ import {
   Configuration,
   OpenAIApi,
 } from "openai";
+import {
+  Client,
+  TransitMode,
+  TransitRoutingPreference,
+  TravelMode,
+} from "@googlemaps/google-maps-services-js";
+import assert from "assert";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-type Data = {
+export type DatasourceType = "google_maps";
+export type Datasource = {
+  type: DatasourceType;
+  attributions: string[];
+  warnings: string[];
+};
+
+export type ChatData = {
   nextMessage: string;
+  datasources: Datasource[];
 };
 
 type Error = {
@@ -45,6 +59,9 @@ const MAX_MESSAGE_LENGTH = parseInt(
 const MAX_FUNCTION_CALLS = parseInt(
   process.env.NEXT_PUBLIC_CHAT_MAX_FUNCTION_CALLS || "5"
 );
+
+type ChatTransitMode = "subway" | "bus" | "subway_and_bus";
+type ChatTransitRoutingPreference = "less_walking" | "fewer_transfers" | "none";
 
 const functions: ChatCompletionFunctions[] = [
   {
@@ -80,11 +97,39 @@ const functions: ChatCompletionFunctions[] = [
       },
     },
   },
+  {
+    name: "get_transit_directions",
+    description: "Get transit directions between two locations",
+    parameters: {
+      type: "object",
+      properties: {
+        origin: {
+          type: "string",
+          description: "The origin location",
+        },
+        destination: {
+          type: "string",
+          description: "The destination location",
+        },
+        transit_mode: {
+          type: "string",
+          descrition: "The mode of transit",
+          enum: ["subway", "bus", "subway_and_bus"],
+        },
+        transit_routing_preferences: {
+          type: "string",
+          descrition: "Transit routing preferences",
+          enum: ["less_walking", "fewer_transfers", "none"],
+        },
+      },
+      required: ["origin", "destination"],
+    },
+  },
 ];
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data | Error>
+  res: NextApiResponse<ChatData | Error>
 ) {
   if (!(await apiQuotaAvailable(req))) {
     res.status(429).json({ error: "Exceeded request limit" });
@@ -125,6 +170,28 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
   ] as ChatCompletionRequestMessage[];
 
   let numFunctionCalls = 0;
+  const datasources: Datasource[] = [];
+
+  function addOrMergeDatasource(
+    datasourceType: DatasourceType,
+    attributions: string[],
+    warnings: string[]
+  ) {
+    const existingDatasource = datasources.find(
+      (d) => d.type === datasourceType
+    );
+    if (existingDatasource === undefined) {
+      datasources.push({
+        type: datasourceType,
+        attributions,
+        warnings,
+      });
+    } else {
+      existingDatasource.attributions.push(...attributions);
+      existingDatasource.warnings.push(...warnings);
+    }
+  }
+
   do {
     try {
       const response = await openai.createChatCompletion(
@@ -161,11 +228,36 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
               ),
             });
             break;
+          case "get_transit_directions":
+            if (!functionArgs.origin || !functionArgs.destination) {
+              throw new Error(
+                "get_transit_directions requires origin and destination"
+              );
+            }
+
+            const { directions, warnings, copyrights } =
+              await get_transit_directions(
+                functionArgs.origin,
+                functionArgs.destination,
+                functionArgs.transit_mode
+              );
+
+            addOrMergeDatasource("google_maps", [copyrights], warnings);
+
+            allMessages.push({
+              role: "function",
+              name: "get_transit_directions",
+              content: JSON.stringify(directions),
+            });
+            break;
           default:
             throw new Error(`Unknown function call: ${functionCall.name}`);
         }
       } else {
-        res.status(200).json({ nextMessage: responseMessageContent! });
+        res.status(200).json({
+          nextMessage: responseMessageContent!,
+          datasources,
+        });
         return;
       }
     } catch (e: any) {
@@ -263,4 +355,134 @@ async function getRouteAlerts(system: string, routes?: string[]) {
           })) ?? [],
     };
   });
+}
+
+type DirectionStep = {
+  distance: string;
+  duration: string;
+  html_instructions: string;
+  travel_mode: string;
+  arrival_stop?: string;
+  arrival_time?: string;
+  departure_stop?: string;
+  departure_time?: string;
+  headsign?: string;
+  line?: string;
+  num_stops?: number;
+};
+
+type Directions = {
+  start_address: string;
+  end_address: string;
+  distance: string;
+  duration: string;
+  arrival_time: string;
+  departure_time: string;
+  steps: DirectionStep[];
+};
+
+async function get_transit_directions(
+  origin: string,
+  destination: string,
+  chatTransitMode?: ChatTransitMode,
+  chatTransitRoutingPreference?: ChatTransitRoutingPreference
+): Promise<{
+  directions: Directions;
+  warnings: string[];
+  copyrights: string;
+}> {
+  let transit_mode: TransitMode[];
+  switch (chatTransitMode) {
+    case "subway_and_bus":
+      transit_mode = [TransitMode.bus, TransitMode.subway];
+      break;
+    case "bus":
+      transit_mode = [TransitMode.bus];
+      break;
+    case "subway":
+    default:
+      transit_mode = [TransitMode.subway];
+      break;
+  }
+
+  let transit_routing_preference: TransitRoutingPreference | undefined;
+  switch (chatTransitRoutingPreference) {
+    case "less_walking":
+      transit_routing_preference = TransitRoutingPreference.less_walking;
+      break;
+    case "fewer_transfers":
+      transit_routing_preference = TransitRoutingPreference.fewer_transfers;
+      break;
+    case "none":
+    default:
+      transit_routing_preference = undefined;
+      break;
+  }
+
+  const client = new Client({});
+  const directions = await client.directions({
+    params: {
+      origin,
+      destination,
+      mode: TravelMode.transit,
+      alternatives: true,
+      transit_mode,
+      transit_routing_preference,
+      region: "us",
+      key: process.env.GOOGLE_MAPS_API_KEY!,
+    },
+    timeout: 1000,
+  });
+
+  // No waypoints, so there should only be one leg
+  assert(directions.data.routes[0].legs.length === 1);
+
+  const steps: DirectionStep[] = [];
+  for (const step of directions.data.routes[0].legs[0].steps) {
+    const transitDetails = step.transit_details;
+    if (transitDetails) {
+      const arrivalStop = transitDetails.arrival_stop?.name;
+      const arrivalTime = transitDetails.arrival_time?.text;
+      const departureStop = transitDetails.departure_stop?.name;
+      const departureTime = transitDetails.departure_time?.text;
+      const line = transitDetails.line?.short_name;
+      const headsign = transitDetails.headsign;
+      const numStops = transitDetails.num_stops;
+
+      steps.push({
+        distance: step.distance.text,
+        duration: step.duration.text,
+        html_instructions: step.html_instructions,
+        travel_mode: step.travel_mode,
+        arrival_stop: arrivalStop,
+        arrival_time: arrivalTime,
+        departure_stop: departureStop,
+        departure_time: departureTime,
+        line: line,
+        headsign: headsign,
+        num_stops: numStops,
+      });
+    } else {
+      steps.push({
+        distance: step.distance.text,
+        duration: step.duration.text,
+        html_instructions: step.html_instructions,
+        travel_mode: step.travel_mode,
+      });
+    }
+  }
+
+  return {
+    directions: {
+      start_address: directions.data.routes[0].legs[0].start_address,
+      end_address: directions.data.routes[0].legs[0].end_address,
+      distance: directions.data.routes[0].legs[0].distance.text,
+      duration: directions.data.routes[0].legs[0].duration.text,
+      arrival_time: directions.data.routes[0].legs[0].arrival_time.text,
+      departure_time: directions.data.routes[0].legs[0].departure_time.text,
+      steps: steps,
+    },
+    warnings: directions.data.routes[0].warnings,
+    copyrights: directions.data.routes[0].copyrights,
+  };
 }
