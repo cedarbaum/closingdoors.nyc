@@ -27,6 +27,10 @@ const MESSAGE_HISTORY_LIMIT = parseInt(
   process.env.NEXT_PUBLIC_CHAT_MESSAGE_HISTORY_LIMIT || "5"
 );
 
+const MAX_MESSAGE_LENGTH = parseInt(
+  process.env.NEXT_PUBLIC_CHAT_MAX_MESSAGE_LENGTH || "2048"
+);
+
 function getAttributionPrefix(datasourceType: DatasourceType) {
   switch (datasourceType) {
     case "google_maps":
@@ -69,9 +73,15 @@ export default function Chat() {
   const { isFetching, refetch, error } = useQuery(
     ["messages", messages.length],
     async () => {
-      const validMessages = messages.filter(
-        (m) => m.role !== "system" && m.intent !== "error"
-      );
+      const validMessages = messages
+        .filter((m) => m.role !== "system" && m.intent !== "error")
+        // If assistant sent back a long message, skip it to avoid getting
+        // API errors.
+        .filter(
+          (m) =>
+            m.text && (m.role === "user" || m.text.length <= MAX_MESSAGE_LENGTH)
+        );
+
       const limitedMessages = validMessages.slice(
         Math.max(validMessages.length - MESSAGE_HISTORY_LIMIT, 0)
       );
