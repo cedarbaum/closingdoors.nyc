@@ -1,16 +1,24 @@
 # [closingdoors.nyc](https://closingdoors.nyc/)
 
-A minimalist subway schedule viewer written in React.
+A minimalist subway and PATH schedule viewer written in React.
 
 <p align="center">
-  <img src="./.images/home.PNG" width="250" />
-  <img src="./.images/schedule.PNG" width="250" />
-  <img src="./.images/alert.png" width="250" />
+  <img src="./.images/subway_home.png" width="250" />
+  <img src="./.images/subway_schedule.png" width="250" />
+  <img src="./.images/path_schedule.png" width="250" />
 </p>
 
 ## Setup
 
-This project relies on [Transiter](https://github.com/jamespfennell/transiter) for fetching data. After running Transiter locally or hosting it, set the `TRANSITER_URL` environment variable (it is recommended to use a `.env.local` file) to the base URL of the HTTP endpoint.
+### Schedule data
+
+This project relies on [Transiter](https://github.com/jamespfennell/transiter) for fetching data. After running Transiter locally or hosting it, set the `TRANSITER_URL` environment variable (it is recommended to use a `.env.local` file) to the base URL of the HTTP endpoint:
+
+```
+TRANSITER_URL="http://localhost:8080"
+```
+
+You will also need to install the NYC Subway and PATH systems within Transiter.
 
 Note that while we try to stay in sync with the mainline of Transiter, the version used in this application is a forked version that can sometimes be incompatible with the official version: [Transiter (closingdoors branch)](https://github.com/cedarbaum/transiter/tree/closingdoors). This version can be found on [Docker Hub](https://hub.docker.com/r/scedarbaum/transiter).
 
@@ -21,6 +29,15 @@ Transiter uses gRPC protobuf definitions for it's API. TypeScript types can be g
 3. From the `proto/` directory, run `buf generate`
 
 The above only needs to be done if the API definition changes, since generated files are checked in.
+
+### Chat feature (experimental)
+
+In addition to Transiter, the chat feature requires an OpenAI API key and a Google Maps API key:
+
+```
+OPENAI_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+GOOGLE_MAPS_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
 
 ## Building and running
 
