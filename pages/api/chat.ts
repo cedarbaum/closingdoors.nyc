@@ -15,6 +15,7 @@ import {
 } from "openai";
 import {
   Client,
+  DirectionsResponse,
   TransitMode,
   TransitRoutingPreference,
   TravelMode,
@@ -201,7 +202,7 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
           functions: functions,
           function_call: "auto",
         },
-        { timeout: 10000 }
+        { timeout: 15000 }
       );
 
       const functionCall = response.data.choices[0].message?.function_call;
@@ -235,14 +236,27 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
               );
             }
 
-            const { directions, warnings, copyrights } =
+            const { directions, warnings, copyrights, error } =
               await get_transit_directions(
                 functionArgs.origin,
                 functionArgs.destination,
                 functionArgs.transit_mode
               );
 
-            addOrMergeDatasource("google_maps", [copyrights], warnings);
+            if (error) {
+              allMessages.push({
+                role: "function",
+                name: "get_transit_directions",
+                content: error,
+              });
+              break;
+            }
+
+            addOrMergeDatasource(
+              "google_maps",
+              copyrights ? [copyrights] : [],
+              warnings ?? []
+            );
 
             allMessages.push({
               role: "function",
@@ -387,9 +401,10 @@ async function get_transit_directions(
   chatTransitMode?: ChatTransitMode,
   chatTransitRoutingPreference?: ChatTransitRoutingPreference
 ): Promise<{
-  directions: Directions;
-  warnings: string[];
-  copyrights: string;
+  directions?: Directions;
+  warnings?: string[];
+  copyrights?: string;
+  error?: string;
 }> {
   let transit_mode: TransitMode[];
   switch (chatTransitMode) {
@@ -419,20 +434,45 @@ async function get_transit_directions(
       break;
   }
 
-  const client = new Client({});
-  const directions = await client.directions({
-    params: {
-      origin,
-      destination,
-      mode: TravelMode.transit,
-      alternatives: true,
-      transit_mode,
-      transit_routing_preference,
-      region: "us",
-      key: process.env.GOOGLE_MAPS_API_KEY!,
-    },
-    timeout: 1000,
-  });
+  let directions: DirectionsResponse;
+  try {
+    const client = new Client({});
+    directions = await client.directions({
+      params: {
+        origin,
+        destination,
+        mode: TravelMode.transit,
+        alternatives: true,
+        transit_mode,
+        transit_routing_preference,
+        region: "us",
+        key: process.env.GOOGLE_MAPS_API_KEY!,
+      },
+      timeout: 1000,
+    });
+  } catch (err: any) {
+    const responseData = err?.response as DirectionsResponse | undefined;
+
+    // Find which waypoint, if any, could not be geocoded
+    const indexOfInvalidWaypoint =
+      responseData?.data?.geocoded_waypoints?.findIndex(
+        (g) => g.geocoder_status === "ZERO_RESULTS"
+      );
+
+    if (indexOfInvalidWaypoint !== undefined) {
+      if (indexOfInvalidWaypoint === 0) {
+        return {
+          error: `Couldn't find a location called "${origin}". Try using a more specific location or address.`,
+        };
+      } else if (indexOfInvalidWaypoint === 1) {
+        return {
+          error: `Couldn't find a location called "${destination}". Try using a more specific location or address.`,
+        };
+      }
+    }
+
+    throw err;
+  }
 
   // No waypoints, so there should only be one leg
   assert(directions.data.routes[0].legs.length === 1);
