@@ -56,7 +56,7 @@ export default function Chat() {
 2. What's going on with the [G] train today?
 3. What routes are currently running?
 
-<b>Note that my answers and directions may be incorrect, so always double-check with official MTA sources.</b>`,
+<b>Note that my answers and directions may be incorrect, incomplete, or suboptimal, so always double-check with official MTA sources.</b>`,
       role: "system",
     },
   ]);
