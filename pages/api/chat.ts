@@ -32,6 +32,7 @@ export type Datasource = {
   type: DatasourceType;
   attributions: string[];
   warnings: string[];
+  urls: string[];
 };
 
 export type ChatData = {
@@ -176,7 +177,8 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
   function addOrMergeDatasource(
     datasourceType: DatasourceType,
     attributions: string[],
-    warnings: string[]
+    warnings: string[],
+    urls: string[]
   ) {
     const existingDatasource = datasources.find(
       (d) => d.type === datasourceType
@@ -186,10 +188,12 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
         type: datasourceType,
         attributions,
         warnings,
+        urls,
       });
     } else {
       existingDatasource.attributions.push(...attributions);
       existingDatasource.warnings.push(...warnings);
+      existingDatasource.urls.push(...urls);
     }
   }
 
@@ -236,7 +240,7 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
               );
             }
 
-            const { directions, warnings, copyrights, error } =
+            const { directions, warnings, copyrights, error, url } =
               await get_transit_directions(
                 functionArgs.origin,
                 functionArgs.destination,
@@ -255,7 +259,8 @@ Whenever you reference a running route, ensure the symbol is enclosed in square 
             addOrMergeDatasource(
               "google_maps",
               copyrights ? [copyrights] : [],
-              warnings ?? []
+              warnings ?? [],
+              url ? [url] : []
             );
 
             allMessages.push({
@@ -402,6 +407,7 @@ async function get_transit_directions(
   chatTransitRoutingPreference?: ChatTransitRoutingPreference
 ): Promise<{
   directions?: Directions;
+  url?: string;
   warnings?: string[];
   copyrights?: string;
   error?: string;
@@ -434,10 +440,10 @@ async function get_transit_directions(
       break;
   }
 
-  let directions: DirectionsResponse;
+  let directionsResponse: DirectionsResponse;
   try {
     const client = new Client({});
-    directions = await client.directions({
+    directionsResponse = await client.directions({
       params: {
         origin,
         destination,
@@ -475,10 +481,10 @@ async function get_transit_directions(
   }
 
   // No waypoints, so there should only be one leg
-  assert(directions.data.routes[0].legs.length === 1);
+  assert(directionsResponse.data.routes[0].legs.length === 1);
 
   const steps: DirectionStep[] = [];
-  for (const step of directions.data.routes[0].legs[0].steps) {
+  for (const step of directionsResponse.data.routes[0].legs[0].steps) {
     const transitDetails = step.transit_details;
     if (transitDetails) {
       const arrivalStop = transitDetails.arrival_stop?.name;
@@ -512,17 +518,25 @@ async function get_transit_directions(
     }
   }
 
+  const directions = {
+    start_address: directionsResponse.data.routes[0].legs[0]?.start_address,
+    end_address: directionsResponse.data.routes[0].legs[0]?.end_address,
+    distance: directionsResponse.data.routes[0].legs[0].distance?.text,
+    duration: directionsResponse.data.routes[0].legs[0].duration?.text,
+    arrival_time: directionsResponse.data.routes[0].legs[0].arrival_time?.text,
+    departure_time:
+      directionsResponse.data.routes[0].legs[0].departure_time?.text,
+    steps: steps,
+  };
+
+  const googleMapsUrl = encodeURI(
+    `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=transit`
+  );
+
   return {
-    directions: {
-      start_address: directions.data.routes[0].legs[0].start_address,
-      end_address: directions.data.routes[0].legs[0].end_address,
-      distance: directions.data.routes[0].legs[0].distance.text,
-      duration: directions.data.routes[0].legs[0].duration.text,
-      arrival_time: directions.data.routes[0].legs[0].arrival_time.text,
-      departure_time: directions.data.routes[0].legs[0].departure_time.text,
-      steps: steps,
-    },
-    warnings: directions.data.routes[0].warnings,
-    copyrights: directions.data.routes[0].copyrights,
+    directions,
+    warnings: directionsResponse.data.routes[0].warnings,
+    copyrights: directionsResponse.data.routes[0].copyrights,
+    url: googleMapsUrl,
   };
 }

@@ -3,11 +3,16 @@ import styles from "@/styles/loadingdots.module.css";
 import { useQuery } from "react-query";
 import { processMtaText } from "@/utils/TextProcessing";
 import { ChatData, Datasource, DatasourceType } from "@/pages/api/chat";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  InformationCircleIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/react/24/outline";
 
 type Chip = {
   message?: string;
   label: string;
+  icon?: React.ReactNode;
+  alwaysDisplay?: boolean;
   onClick?: () => void;
 };
 
@@ -59,6 +64,27 @@ export default function Chat() {
   const [processedMessages, setProcessedMessages] = useState<Message[]>([]);
 
   const handleAssistantResponse = (chatData: ChatData, id: number) => {
+    let chips: Chip[] | undefined = undefined;
+    const googleMapsDs = chatData.datasources.find(
+      (ds) => ds.type === "google_maps"
+    );
+    if (googleMapsDs) {
+      // Only URL returned is a Google Maps URL
+      const mapUrl = googleMapsDs?.urls?.[0];
+      if (mapUrl) {
+        chips = [
+          {
+            label: "View on Google Maps",
+            icon: <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />,
+            alwaysDisplay: true,
+            onClick: () => {
+              window.open(mapUrl, "_blank");
+            },
+          },
+        ];
+      }
+    }
+
     setMessages((messages) => [
       ...messages,
       {
@@ -66,6 +92,7 @@ export default function Chat() {
         text: chatData.nextMessage,
         datasources: chatData.datasources,
         role: "assistant",
+        chips,
       },
     ]);
   };
@@ -194,7 +221,7 @@ export default function Chat() {
           message.datasources.map((ds) => (
             <div
               key={ds.type}
-              className="w-fit mb-2 mr-8 bg-gray-700 text-white p-1 px-2 flex"
+              className="mb-2 mr-8 bg-gray-700 text-white p-2 flex"
             >
               <InformationCircleIcon className="w-4 h-4 mr-1" />
               <span className="text-xs">
@@ -202,9 +229,10 @@ export default function Chat() {
               </span>
             </div>
           ))}
-        {message.chips && msgIdx === messages.length - 1 && (
+        {message.chips && (
           <Chips
             chips={message.chips}
+            isLastMessage={msgIdx === messages.length - 1}
             onClick={(chip) => {
               if (isFetching) {
                 return;
@@ -301,7 +329,11 @@ function MessageBubble({ message }: { message: Message }) {
     <div
       className={`flex ${
         message.role === "user" ? "justify-end" : "justify-start"
-      } w-full mb-2`}
+      } w-full ${
+        message.datasources?.find((ds) => ds.attributions.length > 0)
+          ? ""
+          : "mb-2"
+      }`}
     >
       <div className={`p-3 w-fit ${bubbleClass}`}>{innerHtml}</div>
     </div>
@@ -311,25 +343,34 @@ function MessageBubble({ message }: { message: Message }) {
 function Chips({
   chips,
   onClick,
+  isLastMessage,
 }: {
   chips: Chip[];
   onClick: (chip: Chip) => void;
+  isLastMessage?: boolean;
 }) {
+  if (!isLastMessage && !chips.find((c) => c.alwaysDisplay)) {
+    return null;
+  }
+
   return (
     <div
       className={`w-full scrollbar-hide overflow-scroll mb-2 max-w-sm w-fit flex`}
     >
-      {chips.map((chip) => {
-        return (
-          <div
-            key={chip.label}
-            className="whitespace-nowrap text-white mr-2 bg-gray-700 py-2 px-4 hover:bg-gray-500 cursor-pointer"
-            onClick={() => onClick(chip)}
-          >
-            {chip.label}
-          </div>
-        );
-      })}
+      {chips
+        .filter((chip) => chip.alwaysDisplay || isLastMessage)
+        .map((chip) => {
+          return (
+            <div
+              key={chip.label}
+              className="flex items-center whitespace-nowrap text-white mr-2 bg-gray-700 py-2 px-4 hover:bg-gray-500 cursor-pointer"
+              onClick={() => onClick(chip)}
+            >
+              {chip.label}
+              {chip.icon}
+            </div>
+          );
+        })}
     </div>
   );
 }
