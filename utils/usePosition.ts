@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 
 const defaultSettings = {
-  skip: false,
   enableHighAccuracy: false,
   timeout: Infinity,
   maximumAge: 0,
@@ -25,10 +24,11 @@ export enum WatchMode {
 export interface WatchOptions {
   mode: WatchMode;
   interval?: number;
+  skip?: boolean;
 }
 
 export const usePosition = (
-  { mode, interval }: WatchOptions = { mode: WatchMode.None },
+  { mode, interval, skip }: WatchOptions = { mode: WatchMode.None },
   userSettings: PositionOptions = {}
 ) => {
   const settings = {
@@ -58,7 +58,7 @@ export const usePosition = (
   };
 
   useEffect(() => {
-    if (settings.skip) {
+    if (skip) {
       return;
     }
 
@@ -91,7 +91,7 @@ export const usePosition = (
     settings.enableHighAccuracy,
     settings.timeout,
     settings.maximumAge,
-    settings.skip,
+    skip,
   ]);
 
   return { ...position, error };

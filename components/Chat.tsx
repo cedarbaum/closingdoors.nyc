@@ -6,13 +6,16 @@ import { ChatData, Datasource, DatasourceType } from "@/pages/api/chat";
 import {
   InformationCircleIcon,
   ArrowTopRightOnSquareIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { WatchMode, usePosition } from "@/utils/usePosition";
 
 type Chip = {
   message?: string;
   label: string;
   icon?: React.ReactNode;
   alwaysDisplay?: boolean;
+  shouldDisplay?: () => boolean;
   onClick?: () => void;
 };
 
@@ -48,6 +51,81 @@ function getAttributionPrefix(datasourceType: DatasourceType) {
 export default function Chat() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
+  const [useLocation, setUseLocation] = useState(false);
+  const [isShowingUserErrorMessages, setIsShowingUserErrorMessages] =
+    useState(false);
+  const [isShowingLocationSuccessMessage, setIsShowingLocationSuccessMessage] =
+    useState(false);
+
+  const showUserLocationChip = useRef(true);
+  useEffect(() => {
+    showUserLocationChip.current = !useLocation;
+  }, [useLocation]);
+
+  const {
+    latitude,
+    longitude,
+    error: locationErrorMessage,
+  } = usePosition(
+    { mode: WatchMode.Watch, skip: !useLocation },
+    {
+      maximumAge: 60 * 1000,
+      timeout: 30 * 1000,
+      enableHighAccuracy: false,
+    }
+  );
+
+  useEffect(() => {
+    // Failed to get location and a previous location was never retrieved
+    if (
+      locationErrorMessage &&
+      latitude === undefined &&
+      longitude === undefined
+    ) {
+      // Only display location error message one time
+      if (isShowingUserErrorMessages) {
+        return;
+      }
+
+      setMessages((messages) => [
+        ...messages,
+        {
+          id: messages.length + 1,
+          role: "system",
+          text: "Failed to get your location. Ensure you have granted location permissions and reload the page.",
+          intent: "error",
+        },
+      ]);
+      setIsShowingUserErrorMessages(true);
+    } else if (
+      latitude !== undefined &&
+      longitude !== undefined &&
+      !isShowingLocationSuccessMessage
+    ) {
+      // Only display location success message one time
+      if (isShowingLocationSuccessMessage) {
+        return;
+      }
+
+      setMessages((messages) => [
+        ...messages,
+        {
+          id: messages.length + 1,
+          role: "system",
+          text: "📍 Successfully retrieved your location!",
+          intent: "info",
+        },
+      ]);
+      setIsShowingLocationSuccessMessage(true);
+    }
+  }, [
+    latitude,
+    longitude,
+    locationErrorMessage,
+    isShowingLocationSuccessMessage,
+    isShowingUserErrorMessages,
+  ]);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -56,8 +134,20 @@ export default function Chat() {
 2. What's going on with the [G] train today?
 3. What routes are currently running?
 
+You can optionally select "Use current location" to help with navigation.
+
 <b>Note that my answers and directions may be incorrect, incomplete, or suboptimal, so always double-check with official MTA sources.</b>`,
       role: "system",
+      chips: [
+        {
+          label: "Use current location",
+          shouldDisplay: () => showUserLocationChip.current,
+          icon: <MapPinIcon className="w-5 h-5 ml-2" />,
+          onClick: () => {
+            setUseLocation(true);
+          },
+        },
+      ],
     },
   ]);
 
@@ -117,6 +207,15 @@ export default function Chat() {
         method: "POST",
         body: JSON.stringify({
           messages: limitedMessages,
+          context: {
+            ...(latitude !== undefined &&
+              longitude !== undefined && {
+                userLocation: {
+                  latitude,
+                  longitude,
+                },
+              }),
+          },
         }),
       });
 
@@ -349,7 +448,12 @@ function Chips({
   onClick: (chip: Chip) => void;
   isLastMessage?: boolean;
 }) {
-  if (!isLastMessage && !chips.find((c) => c.alwaysDisplay)) {
+  if (
+    !isLastMessage &&
+    !chips.find(
+      (c) => c.alwaysDisplay || (c.shouldDisplay && c.shouldDisplay())
+    )
+  ) {
     return null;
   }
 
@@ -358,7 +462,12 @@ function Chips({
       className={`w-full scrollbar-hide overflow-scroll mb-2 max-w-sm w-fit flex`}
     >
       {chips
-        .filter((chip) => chip.alwaysDisplay || isLastMessage)
+        .filter(
+          (chip) =>
+            chip.alwaysDisplay ||
+            (chip.shouldDisplay && chip.shouldDisplay()) ||
+            isLastMessage
+        )
         .map((chip) => {
           return (
             <div

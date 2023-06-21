@@ -138,8 +138,14 @@ export default async function handler(
     return;
   }
 
-  const { messages } = JSON.parse(req.body) as {
+  const { messages, context } = JSON.parse(req.body) as {
     messages: Message[];
+    context: {
+      userLocation?: {
+        latitude: number;
+        longitude: number;
+      };
+    };
   };
 
   const validMessages = messages.filter(
@@ -160,7 +166,12 @@ export default async function handler(
     role: "system",
     content: `You're a chatbot that knows all about NYC subway system. Users will ask you questions about the subway and you will answer them.
 Whenever you reference a subway route letter or number, always enclose it in square brackets.
-Whenever you reference a running route, ensure the symbol is enclosed in square brackets.`,
+Whenever you reference a running route, ensure the symbol is enclosed in square brackets.
+${
+  context.userLocation
+    ? `The user's current location is ${context.userLocation.latitude},${context.userLocation.longitude}`
+    : ""
+}`,
   };
 
   const allMessages = [
