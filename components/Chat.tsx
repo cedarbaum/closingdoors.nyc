@@ -142,10 +142,12 @@ You can optionally select "Use current location" to help with navigation.
   );
 
   useEffect(() => {
-    if (latitude !== undefined && longitude !== undefined) {
+    if (!usingLocation) {
+      setUserLocation(undefined);
+    } else if (latitude !== undefined && longitude !== undefined) {
       setUserLocation({ latitude, longitude });
     }
-  }, [latitude, longitude]);
+  }, [usingLocation, latitude, longitude]);
 
   useEffect(() => {
     // Failed to get location and a previous location was never retrieved
