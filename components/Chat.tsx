@@ -10,6 +10,47 @@ import {
 } from "@heroicons/react/24/outline";
 import { WatchMode, usePosition } from "@/utils/usePosition";
 
+import { create } from "zustand";
+
+interface Context {
+  usingLocation?: boolean;
+  userLocation?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+interface ChatState {
+  messages: Message[];
+  setMessages: (setMessages: (messages: Message[]) => Message[]) => void;
+  context: Context;
+  setUsingLocation: (usingLocation: boolean) => void;
+  setUserLocation: (userLocation: Context["userLocation"]) => void;
+}
+
+const useChatState = create<ChatState>((set) => ({
+  context: {},
+  messages: [],
+  setMessages: (setMessages: (messages: Message[]) => Message[]) =>
+    set((state) => ({ messages: setMessages(state.messages) })),
+  setUsingLocation: (usingLocation: boolean) => {
+    set((state) => ({
+      context: {
+        ...state.context,
+        usingLocation,
+      },
+    }));
+  },
+  setUserLocation: (userLocation: Context["userLocation"]) => {
+    set((state) => ({
+      context: {
+        ...state.context,
+        userLocation,
+      },
+    }));
+  },
+}));
+
 type Chip = {
   message?: string;
   label: string;
@@ -49,25 +90,50 @@ function getAttributionPrefix(datasourceType: DatasourceType) {
 }
 
 export default function Chat() {
+  const { messages, setMessages, setUsingLocation, setUserLocation } =
+    useChatState();
+  const usingLocation = useChatState((state) => state.context.usingLocation);
+  const userLocation = useChatState((state) => state.context.userLocation);
+
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
-  const [useLocation, setUseLocation] = useState(false);
-  const [isShowingUserErrorMessages, setIsShowingUserErrorMessages] =
-    useState(false);
-  const [isShowingLocationSuccessMessage, setIsShowingLocationSuccessMessage] =
-    useState(false);
-
-  const showUserLocationChip = useRef(true);
   useEffect(() => {
-    showUserLocationChip.current = !useLocation;
-  }, [useLocation]);
+    if (messages.length === 0) {
+      const introMessage: Message = {
+        id: "intro",
+        text: `Hey there! I am an <b>experimental</b> chatbot to help you with the NYC Subway! You can ask me things like:\n
+1. How can I get from Times Square to downtown Brooklyn?
+2. What's going on with the [G] train today?
+3. What routes are currently running?
+
+You can optionally select "Use current location" to help with navigation.
+
+<b>Note that my answers and directions may be incorrect, incomplete, or suboptimal, so always double-check with official MTA sources.</b>`,
+        role: "system",
+        chips: [
+          {
+            label: "Use current location",
+            shouldDisplay: () => !usingLocation,
+            icon: <MapPinIcon className="w-5 h-5 ml-2" />,
+            onClick: () => {
+              setUsingLocation(true);
+            },
+          },
+        ],
+      };
+      setMessages((_messages) => [introMessage]);
+    } else {
+      messages.find((m) => m.id === "intro")!.chips![0].shouldDisplay = () =>
+        !usingLocation;
+    }
+  }, [messages, usingLocation]);
 
   const {
     latitude,
     longitude,
     error: locationErrorMessage,
   } = usePosition(
-    { mode: WatchMode.Watch, skip: !useLocation },
+    { mode: WatchMode.Watch, skip: !usingLocation },
     {
       maximumAge: 60 * 1000,
       timeout: 30 * 1000,
@@ -76,80 +142,42 @@ export default function Chat() {
   );
 
   useEffect(() => {
+    if (latitude !== undefined && longitude !== undefined) {
+      setUserLocation({ latitude, longitude });
+    }
+  }, [latitude, longitude]);
+
+  useEffect(() => {
     // Failed to get location and a previous location was never retrieved
     if (
       locationErrorMessage &&
-      latitude === undefined &&
-      longitude === undefined
+      !userLocation &&
+      !messages.find((m) => m.id === "location-error")
     ) {
-      // Only display location error message one time
-      if (isShowingUserErrorMessages) {
-        return;
-      }
-
-      setMessages((messages) => [
+      setMessages((messages: Message[]) => [
         ...messages,
         {
-          id: messages.length + 1,
+          id: "location-error",
           role: "system",
           text: "Failed to get your location. Ensure you have granted location permissions and reload the page.",
           intent: "error",
         },
       ]);
-      setIsShowingUserErrorMessages(true);
     } else if (
-      latitude !== undefined &&
-      longitude !== undefined &&
-      !isShowingLocationSuccessMessage
+      userLocation &&
+      !messages.find((m) => m.id === "location-success")
     ) {
-      // Only display location success message one time
-      if (isShowingLocationSuccessMessage) {
-        return;
-      }
-
       setMessages((messages) => [
         ...messages,
         {
-          id: messages.length + 1,
+          id: "location-success",
           role: "system",
           text: "📍 Successfully retrieved your location!",
           intent: "info",
         },
       ]);
-      setIsShowingLocationSuccessMessage(true);
     }
-  }, [
-    latitude,
-    longitude,
-    locationErrorMessage,
-    isShowingLocationSuccessMessage,
-    isShowingUserErrorMessages,
-  ]);
-
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: `Hey there! I am an <b>experimental</b> chatbot to help you with the NYC Subway! You can ask me things like:\n
-1. How can I get from Times Square to downtown Brooklyn?
-2. What's going on with the [G] train today?
-3. What routes are currently running?
-
-You can optionally select "Use current location" to help with navigation.
-
-<b>Note that my answers and directions may be incorrect, incomplete, or suboptimal, so always double-check with official MTA sources.</b>`,
-      role: "system",
-      chips: [
-        {
-          label: "Use current location",
-          shouldDisplay: () => showUserLocationChip.current,
-          icon: <MapPinIcon className="w-5 h-5 ml-2" />,
-          onClick: () => {
-            setUseLocation(true);
-          },
-        },
-      ],
-    },
-  ]);
+  }, [messages, userLocation, locationErrorMessage]);
 
   const [processedMessages, setProcessedMessages] = useState<Message[]>([]);
 
@@ -187,7 +215,7 @@ You can optionally select "Use current location" to help with navigation.
     ]);
   };
 
-  const { isFetching, refetch, error } = useQuery(
+  const { isFetching, refetch } = useQuery(
     ["messages", messages.length],
     async () => {
       const validMessages = messages
@@ -208,13 +236,7 @@ You can optionally select "Use current location" to help with navigation.
         body: JSON.stringify({
           messages: limitedMessages,
           context: {
-            ...(latitude !== undefined &&
-              longitude !== undefined && {
-                userLocation: {
-                  latitude,
-                  longitude,
-                },
-              }),
+            userLocation,
           },
         }),
       });
@@ -269,11 +291,11 @@ You can optionally select "Use current location" to help with navigation.
       text,
       role: "user",
     };
-    setMessages([...messages, newMessage]);
+    setMessages((messages) => [...messages, newMessage]);
   };
 
   useEffect(() => {
-    if (messages[messages.length - 1].role === "user") {
+    if (messages.length > 0 && messages[messages.length - 1].role === "user") {
       refetch();
     }
   }, [messages, refetch]);
