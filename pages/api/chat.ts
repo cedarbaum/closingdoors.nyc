@@ -491,6 +491,12 @@ async function get_transit_directions(
     throw err;
   }
 
+  if (directionsResponse.data.routes.length === 0) {
+    return {
+      error: `Couldn't find a route between "${origin}" and "${destination}"`,
+    };
+  }
+
   // No waypoints, so there should only be one leg
   assert(directionsResponse.data.routes[0].legs.length === 1);
 
