@@ -21,6 +21,7 @@ import {
   TravelMode,
 } from "@googlemaps/google-maps-services-js";
 import assert from "assert";
+import log from "@/utils/Log";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -291,12 +292,12 @@ ${
         return;
       }
     } catch (e: any) {
-      console.error(e?.message);
+      log.error(e?.message);
       throw e;
     }
   } while (numFunctionCalls++ < MAX_FUNCTION_CALLS);
 
-  console.error("Too many function calls", numFunctionCalls);
+  log.error("Too many function calls", numFunctionCalls);
   res.status(429).json({ error: "Too many functional calls." });
 }
 
@@ -423,6 +424,13 @@ async function get_transit_directions(
   copyrights?: string;
   error?: string;
 }> {
+  log.debug("get_transit_directions", {
+    origin,
+    destination,
+    chatTransitMode,
+    chatTransitRoutingPreference,
+  });
+
   let transit_mode: TransitMode[];
   switch (chatTransitMode) {
     case "subway_and_bus":
