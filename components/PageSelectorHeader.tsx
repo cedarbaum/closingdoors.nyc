@@ -21,7 +21,7 @@ export const PageSelectorHeader: React.FC<SystemSelectorHeaderProps> = ({
     <div className="flex text-white uppercase">
       {tabs.map((tab) => (
         <button
-          className="relative p-4"
+          className="relative py-4"
           style={{ width: `${tab.widthPercent}%` }}
           key={tab.name}
           onClick={() => onTabClick(tab.name)}
