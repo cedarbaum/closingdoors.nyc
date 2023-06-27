@@ -13,7 +13,6 @@ import { RouteStatuses } from "@/pages/api/route_statuses";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { Alert } from "@/generated/proto/transiter/public";
 import { SubwayDirection } from "@/utils/SubwayLines";
-import { DurationFormat } from "./TripArrivalTime";
 import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
 import { kmToMi } from "@/utils/GeoUtils";
 
@@ -61,10 +60,8 @@ const NycSubwayScheduleView: React.FC = () => {
       enableHighAccuracy: false,
     }
   );
+
   const [, setTime] = useState(Date.now());
-  const [durationFormat, setDurationFormat] = useState(
-    DurationFormat.MinuteCeiling
-  );
 
   const {
     data: routeStatusData,
@@ -234,16 +231,8 @@ const NycSubwayScheduleView: React.FC = () => {
                   <tr key={`${stopWithDirection}${trip.id}${idx}`}>
                     <td className="p-0">
                       <NycSubwayTripArrivalTime
-                        onClickTimeText={() => {
-                          setDurationFormat(
-                            durationFormat === DurationFormat.Exact
-                              ? DurationFormat.MinuteCeiling
-                              : DurationFormat.Exact
-                          );
-                        }}
                         route={routeTrip.route}
                         timeUntilArrival={delta}
-                        durationFormat={durationFormat}
                         direction={direction}
                       />
                     </td>

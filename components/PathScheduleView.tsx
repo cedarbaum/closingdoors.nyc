@@ -1,6 +1,5 @@
 import { WatchMode, usePosition } from "@/utils/usePosition";
 import { useEffect, useState } from "react";
-import { DurationFormat } from "./TripArrivalTime";
 import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { FullScreenError } from "./FullScreenError";
@@ -36,9 +35,6 @@ export default function PathScheduleView() {
   );
 
   const [, setTime] = useState(Date.now());
-  const [durationFormat, setDurationFormat] = useState(
-    DurationFormat.MinuteCeiling
-  );
 
   const {
     data: nearbyTripsData,
@@ -195,15 +191,7 @@ export default function PathScheduleView() {
                   <tr key={`${stopRouteTrip.stop.id}${trip.id}${idx}`}>
                     <td className="p-0">
                       <PathTripArrivalTime
-                        onClickTimeText={() => {
-                          setDurationFormat(
-                            durationFormat === DurationFormat.Exact
-                              ? DurationFormat.MinuteCeiling
-                              : DurationFormat.Exact
-                          );
-                        }}
                         timeUntilArrival={delta}
-                        durationFormat={durationFormat}
                         route={routeTrip.route as PathRoute}
                         direction={direction}
                       />

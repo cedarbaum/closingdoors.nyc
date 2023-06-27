@@ -11,6 +11,7 @@ import {
 import { WatchMode, usePosition } from "@/utils/usePosition";
 
 import { create } from "zustand";
+import { useSettings } from "@/pages/settings";
 
 interface Context {
   usingLocation?: boolean;
@@ -92,16 +93,22 @@ function getAttributionPrefix(datasourceType: DatasourceType) {
 export default function Chat() {
   const { messages, setMessages, setUsingLocation, setUserLocation } =
     useChatState();
-  const usingLocation = useChatState((state) => state.context.usingLocation);
+
+  let usingLocation = useChatState((state) => state.context.usingLocation);
   const userLocation = useChatState((state) => state.context.userLocation);
+
+  const {
+    chat: { useLocation: locationAlwaysAllowed },
+    settingsReady,
+  } = useSettings();
+  usingLocation = usingLocation || (locationAlwaysAllowed && settingsReady);
 
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (messages.length === 0) {
-      const introMessage: Message = {
-        id: "intro",
-        text: `Hey there! I am an <b>experimental</b> chatbot to help you with the NYC Subway! You can ask me things like:\n
+    const introMessage: Message = {
+      id: "intro",
+      text: `Hey there! I am an <b>experimental</b> chatbot to help you with the NYC Subway! You can ask me things like:\n
 1. How can I get from Times Square to downtown Brooklyn?
 2. What's going on with the [G] train today?
 3. What routes are currently running?
@@ -109,24 +116,23 @@ export default function Chat() {
 You can optionally select "Use current location" to help with navigation.
 
 <b>Note that my answers and directions may be incorrect, incomplete, or suboptimal, so always double-check with official MTA sources.</b>`,
-        role: "system",
-        chips: [
-          {
-            label: "Use current location",
-            shouldDisplay: () => !usingLocation,
-            icon: <MapPinIcon className="w-5 h-5 ml-2" />,
-            onClick: () => {
-              setUsingLocation(true);
-            },
+      role: "system",
+      chips: [
+        {
+          label: "Use current location",
+          shouldDisplay: () => !usingLocation && settingsReady,
+          icon: <MapPinIcon className="w-5 h-5 ml-2" />,
+          onClick: () => {
+            setUsingLocation(true);
           },
-        ],
-      };
-      setMessages((_messages) => [introMessage]);
-    } else {
-      messages.find((m) => m.id === "intro")!.chips![0].shouldDisplay = () =>
-        !usingLocation;
-    }
-  }, [messages, usingLocation]);
+        },
+      ],
+    };
+    setMessages((messages) => [
+      introMessage,
+      ...messages.filter((m) => m.id !== "intro"),
+    ]);
+  }, [usingLocation, settingsReady, setMessages, setUsingLocation]);
 
   const {
     latitude,
@@ -141,13 +147,31 @@ You can optionally select "Use current location" to help with navigation.
     }
   );
 
+  const waitingForLocation =
+    usingLocation &&
+    (latitude === undefined || longitude === undefined) &&
+    !locationErrorMessage;
+
   useEffect(() => {
-    if (!usingLocation) {
+    if (!usingLocation && settingsReady) {
       setUserLocation(undefined);
+      // Delete previous location messages
+      setMessages((messages) =>
+        messages.filter(
+          (m) => m.id !== "location-error" && m.id !== "location-success"
+        )
+      );
     } else if (latitude !== undefined && longitude !== undefined) {
       setUserLocation({ latitude, longitude });
     }
-  }, [usingLocation, latitude, longitude]);
+  }, [
+    usingLocation,
+    settingsReady,
+    latitude,
+    longitude,
+    setUserLocation,
+    setMessages,
+  ]);
 
   useEffect(() => {
     // Failed to get location and a previous location was never retrieved
@@ -179,7 +203,7 @@ You can optionally select "Use current location" to help with navigation.
         },
       ]);
     }
-  }, [messages, userLocation, locationErrorMessage]);
+  }, [messages, userLocation, locationErrorMessage, setMessages]);
 
   const [processedMessages, setProcessedMessages] = useState<Message[]>([]);
 
@@ -276,7 +300,7 @@ You can optionally select "Use current location" to help with navigation.
       const chatData = (await res.json()) as ChatData;
       handleAssistantResponse(chatData, messages.length + 1);
 
-      return chatData;
+      return "OK";
     },
     {
       enabled: false,
@@ -284,7 +308,7 @@ You can optionally select "Use current location" to help with navigation.
   );
 
   const handleSendMessage = (text: string) => {
-    if (isFetching || text.trim().length === 0) {
+    if (isFetching || waitingForLocation || text.trim().length === 0) {
       return;
     }
 

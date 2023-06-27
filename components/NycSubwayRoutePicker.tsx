@@ -24,7 +24,9 @@ import { RouteStatuses } from "@/pages/api/route_statuses";
 import { Alert } from "@/generated/proto/transiter/public";
 import DirectionSelectors, { Direction } from "./DirectionsSelector";
 
-const noRoutesSelected = <>Select at least 1 route.</>;
+const noRoutesSelected = (
+  <span className="font-bold">Select at least 1 route.</span>
+);
 
 export default function NycSubwayRoutePicker() {
   const { push } = useRouter();
@@ -130,23 +132,23 @@ export default function NycSubwayRoutePicker() {
 
   const directionNotSetError = useMemo(() => {
     return northboundAlias !== undefined ? (
-      <>
-        Select <span>{northboundAlias}</span> or <span>{southboundAlias}</span>.
-      </>
+      <span className="font-bold">
+        Select {northboundAlias} or {southboundAlias}.
+      </span>
     ) : (
-      <>
-        Select <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4" /> or{" "}
-        <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4" />.
-      </>
+      <span className="font-bold inline-flex items-center">
+        Select <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or{" "}
+        <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4 ml-1" />.
+      </span>
     );
   }, [northboundAlias, southboundAlias]);
 
   const setAlert = useContext(PopoverAlertContext);
   const handleOnClick = useCallback(() => {
     if (direction == null) {
-      setAlert(directionNotSetError);
+      setAlert({ type: "error", content: directionNotSetError });
     } else if (selectedRoutes.size === 0) {
-      setAlert(noRoutesSelected);
+      setAlert({ type: "error", content: noRoutesSelected });
     } else {
       push(
         `/us-ny-subway/schedule?routes=${Array.from(

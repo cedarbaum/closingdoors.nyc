@@ -5,21 +5,25 @@ import { PageSelectorHeader, Tab } from "./PageSelectorHeader";
 import { useRouter } from "next/router";
 
 import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/solid";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
-export const PopoverAlertContext = createContext(
-  (_alert: React.ReactNode) => {}
-);
+export interface PopoverAlert {
+  type: "info" | "error";
+  content: React.ReactNode;
+}
+
+export const PopoverAlertContext = createContext((_alert: PopoverAlert) => {});
 
 const tabs: Tab[] = [
   {
     name: "subway",
     content: "subway",
-    widthPercent: 40,
+    widthPercent: 35,
   },
   {
     name: "path",
     content: "path",
-    widthPercent: 40,
+    widthPercent: 35,
   },
   {
     name: "chat",
@@ -28,7 +32,16 @@ const tabs: Tab[] = [
         <ChatBubbleLeftEllipsisIcon />
       </div>
     ),
-    widthPercent: 20,
+    widthPercent: 15,
+  },
+  {
+    name: "settings",
+    content: (
+      <div className="w-6 h-6">
+        <Cog6ToothIcon />
+      </div>
+    ),
+    widthPercent: 15,
   },
 ];
 
@@ -36,6 +49,7 @@ const pathToTabName = new Map([
   ["/us-ny-subway", "subway"],
   ["/us-ny-path/schedule", "path"],
   ["/chat", "chat"],
+  ["/settings", "settings"],
 ]);
 
 const tabNameToPath = new Map(
@@ -46,7 +60,7 @@ const pathsToShowTabbarFor = new Set(pathToTabName.keys());
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [alert, setAlert] = useState<React.ReactNode | null>(null);
+  const [alert, setAlert] = useState<PopoverAlert | null>(null);
 
   const system = router.query.system as string;
   const path = router.pathname as string;
@@ -66,7 +80,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       <Head>
         <title>Closing Doors</title>
-        <meta name="description" content="Minimalist NYC subway and PATH schedule viewer" />
+        <meta
+          name="description"
+          content="Minimalist NYC subway and PATH schedule viewer"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link
           rel="icon"
@@ -85,8 +102,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   exit={{ y: "-100%" }}
                   transition={{ spring: 0, duration: 0.1, ease: "easeOut" }}
                 >
-                  <div className="relative h-max w-full bg-mtaYellow p-4 text-xl font-bold">
-                    {alert}
+                  <div
+                    className={`relative h-max w-full p-4 text-xl ${
+                      alert.type === "error"
+                        ? "bg-mtaYellow text-black"
+                        : "bg-mtaBlue text-white"
+                    }`}
+                  >
+                    {alert.content}
                   </div>
                 </motion.div>
               </div>
