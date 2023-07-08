@@ -106,21 +106,24 @@ export default function Chat() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const promptForLocation = !usingLocation && settingsReady;
     const introMessage: Message = {
       id: "intro",
       text: `Hey there! I am an <b>experimental</b> chatbot to help you with the NYC Subway! You can ask me things like:\n
 1. How can I get from Times Square to downtown Brooklyn?
 2. What's going on with the [G] train today?
 3. What routes are currently running?
-
-You can optionally select "Use current location" to help with navigation.
-
+${
+  promptForLocation
+    ? '\nYou can optionally select "Use current location" to help with navigation.\n'
+    : ""
+}
 <b>Note that my answers and directions may be incorrect, incomplete, or suboptimal, so always double-check with official MTA sources.</b>`,
       role: "system",
       chips: [
         {
           label: "Use current location",
-          shouldDisplay: () => !usingLocation && settingsReady,
+          shouldDisplay: () => promptForLocation,
           icon: <MapPinIcon className="w-5 h-5 ml-2" />,
           onClick: () => {
             setUsingLocation(true);
