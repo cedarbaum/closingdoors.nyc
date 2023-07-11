@@ -14,7 +14,8 @@ import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { Alert } from "@/generated/proto/transiter/public";
 import { SubwayDirection } from "@/utils/SubwayLines";
 import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
-import { kmToMi } from "@/utils/GeoUtils";
+import { formatKmToLocalizedString } from "@/utils/MeasurementUtils";
+import { useSettings } from "@/pages/settings";
 
 export interface ScheduleViewProps {
   stops?: Set<string>;
@@ -120,6 +121,8 @@ const NycSubwayScheduleView: React.FC = () => {
     }
   );
 
+  const { distanceUnit } = useSettings();
+
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 1000);
     return () => {
@@ -182,11 +185,12 @@ const NycSubwayScheduleView: React.FC = () => {
         error={
           <>
             {`Selected routes don't appear to be running at any stops within
-            ~${kmToMi(
+            ${formatKmToLocalizedString(
               parseFloat(
                 process.env.NEXT_PUBLIC_US_NY_SUBWAY_MAX_STOP_DISTANCE_KM!
-              )
-            ).toPrecision(1)} MI of you.`}
+              ),
+              distanceUnit
+            )} of you.`}
           </>
         }
         errorDetails={

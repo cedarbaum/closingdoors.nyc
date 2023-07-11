@@ -9,9 +9,10 @@ import { StopHeader } from "./StopHeader";
 import DirectionSelectors, { Direction } from "./DirectionsSelector";
 import { PathTripArrivalTime } from "./PathTripArrivalTime";
 import { queryTypes, useQueryState } from "next-usequerystate";
-import { kmToMi } from "@/utils/GeoUtils";
+import { formatKmToLocalizedString } from "@/utils/MeasurementUtils";
 import { NjOrNy, PathRoute } from "@/utils/PathRoutes";
 import { PathLoadingView } from "./PathLoadingView";
+import { useSettings } from "@/pages/settings";
 
 // Newark - Harrison Shuttle Train
 const excludedPathRoutes = new Set<PathRoute>(["74320"]);
@@ -65,6 +66,8 @@ export default function PathScheduleView() {
       refetchInterval: 10000,
     }
   );
+
+  const { distanceUnit } = useSettings();
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 1000);
@@ -151,11 +154,12 @@ export default function PathScheduleView() {
         error={
           <>
             {`No PATH routes appear to be running at any stops within
-            ~${kmToMi(
+            ${formatKmToLocalizedString(
               parseFloat(
                 process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!
-              )
-            ).toPrecision(1)} MI of you.`}
+              ),
+              distanceUnit
+            )} of you.`}
           </>
         }
       />

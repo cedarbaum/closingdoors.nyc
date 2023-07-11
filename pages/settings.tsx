@@ -4,8 +4,9 @@ import { Switch } from "@headlessui/react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Fragment } from "react";
-import { Listbox, Transition } from "@headlessui/react";
+import { Listbox, Tab, Transition } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { classNames } from "@/utils/CssUtils";
 
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
@@ -13,6 +14,8 @@ export enum ScheduleCountdownDisplayFormat {
   MinuteCeiling = "MINUTE_CEILING",
   Exact = "EXACT",
 }
+
+export type DistanceUnits = "km" | "mi";
 
 const scheduleCountdownDisplayOptions = [
   {
@@ -30,6 +33,11 @@ const scheduleCountdownDisplayOptions = [
   { value: ScheduleCountdownDisplayFormat.Exact, name: "Exact" },
 ];
 
+const distanceUnitOptions = [
+  { value: "km", name: "KM" },
+  { value: "mi", name: "MI" },
+];
+
 export interface Settings {
   chat: {
     useLocation: boolean;
@@ -37,10 +45,12 @@ export interface Settings {
   schedule: {
     countdownDisplayFormat: ScheduleCountdownDisplayFormat;
   };
+  distanceUnit: DistanceUnits;
   setChatUseLocation: (useLocation: boolean) => void;
   setScheduleCountdownDisplayFormat: (
     countdownDisplayFormat: ScheduleCountdownDisplayFormat
   ) => void;
+  setDistanceUnit: (distanceUnit: DistanceUnits) => void;
 }
 
 const useSettingsStore = create<Settings>()(
@@ -55,6 +65,8 @@ const useSettingsStore = create<Settings>()(
             countdownDisplayFormat,
           },
         })),
+      setDistanceUnit: (distanceUnit) =>
+        set((state) => ({ ...state, distanceUnit })),
       chat: {
         useLocation: false as boolean,
       },
@@ -62,6 +74,7 @@ const useSettingsStore = create<Settings>()(
         countdownDisplayFormat:
           ScheduleCountdownDisplayFormat.MinuteRounded as ScheduleCountdownDisplayFormat,
       },
+      distanceUnit: "mi" as DistanceUnits,
     }),
     {
       name: "settings",
@@ -84,8 +97,10 @@ export default function Settings() {
   const {
     chat: { useLocation },
     schedule: { countdownDisplayFormat },
+    distanceUnit,
     setChatUseLocation,
     setScheduleCountdownDisplayFormat,
+    setDistanceUnit,
     settingsReady,
   } = useSettings();
 
@@ -96,6 +111,18 @@ export default function Settings() {
   return (
     <div className="text-white px-2">
       <section>
+        <h1 className="text-xl font-bold">General</h1>
+        <div className="py-2">
+          <LabelledTabSwitcher
+            label="Distance unit"
+            options={distanceUnitOptions}
+            selected={distanceUnit}
+            setSelected={setDistanceUnit as (option: string) => void}
+            widthPercent={30}
+          />
+        </div>
+      </section>
+      <section>
         <h1 className="text-xl font-bold">Schedule</h1>
         <div className="py-2">
           <LabelledListbox
@@ -105,6 +132,7 @@ export default function Settings() {
             setSelected={
               setScheduleCountdownDisplayFormat as (option: string) => void
             }
+            widthPercent={45}
           />
         </div>
       </section>
@@ -140,7 +168,7 @@ function LabelledSwitch({
           onChange={onChange}
           className={`${
             enabled ? "bg-mtaYellow" : "bg-gray-400"
-          } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
+          } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
         >
           <span
             className={`${
@@ -158,19 +186,21 @@ function LabelledListbox({
   options,
   selected,
   setSelected,
+  widthPercent = 50,
 }: {
   label: React.ReactNode;
   options: { name: string; value: string }[];
   selected: string;
   setSelected: (value: string) => void;
+  widthPercent?: number;
 }) {
   return (
     <div className="flex w-full">
       <Listbox value={selected} onChange={setSelected}>
         <div className="flex w-full justify-between items-center">
           <Listbox.Label>{label}</Listbox.Label>
-          <div className="relative w-[45%]">
-            <Listbox.Button className="relative w-full cursor-default bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
+          <div className="relative" style={{ width: `${widthPercent}%` }}>
+            <Listbox.Button className="relative w-full cursor-default bg-white py-2 pl-3 pr-10 text-left shadow-md sm:text-sm">
               <span className="block truncate text-black">
                 {options.find((o) => o.value === selected)!.name}
               </span>
@@ -217,5 +247,50 @@ function LabelledListbox({
         </div>
       </Listbox>
     </div>
+  );
+}
+
+function LabelledTabSwitcher({
+  label,
+  options,
+  selected,
+  setSelected,
+  widthPercent = 50,
+}: {
+  label: React.ReactNode;
+  options: { name: string; value: string }[];
+  selected: string;
+  setSelected: (value: string) => void;
+  widthPercent?: number;
+}) {
+  return (
+    <Tab.Group
+      selectedIndex={options.findIndex((o) => o.value === selected)}
+      onChange={(idx) => setSelected(options[idx].value)}
+    >
+      <div className="flex justify-between items-center">
+        <label>{label}</label>
+        <Tab.List
+          className="flex space-x-1 p-1"
+          style={{ width: `${widthPercent}%` }}
+        >
+          {options.map(({ name, value }) => (
+            <Tab
+              key={value}
+              className={({ selected }) =>
+                classNames(
+                  "w-full py-2.5 text-sm font-medium leading-5",
+                  selected
+                    ? "bg-mtaYellow text-black"
+                    : "bg-gray-400 text-white hover:bg-gray-500"
+                )
+              }
+            >
+              {name}
+            </Tab>
+          ))}
+        </Tab.List>
+      </div>
+    </Tab.Group>
   );
 }
