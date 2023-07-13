@@ -8,16 +8,14 @@ import { InformationCircleIcon } from "@heroicons/react/24/outline";
 export interface TripArrivalTimeProps {
   routeDisplay: React.ReactNode;
   timeUntilArrival: Duration;
+  interactive?: boolean;
 }
 
-const countdownDisplayFormatOptions = [
-  ScheduleCountdownDisplayFormat.MinuteRounded,
-  ScheduleCountdownDisplayFormat.Exact,
-  ScheduleCountdownDisplayFormat.MinuteFloor,
-  ScheduleCountdownDisplayFormat.MinuteCeiling,
-];
-
-export const TripArrivalTime: React.FC<TripArrivalTimeProps> = (props) => {
+export const TripArrivalTime: React.FC<TripArrivalTimeProps> = ({
+  routeDisplay,
+  timeUntilArrival,
+  interactive = true,
+}) => {
   const {
     schedule: { countdownDisplayFormat },
     setScheduleCountdownDisplayFormat,
@@ -25,7 +23,18 @@ export const TripArrivalTime: React.FC<TripArrivalTimeProps> = (props) => {
 
   const setAlert = useContext(PopoverAlertContext);
   const cycleFormattingOptions = () => {
+    if (!interactive) {
+      return;
+    }
+
     // Cycle formatting options
+    const countdownDisplayFormatOptions = [
+      ScheduleCountdownDisplayFormat.MinuteRounded,
+      ScheduleCountdownDisplayFormat.Exact,
+      ScheduleCountdownDisplayFormat.MinuteFloor,
+      ScheduleCountdownDisplayFormat.MinuteCeiling,
+    ];
+
     const currentOptionIdx = countdownDisplayFormatOptions.indexOf(
       countdownDisplayFormat
     );
@@ -65,17 +74,17 @@ export const TripArrivalTime: React.FC<TripArrivalTimeProps> = (props) => {
   };
 
   const durationAbsValue =
-    props.timeUntilArrival.toMillis() < 0
-      ? props.timeUntilArrival.negate()
-      : props.timeUntilArrival;
+    timeUntilArrival.toMillis() < 0
+      ? timeUntilArrival.negate()
+      : timeUntilArrival;
   const displayArrivingNow =
-    props.timeUntilArrival.toMillis() < 15 * 1000 &&
+    timeUntilArrival.toMillis() < 15 * 1000 &&
     countdownDisplayFormat !== ScheduleCountdownDisplayFormat.Exact;
   const lessThanAMin = durationAbsValue.toMillis() < 60 * 1000;
   const staleTrip =
-    props.timeUntilArrival.toMillis() < -1 * 30 * 1000 ||
+    timeUntilArrival.toMillis() < -1 * 30 * 1000 ||
     (countdownDisplayFormat === ScheduleCountdownDisplayFormat.Exact &&
-      props.timeUntilArrival.toMillis() < 0);
+      timeUntilArrival.toMillis() < 0);
   const shortEnglishHumanizer = humanizeDuration.humanizer({
     language: "shortEn",
     languages: {
@@ -129,12 +138,14 @@ export const TripArrivalTime: React.FC<TripArrivalTimeProps> = (props) => {
   }
 
   return (
-    <div className="p-2 w-full bg-black flex items-center justify-between">
-      <div className="flex items-center">{props.routeDisplay}</div>
-      <div className="mr-4 text-4xl">
+    <div className="w-full bg-black flex items-center justify-between">
+      <div className="flex items-center">{routeDisplay}</div>
+      <div className="text-4xl">
         {!staleTrip ? (
           <span
-            className={`text-white cursor-pointer whitespace-nowrap ${
+            className={`text-white ${
+              interactive ? "cursor-pointer" : ""
+            } whitespace-nowrap ${
               displayArrivingNow ? "animate-arrivalTimeFadeInOutAnimation" : ""
             }`}
             onClick={cycleFormattingOptions}

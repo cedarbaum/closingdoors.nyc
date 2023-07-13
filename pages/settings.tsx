@@ -7,6 +7,9 @@ import { Fragment } from "react";
 import { Listbox, Tab, Transition } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "@/utils/CssUtils";
+import { TripArrivalTime } from "@/components/TripArrivalTime";
+import { Duration } from "luxon";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
@@ -108,6 +111,28 @@ export default function Settings() {
     return null;
   }
 
+  let durationToPreview: Duration;
+  let displayFormatDescription: string;
+  switch (countdownDisplayFormat) {
+    case ScheduleCountdownDisplayFormat.MinuteRounded:
+      durationToPreview = Duration.fromMillis(1000 * 60 * 3 + 1000 * 45);
+      displayFormatDescription =
+        "Time rounded up or down to the nearest minute.";
+      break;
+    case ScheduleCountdownDisplayFormat.MinuteFloor:
+      durationToPreview = Duration.fromMillis(1000 * 60 * 3 + 1000 * 45);
+      displayFormatDescription = "Time rounded down to the nearest minute.";
+      break;
+    case ScheduleCountdownDisplayFormat.MinuteCeiling:
+      durationToPreview = Duration.fromMillis(1000 * 60 * 3 + 1000 * 15);
+      displayFormatDescription = "Time rounded up to the nearest minute.";
+      break;
+    case ScheduleCountdownDisplayFormat.Exact:
+      durationToPreview = Duration.fromMillis(1000 * 60 * 3 + 1000 * 30);
+      displayFormatDescription = "Exact time. This may jump around a lot.";
+      break;
+  }
+
   return (
     <div className="text-white px-2">
       <section>
@@ -134,6 +159,23 @@ export default function Settings() {
             }
             widthPercent={45}
           />
+        </div>
+        <div className="flex flex-col my-2 border border-white p-2">
+          <div className="flex text-white text-4xl justify-between">
+            <div>{durationToPreview.toFormat("m:ss")}</div>
+            <div>→</div>
+            <div>
+              <TripArrivalTime
+                routeDisplay={null}
+                timeUntilArrival={durationToPreview}
+                interactive={false}
+              />
+            </div>
+          </div>
+          <div className="inline-flex items-center mt-1 text-sm">
+            <InformationCircleIcon className="w-4 h-4 mr-1 shrink-0" />
+            <span>{displayFormatDescription}</span>
+          </div>
         </div>
       </section>
       <section>

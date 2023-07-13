@@ -217,7 +217,7 @@ const NycSubwayScheduleView: React.FC = () => {
           const header = (
             <thead key={stopWithDirection} className="p-0 sticky top-0 z-50">
               <tr>
-                <th className="p-0">
+                <th className="p-2">
                   <StopHeader stopName={stopRouteTrip.stop.name} />
                 </th>
               </tr>
@@ -233,7 +233,7 @@ const NycSubwayScheduleView: React.FC = () => {
                 return [
                   trip.arrival,
                   <tr key={`${stopWithDirection}${trip.id}${idx}`}>
-                    <td className="p-0">
+                    <td className="p-2">
                       <NycSubwayTripArrivalTime
                         route={routeTrip.route}
                         timeUntilArrival={delta}

@@ -177,7 +177,7 @@ export default function PathScheduleView() {
               className="p-0 sticky top-0 z-50"
             >
               <tr>
-                <th className="p-0">
+                <th className="p-2">
                   <StopHeader stopName={stopRouteTrip.stop.name} />
                 </th>
               </tr>
@@ -193,7 +193,7 @@ export default function PathScheduleView() {
                 return [
                   trip.arrival,
                   <tr key={`${stopRouteTrip.stop.id}${trip.id}${idx}`}>
-                    <td className="p-0">
+                    <td className="p-2">
                       <PathTripArrivalTime
                         timeUntilArrival={delta}
                         route={routeTrip.route as PathRoute}
