@@ -25,7 +25,7 @@ export const enum SubwayDirection {
 export interface Route {
   name: string;
   isDiamond?: boolean;
-  isShuttle?: boolean;
+  useDirectionAliases?: boolean;
   northAlias?: string;
   southAlias?: string;
 }
@@ -63,7 +63,12 @@ export const allLines: Line[] = [
     name: "BMT Canarsie Line",
     color: MtaColors.Gray,
     routes: [
-      { name: "L", isShuttle: true, northAlias: "MH", southAlias: "BK" },
+      {
+        name: "L",
+        useDirectionAliases: true,
+        northAlias: "MH",
+        southAlias: "BK",
+      },
     ],
   },
   {
@@ -95,15 +100,44 @@ export const allLines: Line[] = [
   {
     name: "IRT Flushing Line",
     color: MtaColors.Purple,
-    routes: [{ name: "7" }, { name: "7", isDiamond: true }],
+    routes: [
+      {
+        name: "7",
+        useDirectionAliases: true,
+        northAlias: "QN",
+        southAlias: "MH",
+      },
+      {
+        name: "7",
+        isDiamond: true,
+        useDirectionAliases: true,
+        northAlias: "QN",
+        southAlias: "MH",
+      },
+    ],
   },
   {
     name: "Shuttles",
     color: MtaColors.Gray,
     routes: [
-      { name: "H", isShuttle: true, northAlias: "🏢", southAlias: "🏖️" },
-      { name: "FS", isShuttle: true, northAlias: "🏢", southAlias: "🌳" },
-      { name: "GS", isShuttle: true, northAlias: "TS", southAlias: "GC" },
+      {
+        name: "H",
+        useDirectionAliases: true,
+        northAlias: "🏢",
+        southAlias: "🏖️",
+      },
+      {
+        name: "FS",
+        useDirectionAliases: true,
+        northAlias: "🏢",
+        southAlias: "🌳",
+      },
+      {
+        name: "GS",
+        useDirectionAliases: true,
+        northAlias: "TS",
+        southAlias: "GC",
+      },
     ],
   },
 ];

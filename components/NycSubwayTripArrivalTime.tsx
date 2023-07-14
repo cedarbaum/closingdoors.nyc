@@ -14,15 +14,15 @@ export const NycSubwayTripArrivalTime: React.FC<
   NycSubwayTripArrivalTimeProps
 > = (props) => {
   const isDiamond = props.route.toLowerCase().endsWith("x");
-  const route = allRoutes.find(
-    (route) =>
-      route.name === props.route &&
-      (route.isDiamond === isDiamond ||
-        (!isDiamond && route.isDiamond === undefined))
-  );
   const normalizedRouteName = isDiamond
     ? props.route.substring(0, props.route.length - 1)
     : props.route;
+  const route = allRoutes.find(
+    (route) =>
+      route.name === normalizedRouteName &&
+      (route.isDiamond === isDiamond ||
+        (!isDiamond && route.isDiamond === undefined))
+  );
 
   const directionArrow =
     props.direction === SubwayDirection.North ? (
@@ -40,7 +40,7 @@ export const NycSubwayTripArrivalTime: React.FC<
         height={50}
       />
       <div className="ml-4">
-        {route?.isShuttle ? (
+        {route?.useDirectionAliases ? (
           <span className="text-white text-4xl">
             {props.direction === SubwayDirection.North
               ? route.northAlias

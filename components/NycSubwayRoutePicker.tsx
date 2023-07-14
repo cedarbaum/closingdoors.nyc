@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertProps } from "@/components/MtaAlert";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
-import { MtaColors, allLines } from "@/utils/SubwayLines";
+import { MtaColors, allLines, allRoutes } from "@/utils/SubwayLines";
 import { NycSubwayIcon } from "@/components/NycSubwayIcon";
 import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
 import { PopoverAlertContext } from "@/components/Layout";
@@ -137,7 +137,8 @@ export default function NycSubwayRoutePicker() {
       </span>
     ) : (
       <span className="font-bold inline-flex items-center">
-        Select <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or{" "}
+        Select{" "}
+        <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or{" "}
         <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4 ml-1" />.
       </span>
     );
@@ -277,34 +278,33 @@ export default function NycSubwayRoutePicker() {
                             return;
                           }
 
-                          if (selectedRoutes.size === 0 || route.isShuttle) {
+                          if (!selectedRoutes.has(routeKey)) {
                             setNorthBoundAlias(route.northAlias);
                             setSouthBoundAlias(route.southAlias);
-                            setSelectedRoutes(new Set([routeKey]));
-                          }
-
-                          if (!selectedRoutes.has(routeKey)) {
-                            if (!route.isShuttle) {
-                              setNorthBoundAlias(undefined);
-                              setSouthBoundAlias(undefined);
-                            }
 
                             setSelectedRoutes((prevState) => {
-                              for (var line of allLines) {
-                                for (var route of line.routes) {
-                                  if (route.isShuttle) {
-                                    const routeKey = route.isDiamond
-                                      ? `${route.name}X`
-                                      : route.name;
-                                    prevState.delete(routeKey);
-                                  }
+                              // If route uses direction aliases, remove other routes with
+                              // different aliases from selection
+                              for (const otherRoute of allRoutes) {
+                                if (
+                                  otherRoute.northAlias !== route.northAlias ||
+                                  otherRoute.southAlias !== route.southAlias
+                                ) {
+                                  const routeKey = otherRoute.isDiamond
+                                    ? `${otherRoute.name}X`
+                                    : otherRoute.name;
+                                  prevState.delete(routeKey);
                                 }
                               }
 
                               return new Set(prevState.add(routeKey));
                             });
                           } else {
-                            if (route.isShuttle) {
+                            // If last route in alias group, revert aliases to default
+                            if (
+                              route.useDirectionAliases &&
+                              selectedRoutes.size === 1
+                            ) {
                               setNorthBoundAlias(undefined);
                               setSouthBoundAlias(undefined);
                             }
