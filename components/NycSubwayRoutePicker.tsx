@@ -80,7 +80,8 @@ export default function NycSubwayRoutePicker() {
             // If a running status could not be determined, assume it's running
             routeStatus.running === undefined ||
             routeStatus.running ||
-            alertsByRoute?.has(routeStatus.route)
+            (alertsByRoute?.has(routeStatus.route) &&
+              alertsByRoute!.get(routeStatus.route)!.length > 0)
         )
         .map((routeStatus) => routeStatus.route)
     );
