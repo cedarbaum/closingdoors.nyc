@@ -66,21 +66,23 @@ export default function NycSubwayRoutePicker() {
     }
   );
 
-  let runningRoutes: Set<string> | undefined = undefined;
+  let routesToDisplay: Set<string> | undefined = undefined;
   let alertsByRoute: Map<string, Alert[]> | undefined = undefined;
   if (data && !error) {
-    runningRoutes = new Set(
+    alertsByRoute = new Map(
+      data.map((routeStatus) => [routeStatus.route, routeStatus.alerts])
+    );
+
+    routesToDisplay = new Set(
       data
         .filter(
           (routeStatus) =>
             // If a running status could not be determined, assume it's running
-            routeStatus.running === undefined || routeStatus.running
+            routeStatus.running === undefined ||
+            routeStatus.running ||
+            alertsByRoute?.has(routeStatus.route)
         )
         .map((routeStatus) => routeStatus.route)
-    );
-
-    alertsByRoute = new Map(
-      data.map((routeStatus) => [routeStatus.route, routeStatus.alerts])
     );
   }
 
@@ -197,8 +199,8 @@ export default function NycSubwayRoutePicker() {
                     ? `${route.name}X`
                     : route.name;
                   if (
-                    runningRoutes !== undefined &&
-                    !runningRoutes.has(routeKey)
+                    routesToDisplay !== undefined &&
+                    !routesToDisplay.has(routeKey)
                   ) {
                     return null;
                   }
