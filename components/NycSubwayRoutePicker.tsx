@@ -326,14 +326,17 @@ export default function NycSubwayRoutePicker() {
           })}
         </div>
         <button
-          className="sticky bg-black bottom-0 w-full z-50 py-4"
+          className={`sticky my-1 bg-black text-2xl font-bold border border-white bottom-0 w-full z-50 py-4 ${
+            !formIsValid ? "border-opacity-50" : ""
+          }`}
           onClick={handleOnClick}
         >
-          <span
-            className={`text-2xl font-bold ${!formIsValid ? "opacity-50" : ""}`}
-          >
-            Get schedule
-          </span>
+          <div className={!formIsValid ? "opacity-50" : ""}>
+            <span>Get schedule</span>{" "}
+            <span className={`${formIsValid ? "arrow-back-and-forth" : ""}`}>
+              →
+            </span>
+          </div>
         </button>
       </div>
     </>

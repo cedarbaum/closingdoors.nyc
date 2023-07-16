@@ -40,3 +40,17 @@ bug: https://github.com/vercel/next.js/issues/33286 */
 .alert-container ul li > p {
   display: inline;
 }
+
+.arrow-back-and-forth {
+  display: inline-block;
+  animation: backandforth 1s ease-in-out 0s infinite alternate;
+}
+
+@keyframes backandforth {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(15%);
+  }
+}
