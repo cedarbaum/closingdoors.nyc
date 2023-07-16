@@ -35,9 +35,18 @@ The above only needs to be done if the API definition changes, since generated f
 In addition to Transiter, the chat feature requires an OpenAI API key and a Google Maps API key:
 
 ```
-OPENAI_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-GOOGLE_MAPS_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+OPENAI_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+GOOGLE_MAPS_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
+
+Also, by default, a Redis URL and access token from [Upstash](https://upstash.com/) are used to enable rate limiting:
+
+```
+UPSTASH_REDIS_REST_URL="https://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+UPSTASH_REDIS_REST_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+This can be manually disabled by modifying the [RateLimiting](./utils/RateLimiting.ts) file.
 
 ## Building and running
 
