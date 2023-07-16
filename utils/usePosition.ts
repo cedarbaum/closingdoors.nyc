@@ -27,6 +27,9 @@ export interface WatchOptions {
   skip?: boolean;
 }
 
+const mockLat = process.env.NEXT_PUBLIC_MOCK_LAT;
+const mockLng = process.env.NEXT_PUBLIC_MOCK_LNG;
+
 export const usePosition = (
   { mode, interval, skip }: WatchOptions = { mode: WatchMode.None },
   userSettings: PositionOptions = {}
@@ -42,6 +45,18 @@ export const usePosition = (
   const [error, setError] = useState<string | null>(null);
 
   const onChange = ({ coords, timestamp }: GeolocationPosition) => {
+    if (mockLat !== undefined && mockLng !== undefined) {
+      setPosition({
+        latitude: parseFloat(mockLat),
+        longitude: parseFloat(mockLng),
+        accuracy: 0,
+        speed: 0,
+        heading: 0,
+        timestamp: Date.now(),
+      });
+      return;
+    }
+
     setError(null);
     setPosition({
       latitude: coords.latitude,
@@ -54,6 +69,10 @@ export const usePosition = (
   };
 
   const onError = (error: GeolocationPositionError) => {
+    if (mockLat !== undefined && mockLng !== undefined) {
+      return;
+    }
+
     setError(error.message);
   };
 
