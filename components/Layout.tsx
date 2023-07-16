@@ -86,20 +86,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link
-          rel="icon"
-          href="/favicon-light.ico"
-          media="(prefers-color-scheme: no-preference)"
-        />
-        <link
-          rel="icon"
+          rel="shortcut icon"
           href="/favicon-light.ico"
           media="(prefers-color-scheme: light)"
         />
         <link
-          rel="icon"
+          rel="shortcut icon"
           href="/favicon-dark.ico"
           media="(prefers-color-scheme: dark)"
         />
+        <link rel="shortcut icon" href="/favicon-light.ico" />
         <meta name="theme-color" content="#000000" />
       </Head>
       <PopoverAlertContext.Provider value={setAlert}>
