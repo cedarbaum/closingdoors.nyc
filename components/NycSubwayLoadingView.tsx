@@ -1,7 +1,18 @@
 import React from "react";
-import { allLines } from "@/utils/SubwayLines";
+import { MtaColors } from "@/utils/SubwayLines";
 
 const animationDelays = [0, -0.4, -0.8, -0.4, -0.8, -1.2, -0.8, -1.2, -1.6];
+const colorGrid = [
+  MtaColors.Red,
+  MtaColors.Green2,
+  MtaColors.Purple,
+  MtaColors.Blue,
+  MtaColors.Orange,
+  MtaColors.Green,
+  MtaColors.Gray,
+  MtaColors.Brown,
+  MtaColors.Yellow,
+];
 
 export const NycSubwayLoadingView: React.FC = () => {
   // Based on https://github.com/loadingio/css-spinner/blob/master/dist/grid.html
@@ -21,7 +32,7 @@ export const NycSubwayLoadingView: React.FC = () => {
               style={{
                 top,
                 left,
-                background: allLines[idx].color,
+                background: colorGrid[idx],
                 animationDelay: `${animationDelays[idx]}s`,
               }}
             />
