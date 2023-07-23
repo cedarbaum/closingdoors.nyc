@@ -47,16 +47,22 @@ const tabs: Tab[] = [
 
 const pathToTabName = new Map([
   ["/us-ny-subway", "subway"],
+  ["/us-ny-subway/schedule", "subway"],
+  ["/us-ny-path/schedule", "path"],
+  ["/chat", "chat"],
+  ["/settings", "settings"],
+]);
+
+const tabOnClickRoutes = new Map([
+  ["/us-ny-subway", "subway"],
   ["/us-ny-path/schedule", "path"],
   ["/chat", "chat"],
   ["/settings", "settings"],
 ]);
 
 const tabNameToPath = new Map(
-  Array.from(pathToTabName.entries()).map(([key, value]) => [value, key])
+  Array.from(tabOnClickRoutes.entries()).map(([key, value]) => [value, key])
 );
-
-const pathsToShowTabbarFor = new Set(pathToTabName.keys());
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -123,15 +129,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </AnimatePresence>
           <div className="flex flex-col bg-black max-w-md mx-auto w-full h-full">
-            {pathsToShowTabbarFor.has(pathWithSystem) && (
-              <PageSelectorHeader
-                tabs={tabs}
-                activeTab={pathToTabName.get(pathWithSystem)!}
-                onTabClick={(tab) => {
-                  router.push(tabNameToPath.get(tab)!);
-                }}
-              />
-            )}
+            <PageSelectorHeader
+              tabs={tabs}
+              activeTab={pathToTabName.get(pathWithSystem)!}
+              onTabClick={(tab) => {
+                router.push(tabNameToPath.get(tab)!);
+              }}
+            />
             <main className="w-full overflow-auto scrollbar-hide">
               {children}
             </main>
