@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 
 import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/solid";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 
 export interface PopoverAlert {
   type: "info" | "error";
@@ -136,6 +137,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 router.push(tabNameToPath.get(tab)!);
               }}
             />
+            {pathWithSystem === "/us-ny-subway/schedule" && (
+              <Link
+                href="/us-ny-subway"
+                className="block bg-black text-white px-2 py-3 cursor-pointer"
+              >
+                ← Back to route picker
+              </Link>
+            )}
             <main className="w-full overflow-auto scrollbar-hide">
               {children}
             </main>

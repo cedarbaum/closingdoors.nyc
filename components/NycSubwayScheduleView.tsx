@@ -16,7 +16,6 @@ import { SubwayDirection } from "@/utils/SubwayLines";
 import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
 import { formatKmToLocalizedString } from "@/utils/MeasurementUtils";
 import { useSettings } from "@/pages/settings";
-import Link from "next/link";
 
 export interface ScheduleViewProps {
   stops?: Set<string>;
@@ -209,9 +208,6 @@ const NycSubwayScheduleView: React.FC = () => {
 
   return (
     <>
-      <Link href="/us-ny-subway" className="block text-white px-2 py-3 cursor-pointer">
-        ← Back to route picker
-      </Link>
       {alertMessages !== undefined && (
         <MtaAlertList alerts={alertMessages} behavior={Behavior.Collapsable} />
       )}
