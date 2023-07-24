@@ -1,5 +1,6 @@
 import { Alert } from "@/generated/proto/transiter/public";
 import { MtaAlertProps } from "@/components/MtaAlert";
+import { getHumanReadableActivePeriodFromAlert } from "./TransiterUtils";
 
 export function getMtaAlertPropsFromRouteAlerts(
   alerts: Alert[]
@@ -22,6 +23,7 @@ export function getMtaAlertPropsFromRouteAlerts(
 
       const baseAlertProps = {
         id: alert?.id,
+        humanReadableActivePeriod: getHumanReadableActivePeriodFromAlert(alert),
         startsAt:
           alert?.currentActivePeriod?.startsAt !== undefined
             ? parseInt(

@@ -1,4 +1,5 @@
 import {
+  Alert,
   ListAlertsReply,
   ListRoutesReply,
   ListStopsReply,
@@ -71,4 +72,26 @@ export function getRouteIsRunning(route: Route): boolean | undefined {
   }
 
   return stops.length > 0;
+}
+
+export function getNYCTAlertsMetadata(alert: Alert | undefined) {
+  return alert?.description.find(
+    (description) =>
+      description.language ===
+      "github.com/jamespfennell/gtfs/extensions/nyctalerts/Metadata"
+  )?.text;
+}
+
+export function getHumanReadableActivePeriodFromAlert(alert: Alert) {
+  const alertMetadata = getNYCTAlertsMetadata(alert);
+  if (alertMetadata === undefined) {
+    return undefined;
+  }
+
+  const parsedMetadata = JSON.parse(alertMetadata);
+  if (parsedMetadata?.HumanReadableActivePeriod !== undefined) {
+    return parsedMetadata.HumanReadableActivePeriod;
+  }
+
+  return undefined;
 }

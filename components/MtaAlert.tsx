@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export interface MtaAlertProps {
   header?: string | null;
   description?: string | null;
+  humanReadableActivePeriod?: string | null;
   startsAt?: number | null;
   endsAt?: number | null;
 }
@@ -16,6 +17,7 @@ const routesToShowBorderFor = new Set(
 export const MtaAlert: React.FC<MtaAlertProps> = ({
   header,
   description,
+  humanReadableActivePeriod,
   startsAt,
   endsAt,
 }) => {
@@ -35,7 +37,16 @@ export const MtaAlert: React.FC<MtaAlertProps> = ({
   }, [header, description]);
 
   let currentActivePeriod = null;
-  if (startsAt && endsAt) {
+  if (humanReadableActivePeriod) {
+    currentActivePeriod = (
+      <span className="text-sm text-slate-800">
+        Active period:{" "}
+        <span className="text-black font-bold">
+          {humanReadableActivePeriod}
+        </span>
+      </span>
+    );
+  } else if (startsAt && endsAt) {
     currentActivePeriod = (
       <span className="text-sm text-slate-800">
         Active period from{" "}

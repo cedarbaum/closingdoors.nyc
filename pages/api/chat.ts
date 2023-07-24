@@ -3,6 +3,8 @@ import { getNycDateTimeStringFromSeconds } from "@/utils/DateTimeUtils";
 import apiQuotaAvailable from "@/utils/RateLimiting";
 import {
   getAlerts,
+  getHumanReadableActivePeriodFromAlert,
+  getNYCTAlertsMetadata,
   getRouteIsRunning,
   getRoutes,
 } from "@/utils/TransiterUtils";
@@ -352,6 +354,38 @@ async function getRouteAlerts(system: string, routes?: string[]) {
     routeGroupsToAllAlerts.get(routeGroup)?.push(alertId);
   }
 
+  const getCurrentActivePeriod = (alert: Alert | undefined) => {
+    if (alert === undefined) {
+      return undefined;
+    }
+
+    const humanReadableActivePeriod =
+      getHumanReadableActivePeriodFromAlert(alert);
+
+    if (humanReadableActivePeriod !== undefined) {
+      return humanReadableActivePeriod;
+    }
+
+    if (alert.currentActivePeriod !== undefined) {
+      return {
+        startsAt: alert?.currentActivePeriod?.startsAt
+          ? getNycDateTimeStringFromSeconds(
+              parseInt(
+                alert?.currentActivePeriod?.startsAt! as unknown as string
+              )
+            )
+          : undefined,
+        endsAt: alert?.currentActivePeriod?.endsAt
+          ? getNycDateTimeStringFromSeconds(
+              parseInt(alert?.currentActivePeriod?.endsAt! as unknown as string)
+            )
+          : undefined,
+      };
+    }
+
+    return undefined;
+  };
+
   return Array.from(routeGroupsToAllAlerts).map(([routeGroup, alertIds]) => {
     return {
       affected_routes: routeGroup.split(","),
@@ -365,24 +399,7 @@ async function getRouteAlerts(system: string, routes?: string[]) {
             url: a?.url?.find((u) => u.language === "en")?.text,
             cause: a?.cause as unknown as string,
             effect: a?.effect as unknown as string,
-            current_active_period: a?.currentActivePeriod
-              ? {
-                  startsAt: a?.currentActivePeriod?.startsAt
-                    ? getNycDateTimeStringFromSeconds(
-                        parseInt(
-                          a?.currentActivePeriod?.startsAt! as unknown as string
-                        )
-                      )
-                    : undefined,
-                  endsAt: a?.currentActivePeriod?.endsAt
-                    ? getNycDateTimeStringFromSeconds(
-                        parseInt(
-                          a?.currentActivePeriod?.endsAt! as unknown as string
-                        )
-                      )
-                    : undefined,
-                }
-              : undefined,
+            current_active_period: getCurrentActivePeriod(a),
           })) ?? [],
     };
   });
