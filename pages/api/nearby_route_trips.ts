@@ -9,6 +9,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 export type Stop = {
   id: string;
   name: string;
+  latitude: number;
+  longitude: number;
   distance: number;
 };
 
@@ -16,10 +18,15 @@ export type Trip = {
   id: string;
   arrival: number;
   direction_id: boolean;
+  destination: {
+    id: string;
+    name: string;
+  };
 };
 
 export type RouteTrips = {
   route: string;
+  route_color?: string;
   trips: Trip[];
 };
 
@@ -32,8 +39,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StopRouteTrips[] | { error: string }>
 ) {
-  let { system, latitude, longitude, routes, direction_id, stop_type } =
-    req.query;
+  let {
+    system,
+    latitude,
+    longitude,
+    routes,
+    direction_id,
+    stop_type,
+    max_stops,
+  } = req.query;
   if (latitude === undefined || longitude === undefined) {
     res.status(400).json({ error: "Missing latitude or longitude" });
     return;
@@ -49,11 +63,21 @@ export default async function handler(
     direction_id = undefined;
   }
 
+  let max_stops_as_number: number | undefined;
+  if (max_stops !== undefined) {
+    max_stops_as_number = parseInt(max_stops as string);
+    if (isNaN(max_stops_as_number)) {
+      res.status(400).json({ error: "Invalid max_stops" });
+      return;
+    }
+  }
+
   const stops = await getNearbyStops(
     system as string,
     latitude as string,
     longitude as string,
-    getMaxStopDistance(system as string)
+    getMaxStopDistance(system as string),
+    max_stops_as_number
   );
 
   const stopDistanceByStopId = new Map<string, number>(
@@ -84,6 +108,8 @@ export default async function handler(
       stop: {
         id: stop.id,
         name: stop.name!,
+        latitude: stop.latitude!,
+        longitude: stop.longitude!,
         distance: stopDistanceByStopId.get(stop.id)!,
       },
       routeTrips: getTripsByRouteForStop(
@@ -115,10 +141,20 @@ function getTripsByRouteForStop(
       return grouped.set(route, [...routeGroup, stopTime]);
     }, new Map<string, StopTime[]>());
 
+  const routeIdToRouteColor = new Map<string, string>(
+    stop.stopTimes
+      .filter((stopTime) => stopTime.trip !== undefined)
+      .map((stopTime) => [
+        stopTime.trip!.route!.id!,
+        stopTime.trip!.route!.color!,
+      ])
+  );
+
   return Array.from(stopTimesByRoute.entries())
     .filter(([route, _]) => routes === null || routes.has(route))
     .map(([route, stopTimes]) => ({
       route,
+      route_color: routeIdToRouteColor.get(route),
       trips: stopTimes
         .filter(
           (stopTime) =>
@@ -134,6 +170,10 @@ function getTripsByRouteForStop(
               : stopTime.departure!.time!) as unknown as string
           ),
           direction_id: stopTime.trip!.directionId!,
+          destination: {
+            id: stopTime.trip!.destination!.id!,
+            name: stopTime.trip!.destination!.name!,
+          },
         }))
         .sort((a, b) => a.arrival - b.arrival),
     }))
@@ -146,6 +186,8 @@ function getMaxStopDistance(system: string) {
       return process.env.NEXT_PUBLIC_US_NY_SUBWAY_MAX_STOP_DISTANCE_KM!;
     case "us-ny-path":
       return process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!;
+    case "us-ny-nycbus":
+      return process.env.NEXT_PUBLIC_US_NY_NYCBUS_MAX_STOP_DISTANCE_KM!;
     default:
       return process.env.NEXT_PUBLIC_MAX_STOP_DISTANCE_KM!;
   }

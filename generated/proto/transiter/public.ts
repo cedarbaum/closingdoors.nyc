@@ -15,7 +15,6 @@ export const protobufPackage = "";
  * |- Agency
  * |- Alert
  * |- Feed
- * |   |- Feed update
  * |- Route
  * |   |- Trip
  * |       |- Vehicle with no ID
@@ -56,7 +55,6 @@ export const protobufPackage = "";
  * | [Agency](#agency)   | [Agency.Reference](#agencyreference) | [GetAgency] | [ListAgency]  | GTFS static
  * | Alert       | System          | [Alert]    | [Alert.Reference]    | GTFS realtime
  * | Feed        | System          |            |                    | system config
- * | Feed update | Feed            |            |                    | Transiter update process
  * | Route       | System          |            |                    | GTFS static
  * | Trip        | Route           |            |                    | GTFS realtime
  * | Stop        | System          |            |                    | GTFS static
@@ -466,28 +464,6 @@ export interface ListFeedsReply {
   feeds: Feed[];
 }
 
-/** Request payload for the list feed updates endpoint. */
-export interface ListFeedUpdatesRequest {
-  /**
-   * ID of the system the feed is in.
-   *
-   * This is a URL parameter in the HTTP API.
-   */
-  systemId: string;
-  /**
-   * ID of the feed for which to list updates.
-   *
-   * This is a URL parameter in the HTTP API.
-   */
-  feedId: string;
-}
-
-/** Response payload for the list feed updates endpoint. */
-export interface ListFeedUpdatesReply {
-  /** List of updates. */
-  updates: FeedUpdate[];
-}
-
 /** Request payload for the get feed endpoint. */
 export interface GetFeedRequest {
   /**
@@ -514,6 +490,143 @@ export interface ListTransfersRequest {
 export interface ListTransfersReply {
   /** List of transfers. */
   transfers: Transfer[];
+}
+
+export interface ListVehiclesRequest {
+  /** ID of the system for which to list vehicles. */
+  systemId: string;
+  /** The type of search to perform when listing vehicles. */
+  searchMode?:
+    | ListVehiclesRequest_SearchMode
+    | undefined;
+  /**
+   * If true, only return vehicles whose IDs are specified in the repeated `id` field.
+   * Only supported when the search mode is ID.
+   */
+  onlyReturnSpecifiedIds: boolean;
+  /**
+   * IDs to return if `only_return_specified_ids` is set to true. It is an error to
+   * populate this field if `only_return_specified_ids` is false.
+   * Only supported when the search mode is ID.
+   */
+  id: string[];
+  /**
+   * ID of the first vehicle to return. If not set, the vehicle with the smallest ID will be first.
+   * Only supported when the search mode is ID.
+   */
+  firstId?:
+    | string
+    | undefined;
+  /**
+   * Maximum number of vehicles to return.
+   * This is supported in all search modes.
+   * For performance reasons, if it is larger than 100 it is rounded down to 100.
+   */
+  limit?:
+    | number
+    | undefined;
+  /**
+   * The maximum distance in kilometers that a vehicle must be from
+   * latitude, longitude to be listed when using DISTANCE search mode.
+   */
+  maxDistance?:
+    | number
+    | undefined;
+  /** The latitude relative to the returned vehicles when using DISTANCE search mode. */
+  latitude?:
+    | number
+    | undefined;
+  /** The longitude relative to the returned vehicles when using DISTANCE search mode. */
+  longitude?: number | undefined;
+}
+
+export enum ListVehiclesRequest_SearchMode {
+  /** ID - Return a paginated list of vehicles sorted by vehicle ID. */
+  ID = 0,
+  /** DISTANCE - Return all vehicles within max_distance of (latitude, longitude), sorted by the distance. */
+  DISTANCE = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function listVehiclesRequest_SearchModeFromJSON(object: any): ListVehiclesRequest_SearchMode {
+  switch (object) {
+    case 0:
+    case "ID":
+      return ListVehiclesRequest_SearchMode.ID;
+    case 1:
+    case "DISTANCE":
+      return ListVehiclesRequest_SearchMode.DISTANCE;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ListVehiclesRequest_SearchMode.UNRECOGNIZED;
+  }
+}
+
+export function listVehiclesRequest_SearchModeToJSON(object: ListVehiclesRequest_SearchMode): string {
+  switch (object) {
+    case ListVehiclesRequest_SearchMode.ID:
+      return "ID";
+    case ListVehiclesRequest_SearchMode.DISTANCE:
+      return "DISTANCE";
+    case ListVehiclesRequest_SearchMode.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export interface ListVehiclesReply {
+  /** List of vehicles. */
+  vehicles: Vehicle[];
+  /** ID of the next vehicle to return, if there are more results. */
+  nextId?: string | undefined;
+}
+
+export interface GetVehicleRequest {
+  /**
+   * ID of the system the vehicle is in.
+   *
+   * This is a URL parameter in the HTTP API.
+   */
+  systemId: string;
+  /**
+   * ID of the vehicle.
+   *
+   * This is a URL parameter in the HTTP API.
+   */
+  vehicleId: string;
+}
+
+export interface ListShapesRequest {
+  /** System to list shapes for. */
+  systemId: string;
+  /** If true, only return shapes whose IDs are specified in the repeated `id` field. */
+  onlyReturnSpecifiedIds: boolean;
+  /**
+   * IDs to return if `only_return_specified_ids` is set to true. It is an error to
+   * populate this field if `only_return_specified_ids` is false.
+   */
+  id: string[];
+  /** ID of the first shape to return. If not set, the shape with the smallest ID will be first. */
+  firstId?:
+    | string
+    | undefined;
+  /** Maximum number of shapes to return. */
+  limit?: number | undefined;
+}
+
+export interface ListShapesReply {
+  /** Shapes that were listed. */
+  shapes: Shape[];
+  /** ID of the next shape to list, if there are more results. */
+  nextId?: string | undefined;
+}
+
+export interface GetShapeRequest {
+  /** System to get shape for. */
+  systemId: string;
+  /** ID of the shape to get. */
+  shapeId: string;
 }
 
 /** The System resource. */
@@ -889,6 +1002,7 @@ export interface Trip {
   vehicle?: Vehicle_Reference | undefined;
   directionId: boolean;
   stopTimes: StopTime[];
+  shape?: Shape_Reference | undefined;
 }
 
 /** Reference is the reference type for the trip resource. */
@@ -899,14 +1013,237 @@ export interface Trip_Reference {
   destination: Stop_Reference | undefined;
   vehicle?: Vehicle_Reference | undefined;
   directionId: boolean;
+  shape?: Shape_Reference | undefined;
 }
 
+/**
+ * The Vehicle resource.
+ *
+ * This resource corresponds to the [vehicle position type in the GTFS static
+ * specification](https://developers.google.com/transit/gtfs-realtime/reference#message-vehicleposition).
+ */
 export interface Vehicle {
+  /** A unique ID for the vehicle. */
+  id: string;
+  /** A reference to the vehicle's trip. */
+  trip?:
+    | Trip_Reference
+    | undefined;
+  /** The vehicle's current latitude. */
+  latitude?:
+    | number
+    | undefined;
+  /** The vehicle's current longitude. */
+  longitude?:
+    | number
+    | undefined;
+  /** The vehicle's current bearing. */
+  bearing?:
+    | number
+    | undefined;
+  /** The vehicle's current odometer reading. */
+  odometer?:
+    | number
+    | undefined;
+  /** The vehicle's current speed. */
+  speed?:
+    | number
+    | undefined;
+  /** The stop sequence index of the vehicle's current stop. */
+  stopSequence?:
+    | number
+    | undefined;
+  /** A reference to the vehicle's current stop. */
+  stop?:
+    | Stop_Reference
+    | undefined;
+  /** The vehicle's current status. */
+  currentStatus?:
+    | Vehicle_CurrentStatus
+    | undefined;
+  /** The timestamp of the last update to the vehicle's position. */
+  updatedAt?:
+    | number
+    | undefined;
+  /** The vehicle's current congestion level. */
+  congestionLevel: Vehicle_CongestionLevel;
+  /** The vehicle's current occupancy status. */
+  occupancyStatus?:
+    | Vehicle_OccupancyStatus
+    | undefined;
+  /** The percentage of seats occupied. */
+  occupancyPercentage?: number | undefined;
+}
+
+/**
+ * Corresponds to [VehicleStopStatus](https://developers.google.com/
+ * transit/gtfs-realtime/reference#enum-vehiclestopstatus).
+ */
+export enum Vehicle_CurrentStatus {
+  INCOMING_AT = 0,
+  STOPPED_AT = 1,
+  IN_TRANSIT_TO = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function vehicle_CurrentStatusFromJSON(object: any): Vehicle_CurrentStatus {
+  switch (object) {
+    case 0:
+    case "INCOMING_AT":
+      return Vehicle_CurrentStatus.INCOMING_AT;
+    case 1:
+    case "STOPPED_AT":
+      return Vehicle_CurrentStatus.STOPPED_AT;
+    case 2:
+    case "IN_TRANSIT_TO":
+      return Vehicle_CurrentStatus.IN_TRANSIT_TO;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Vehicle_CurrentStatus.UNRECOGNIZED;
+  }
+}
+
+export function vehicle_CurrentStatusToJSON(object: Vehicle_CurrentStatus): string {
+  switch (object) {
+    case Vehicle_CurrentStatus.INCOMING_AT:
+      return "INCOMING_AT";
+    case Vehicle_CurrentStatus.STOPPED_AT:
+      return "STOPPED_AT";
+    case Vehicle_CurrentStatus.IN_TRANSIT_TO:
+      return "IN_TRANSIT_TO";
+    case Vehicle_CurrentStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+/**
+ * Corresponds to [CongestionLevel](https://developers.google.com/
+ * transit/gtfs-realtime/reference#enum-congestionlevel).
+ */
+export enum Vehicle_CongestionLevel {
+  UNKNOWN_CONGESTION_LEVEL = 0,
+  RUNNING_SMOOTHLY = 1,
+  STOP_AND_GO = 2,
+  CONGESTION = 3,
+  SEVERE_CONGESTION = 4,
+  UNRECOGNIZED = -1,
+}
+
+export function vehicle_CongestionLevelFromJSON(object: any): Vehicle_CongestionLevel {
+  switch (object) {
+    case 0:
+    case "UNKNOWN_CONGESTION_LEVEL":
+      return Vehicle_CongestionLevel.UNKNOWN_CONGESTION_LEVEL;
+    case 1:
+    case "RUNNING_SMOOTHLY":
+      return Vehicle_CongestionLevel.RUNNING_SMOOTHLY;
+    case 2:
+    case "STOP_AND_GO":
+      return Vehicle_CongestionLevel.STOP_AND_GO;
+    case 3:
+    case "CONGESTION":
+      return Vehicle_CongestionLevel.CONGESTION;
+    case 4:
+    case "SEVERE_CONGESTION":
+      return Vehicle_CongestionLevel.SEVERE_CONGESTION;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Vehicle_CongestionLevel.UNRECOGNIZED;
+  }
+}
+
+export function vehicle_CongestionLevelToJSON(object: Vehicle_CongestionLevel): string {
+  switch (object) {
+    case Vehicle_CongestionLevel.UNKNOWN_CONGESTION_LEVEL:
+      return "UNKNOWN_CONGESTION_LEVEL";
+    case Vehicle_CongestionLevel.RUNNING_SMOOTHLY:
+      return "RUNNING_SMOOTHLY";
+    case Vehicle_CongestionLevel.STOP_AND_GO:
+      return "STOP_AND_GO";
+    case Vehicle_CongestionLevel.CONGESTION:
+      return "CONGESTION";
+    case Vehicle_CongestionLevel.SEVERE_CONGESTION:
+      return "SEVERE_CONGESTION";
+    case Vehicle_CongestionLevel.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+/**
+ * Corresponds to [OccupancyStatus](https://developers.google.com/
+ * transit/gtfs-realtime/reference#enum-occupancystatus).
+ */
+export enum Vehicle_OccupancyStatus {
+  EMPTY = 0,
+  MANY_SEATS_AVAILABLE = 1,
+  FEW_SEATS_AVAILABLE = 2,
+  STANDING_ROOM_ONLY = 3,
+  CRUSHED_STANDING_ROOM_ONLY = 4,
+  FULL = 5,
+  NOT_ACCEPTING_PASSENGERS = 6,
+  UNRECOGNIZED = -1,
+}
+
+export function vehicle_OccupancyStatusFromJSON(object: any): Vehicle_OccupancyStatus {
+  switch (object) {
+    case 0:
+    case "EMPTY":
+      return Vehicle_OccupancyStatus.EMPTY;
+    case 1:
+    case "MANY_SEATS_AVAILABLE":
+      return Vehicle_OccupancyStatus.MANY_SEATS_AVAILABLE;
+    case 2:
+    case "FEW_SEATS_AVAILABLE":
+      return Vehicle_OccupancyStatus.FEW_SEATS_AVAILABLE;
+    case 3:
+    case "STANDING_ROOM_ONLY":
+      return Vehicle_OccupancyStatus.STANDING_ROOM_ONLY;
+    case 4:
+    case "CRUSHED_STANDING_ROOM_ONLY":
+      return Vehicle_OccupancyStatus.CRUSHED_STANDING_ROOM_ONLY;
+    case 5:
+    case "FULL":
+      return Vehicle_OccupancyStatus.FULL;
+    case 6:
+    case "NOT_ACCEPTING_PASSENGERS":
+      return Vehicle_OccupancyStatus.NOT_ACCEPTING_PASSENGERS;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Vehicle_OccupancyStatus.UNRECOGNIZED;
+  }
+}
+
+export function vehicle_OccupancyStatusToJSON(object: Vehicle_OccupancyStatus): string {
+  switch (object) {
+    case Vehicle_OccupancyStatus.EMPTY:
+      return "EMPTY";
+    case Vehicle_OccupancyStatus.MANY_SEATS_AVAILABLE:
+      return "MANY_SEATS_AVAILABLE";
+    case Vehicle_OccupancyStatus.FEW_SEATS_AVAILABLE:
+      return "FEW_SEATS_AVAILABLE";
+    case Vehicle_OccupancyStatus.STANDING_ROOM_ONLY:
+      return "STANDING_ROOM_ONLY";
+    case Vehicle_OccupancyStatus.CRUSHED_STANDING_ROOM_ONLY:
+      return "CRUSHED_STANDING_ROOM_ONLY";
+    case Vehicle_OccupancyStatus.FULL:
+      return "FULL";
+    case Vehicle_OccupancyStatus.NOT_ACCEPTING_PASSENGERS:
+      return "NOT_ACCEPTING_PASSENGERS";
+    case Vehicle_OccupancyStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
 }
 
 /** Reference is the reference type for the vehicle resource. */
 export interface Vehicle_Reference {
   id: string;
+  resource: Resource | undefined;
 }
 
 /**
@@ -1170,7 +1507,7 @@ export interface Route_Reference {
  * Each feed is defined in the system configuration file.
  * Feeds are included in the public API because there are non-admin use-cases for this resource.
  * For example, an app might publish the staleness of realtime data
- *   by checking for the last succesful feed update.
+ *   by checking the last successful feed update time.
  *
  * More detailed information on a feed -- its full configuration, and the
  *   current status of its periodic updates -- can be retrieved through the admin API.
@@ -1186,11 +1523,11 @@ export interface Feed {
    * System corresponding to this feed.
    * This is the parent resource in Transiter's resource hierarchy.
    */
-  system:
-    | System_Reference
-    | undefined;
-  /** Updates for this feed. */
-  updates: ChildResources | undefined;
+  system: System_Reference | undefined;
+  lastUpdateMs?: number | undefined;
+  lastSuccessfulUpdateMs?: number | undefined;
+  lastSkippedUpdateMs?: number | undefined;
+  lastFailedUpdateMs?: number | undefined;
 }
 
 /** Reference is the reference type for the feed resource. */
@@ -1612,163 +1949,26 @@ export function transfer_TypeToJSON(object: Transfer_Type): string {
   }
 }
 
-/**
- * The feed update resource.
- *
- * Each feed update event
- *   -- triggered manually though the admin API, or automatically by the scheduler --
- * generates a feed update resource.
- * This resource is updated as the feed update progresses.
- * A background task in Transiter periodically garbage collects old updates.
- */
-export interface FeedUpdate {
-  /**
-   * ID of the feed update. This is the primary key of the associated Postgres
-   * database row so it's actually globally unique.
-   */
+export interface Shape {
+  /** Unique ID for the shape. */
   id: string;
-  /** Generic metadata about the feed update resource. */
-  resource:
-    | Resource
-    | undefined;
-  /**
-   * Feed corresponding to this update.
-   * This is the parent resource in Transiter's resource hierarchy.
-   */
-  feed:
-    | Feed_Reference
-    | undefined;
-  /** Unix timestamp of when the update started. */
-  startedAt: number;
-  /** Whether the update has finished. If false, the update is still in progress. */
-  finished: boolean;
-  /**
-   * Unix timestamp of when the update finished.
-   * Only populated if the update is finished.
-   */
-  finishedAt?:
-    | number
-    | undefined;
-  /**
-   * Result of the update.
-   * Only populated if the update is finished.
-   */
-  result?:
-    | FeedUpdate_Result
-    | undefined;
-  /**
-   * Number of bytes in the downloaded feed data.
-   * Only populated if the update succesfully downloaded the data.
-   */
-  contentLength?:
-    | number
-    | undefined;
-  /**
-   * Hash of the downloaded feed data. This is used to skip updates
-   * if the feed data hasn't changed.
-   * Only populated if the update succesfully downloaded the data.
-   */
-  contentHash?:
-    | string
-    | undefined;
-  /**
-   * Error message of the update.
-   * Only populated if the update finished in an error
-   */
-  errorMessage?: string | undefined;
+  /** Ordered list of points that make up the shape. */
+  points: Shape_ShapePoint[];
 }
 
-export enum FeedUpdate_Result {
-  /** UPDATED - Finished succesfully. */
-  UPDATED = 0,
-  /** NOT_NEEDED - The update was skipped because the downloaded data was identical to the data for the last succesful update. */
-  NOT_NEEDED = 1,
-  /** DOWNLOAD_ERROR - Failed to download feed data. */
-  DOWNLOAD_ERROR = 2,
-  /** EMPTY_FEED - Feed data was empty. */
-  EMPTY_FEED = 3,
-  /**
-   * INVALID_FEED_CONFIG - The feed configuration is invalid. This typically indicates a bug in Transiter because
-   * the feed configuration is validated when the system is being installed.
-   */
-  INVALID_FEED_CONFIG = 4,
-  /** INVALID_PARSER - The parser specified in the feed configuration is invalid. */
-  INVALID_PARSER = 5,
-  /**
-   * PARSE_ERROR - Failed to parse the feed data.
-   * This means the feed data was corrupted or otherwise invalid.
-   */
-  PARSE_ERROR = 6,
-  /**
-   * UPDATE_ERROR - Failed to update the database using the new feed data.
-   * This typically indicates a bug in Transiter or a transient error connecting to the database.
-   */
-  UPDATE_ERROR = 7,
-  /** INTERNAL_ERROR - An internal unspecified error occured. */
-  INTERNAL_ERROR = 8,
-  UNRECOGNIZED = -1,
+/** A point within the shape. */
+export interface Shape_ShapePoint {
+  /** Latitude of the point. */
+  latitude: number;
+  /** Longitude of the point. */
+  longitude: number;
+  /** Distance from the start of the shape to this point. */
+  distance?: number | undefined;
 }
 
-export function feedUpdate_ResultFromJSON(object: any): FeedUpdate_Result {
-  switch (object) {
-    case 0:
-    case "UPDATED":
-      return FeedUpdate_Result.UPDATED;
-    case 1:
-    case "NOT_NEEDED":
-      return FeedUpdate_Result.NOT_NEEDED;
-    case 2:
-    case "DOWNLOAD_ERROR":
-      return FeedUpdate_Result.DOWNLOAD_ERROR;
-    case 3:
-    case "EMPTY_FEED":
-      return FeedUpdate_Result.EMPTY_FEED;
-    case 4:
-    case "INVALID_FEED_CONFIG":
-      return FeedUpdate_Result.INVALID_FEED_CONFIG;
-    case 5:
-    case "INVALID_PARSER":
-      return FeedUpdate_Result.INVALID_PARSER;
-    case 6:
-    case "PARSE_ERROR":
-      return FeedUpdate_Result.PARSE_ERROR;
-    case 7:
-    case "UPDATE_ERROR":
-      return FeedUpdate_Result.UPDATE_ERROR;
-    case 8:
-    case "INTERNAL_ERROR":
-      return FeedUpdate_Result.INTERNAL_ERROR;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return FeedUpdate_Result.UNRECOGNIZED;
-  }
-}
-
-export function feedUpdate_ResultToJSON(object: FeedUpdate_Result): string {
-  switch (object) {
-    case FeedUpdate_Result.UPDATED:
-      return "UPDATED";
-    case FeedUpdate_Result.NOT_NEEDED:
-      return "NOT_NEEDED";
-    case FeedUpdate_Result.DOWNLOAD_ERROR:
-      return "DOWNLOAD_ERROR";
-    case FeedUpdate_Result.EMPTY_FEED:
-      return "EMPTY_FEED";
-    case FeedUpdate_Result.INVALID_FEED_CONFIG:
-      return "INVALID_FEED_CONFIG";
-    case FeedUpdate_Result.INVALID_PARSER:
-      return "INVALID_PARSER";
-    case FeedUpdate_Result.PARSE_ERROR:
-      return "PARSE_ERROR";
-    case FeedUpdate_Result.UPDATE_ERROR:
-      return "UPDATE_ERROR";
-    case FeedUpdate_Result.INTERNAL_ERROR:
-      return "INTERNAL_ERROR";
-    case FeedUpdate_Result.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
+export interface Shape_Reference {
+  id: string;
+  resource: Resource | undefined;
 }
 
 function createBaseEntrypointRequest(): EntrypointRequest {
@@ -3687,137 +3887,6 @@ export const ListFeedsReply = {
   },
 };
 
-function createBaseListFeedUpdatesRequest(): ListFeedUpdatesRequest {
-  return { systemId: "", feedId: "" };
-}
-
-export const ListFeedUpdatesRequest = {
-  encode(message: ListFeedUpdatesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.systemId !== "") {
-      writer.uint32(10).string(message.systemId);
-    }
-    if (message.feedId !== "") {
-      writer.uint32(18).string(message.feedId);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ListFeedUpdatesRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListFeedUpdatesRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag != 10) {
-            break;
-          }
-
-          message.systemId = reader.string();
-          continue;
-        case 2:
-          if (tag != 18) {
-            break;
-          }
-
-          message.feedId = reader.string();
-          continue;
-      }
-      if ((tag & 7) == 4 || tag == 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ListFeedUpdatesRequest {
-    return {
-      systemId: isSet(object.systemId) ? String(object.systemId) : "",
-      feedId: isSet(object.feedId) ? String(object.feedId) : "",
-    };
-  },
-
-  toJSON(message: ListFeedUpdatesRequest): unknown {
-    const obj: any = {};
-    message.systemId !== undefined && (obj.systemId = message.systemId);
-    message.feedId !== undefined && (obj.feedId = message.feedId);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ListFeedUpdatesRequest>, I>>(base?: I): ListFeedUpdatesRequest {
-    return ListFeedUpdatesRequest.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ListFeedUpdatesRequest>, I>>(object: I): ListFeedUpdatesRequest {
-    const message = createBaseListFeedUpdatesRequest();
-    message.systemId = object.systemId ?? "";
-    message.feedId = object.feedId ?? "";
-    return message;
-  },
-};
-
-function createBaseListFeedUpdatesReply(): ListFeedUpdatesReply {
-  return { updates: [] };
-}
-
-export const ListFeedUpdatesReply = {
-  encode(message: ListFeedUpdatesReply, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.updates) {
-      FeedUpdate.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ListFeedUpdatesReply {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListFeedUpdatesReply();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag != 10) {
-            break;
-          }
-
-          message.updates.push(FeedUpdate.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) == 4 || tag == 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ListFeedUpdatesReply {
-    return { updates: Array.isArray(object?.updates) ? object.updates.map((e: any) => FeedUpdate.fromJSON(e)) : [] };
-  },
-
-  toJSON(message: ListFeedUpdatesReply): unknown {
-    const obj: any = {};
-    if (message.updates) {
-      obj.updates = message.updates.map((e) => e ? FeedUpdate.toJSON(e) : undefined);
-    } else {
-      obj.updates = [];
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ListFeedUpdatesReply>, I>>(base?: I): ListFeedUpdatesReply {
-    return ListFeedUpdatesReply.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ListFeedUpdatesReply>, I>>(object: I): ListFeedUpdatesReply {
-    const message = createBaseListFeedUpdatesReply();
-    message.updates = object.updates?.map((e) => FeedUpdate.fromPartial(e)) || [];
-    return message;
-  },
-};
-
 function createBaseGetFeedRequest(): GetFeedRequest {
   return { systemId: "", feedId: "" };
 }
@@ -4003,6 +4072,590 @@ export const ListTransfersReply = {
   fromPartial<I extends Exact<DeepPartial<ListTransfersReply>, I>>(object: I): ListTransfersReply {
     const message = createBaseListTransfersReply();
     message.transfers = object.transfers?.map((e) => Transfer.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListVehiclesRequest(): ListVehiclesRequest {
+  return {
+    systemId: "",
+    searchMode: undefined,
+    onlyReturnSpecifiedIds: false,
+    id: [],
+    firstId: undefined,
+    limit: undefined,
+    maxDistance: undefined,
+    latitude: undefined,
+    longitude: undefined,
+  };
+}
+
+export const ListVehiclesRequest = {
+  encode(message: ListVehiclesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.systemId !== "") {
+      writer.uint32(10).string(message.systemId);
+    }
+    if (message.searchMode !== undefined) {
+      writer.uint32(16).int32(message.searchMode);
+    }
+    if (message.onlyReturnSpecifiedIds === true) {
+      writer.uint32(24).bool(message.onlyReturnSpecifiedIds);
+    }
+    for (const v of message.id) {
+      writer.uint32(34).string(v!);
+    }
+    if (message.firstId !== undefined) {
+      writer.uint32(42).string(message.firstId);
+    }
+    if (message.limit !== undefined) {
+      writer.uint32(48).int32(message.limit);
+    }
+    if (message.maxDistance !== undefined) {
+      writer.uint32(57).double(message.maxDistance);
+    }
+    if (message.latitude !== undefined) {
+      writer.uint32(65).double(message.latitude);
+    }
+    if (message.longitude !== undefined) {
+      writer.uint32(73).double(message.longitude);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListVehiclesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListVehiclesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.systemId = reader.string();
+          continue;
+        case 2:
+          if (tag != 16) {
+            break;
+          }
+
+          message.searchMode = reader.int32() as any;
+          continue;
+        case 3:
+          if (tag != 24) {
+            break;
+          }
+
+          message.onlyReturnSpecifiedIds = reader.bool();
+          continue;
+        case 4:
+          if (tag != 34) {
+            break;
+          }
+
+          message.id.push(reader.string());
+          continue;
+        case 5:
+          if (tag != 42) {
+            break;
+          }
+
+          message.firstId = reader.string();
+          continue;
+        case 6:
+          if (tag != 48) {
+            break;
+          }
+
+          message.limit = reader.int32();
+          continue;
+        case 7:
+          if (tag != 57) {
+            break;
+          }
+
+          message.maxDistance = reader.double();
+          continue;
+        case 8:
+          if (tag != 65) {
+            break;
+          }
+
+          message.latitude = reader.double();
+          continue;
+        case 9:
+          if (tag != 73) {
+            break;
+          }
+
+          message.longitude = reader.double();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListVehiclesRequest {
+    return {
+      systemId: isSet(object.systemId) ? String(object.systemId) : "",
+      searchMode: isSet(object.searchMode) ? listVehiclesRequest_SearchModeFromJSON(object.searchMode) : undefined,
+      onlyReturnSpecifiedIds: isSet(object.onlyReturnSpecifiedIds) ? Boolean(object.onlyReturnSpecifiedIds) : false,
+      id: Array.isArray(object?.id) ? object.id.map((e: any) => String(e)) : [],
+      firstId: isSet(object.firstId) ? String(object.firstId) : undefined,
+      limit: isSet(object.limit) ? Number(object.limit) : undefined,
+      maxDistance: isSet(object.maxDistance) ? Number(object.maxDistance) : undefined,
+      latitude: isSet(object.latitude) ? Number(object.latitude) : undefined,
+      longitude: isSet(object.longitude) ? Number(object.longitude) : undefined,
+    };
+  },
+
+  toJSON(message: ListVehiclesRequest): unknown {
+    const obj: any = {};
+    message.systemId !== undefined && (obj.systemId = message.systemId);
+    message.searchMode !== undefined && (obj.searchMode = message.searchMode !== undefined
+      ? listVehiclesRequest_SearchModeToJSON(message.searchMode)
+      : undefined);
+    message.onlyReturnSpecifiedIds !== undefined && (obj.onlyReturnSpecifiedIds = message.onlyReturnSpecifiedIds);
+    if (message.id) {
+      obj.id = message.id.map((e) => e);
+    } else {
+      obj.id = [];
+    }
+    message.firstId !== undefined && (obj.firstId = message.firstId);
+    message.limit !== undefined && (obj.limit = Math.round(message.limit));
+    message.maxDistance !== undefined && (obj.maxDistance = message.maxDistance);
+    message.latitude !== undefined && (obj.latitude = message.latitude);
+    message.longitude !== undefined && (obj.longitude = message.longitude);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListVehiclesRequest>, I>>(base?: I): ListVehiclesRequest {
+    return ListVehiclesRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListVehiclesRequest>, I>>(object: I): ListVehiclesRequest {
+    const message = createBaseListVehiclesRequest();
+    message.systemId = object.systemId ?? "";
+    message.searchMode = object.searchMode ?? undefined;
+    message.onlyReturnSpecifiedIds = object.onlyReturnSpecifiedIds ?? false;
+    message.id = object.id?.map((e) => e) || [];
+    message.firstId = object.firstId ?? undefined;
+    message.limit = object.limit ?? undefined;
+    message.maxDistance = object.maxDistance ?? undefined;
+    message.latitude = object.latitude ?? undefined;
+    message.longitude = object.longitude ?? undefined;
+    return message;
+  },
+};
+
+function createBaseListVehiclesReply(): ListVehiclesReply {
+  return { vehicles: [], nextId: undefined };
+}
+
+export const ListVehiclesReply = {
+  encode(message: ListVehiclesReply, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.vehicles) {
+      Vehicle.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.nextId !== undefined) {
+      writer.uint32(18).string(message.nextId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListVehiclesReply {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListVehiclesReply();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.vehicles.push(Vehicle.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.nextId = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListVehiclesReply {
+    return {
+      vehicles: Array.isArray(object?.vehicles) ? object.vehicles.map((e: any) => Vehicle.fromJSON(e)) : [],
+      nextId: isSet(object.nextId) ? String(object.nextId) : undefined,
+    };
+  },
+
+  toJSON(message: ListVehiclesReply): unknown {
+    const obj: any = {};
+    if (message.vehicles) {
+      obj.vehicles = message.vehicles.map((e) => e ? Vehicle.toJSON(e) : undefined);
+    } else {
+      obj.vehicles = [];
+    }
+    message.nextId !== undefined && (obj.nextId = message.nextId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListVehiclesReply>, I>>(base?: I): ListVehiclesReply {
+    return ListVehiclesReply.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListVehiclesReply>, I>>(object: I): ListVehiclesReply {
+    const message = createBaseListVehiclesReply();
+    message.vehicles = object.vehicles?.map((e) => Vehicle.fromPartial(e)) || [];
+    message.nextId = object.nextId ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGetVehicleRequest(): GetVehicleRequest {
+  return { systemId: "", vehicleId: "" };
+}
+
+export const GetVehicleRequest = {
+  encode(message: GetVehicleRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.systemId !== "") {
+      writer.uint32(10).string(message.systemId);
+    }
+    if (message.vehicleId !== "") {
+      writer.uint32(18).string(message.vehicleId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetVehicleRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetVehicleRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.systemId = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.vehicleId = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetVehicleRequest {
+    return {
+      systemId: isSet(object.systemId) ? String(object.systemId) : "",
+      vehicleId: isSet(object.vehicleId) ? String(object.vehicleId) : "",
+    };
+  },
+
+  toJSON(message: GetVehicleRequest): unknown {
+    const obj: any = {};
+    message.systemId !== undefined && (obj.systemId = message.systemId);
+    message.vehicleId !== undefined && (obj.vehicleId = message.vehicleId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetVehicleRequest>, I>>(base?: I): GetVehicleRequest {
+    return GetVehicleRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetVehicleRequest>, I>>(object: I): GetVehicleRequest {
+    const message = createBaseGetVehicleRequest();
+    message.systemId = object.systemId ?? "";
+    message.vehicleId = object.vehicleId ?? "";
+    return message;
+  },
+};
+
+function createBaseListShapesRequest(): ListShapesRequest {
+  return { systemId: "", onlyReturnSpecifiedIds: false, id: [], firstId: undefined, limit: undefined };
+}
+
+export const ListShapesRequest = {
+  encode(message: ListShapesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.systemId !== "") {
+      writer.uint32(10).string(message.systemId);
+    }
+    if (message.onlyReturnSpecifiedIds === true) {
+      writer.uint32(16).bool(message.onlyReturnSpecifiedIds);
+    }
+    for (const v of message.id) {
+      writer.uint32(26).string(v!);
+    }
+    if (message.firstId !== undefined) {
+      writer.uint32(34).string(message.firstId);
+    }
+    if (message.limit !== undefined) {
+      writer.uint32(40).int32(message.limit);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListShapesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListShapesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.systemId = reader.string();
+          continue;
+        case 2:
+          if (tag != 16) {
+            break;
+          }
+
+          message.onlyReturnSpecifiedIds = reader.bool();
+          continue;
+        case 3:
+          if (tag != 26) {
+            break;
+          }
+
+          message.id.push(reader.string());
+          continue;
+        case 4:
+          if (tag != 34) {
+            break;
+          }
+
+          message.firstId = reader.string();
+          continue;
+        case 5:
+          if (tag != 40) {
+            break;
+          }
+
+          message.limit = reader.int32();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListShapesRequest {
+    return {
+      systemId: isSet(object.systemId) ? String(object.systemId) : "",
+      onlyReturnSpecifiedIds: isSet(object.onlyReturnSpecifiedIds) ? Boolean(object.onlyReturnSpecifiedIds) : false,
+      id: Array.isArray(object?.id) ? object.id.map((e: any) => String(e)) : [],
+      firstId: isSet(object.firstId) ? String(object.firstId) : undefined,
+      limit: isSet(object.limit) ? Number(object.limit) : undefined,
+    };
+  },
+
+  toJSON(message: ListShapesRequest): unknown {
+    const obj: any = {};
+    message.systemId !== undefined && (obj.systemId = message.systemId);
+    message.onlyReturnSpecifiedIds !== undefined && (obj.onlyReturnSpecifiedIds = message.onlyReturnSpecifiedIds);
+    if (message.id) {
+      obj.id = message.id.map((e) => e);
+    } else {
+      obj.id = [];
+    }
+    message.firstId !== undefined && (obj.firstId = message.firstId);
+    message.limit !== undefined && (obj.limit = Math.round(message.limit));
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListShapesRequest>, I>>(base?: I): ListShapesRequest {
+    return ListShapesRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListShapesRequest>, I>>(object: I): ListShapesRequest {
+    const message = createBaseListShapesRequest();
+    message.systemId = object.systemId ?? "";
+    message.onlyReturnSpecifiedIds = object.onlyReturnSpecifiedIds ?? false;
+    message.id = object.id?.map((e) => e) || [];
+    message.firstId = object.firstId ?? undefined;
+    message.limit = object.limit ?? undefined;
+    return message;
+  },
+};
+
+function createBaseListShapesReply(): ListShapesReply {
+  return { shapes: [], nextId: undefined };
+}
+
+export const ListShapesReply = {
+  encode(message: ListShapesReply, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.shapes) {
+      Shape.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.nextId !== undefined) {
+      writer.uint32(18).string(message.nextId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListShapesReply {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListShapesReply();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.shapes.push(Shape.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.nextId = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListShapesReply {
+    return {
+      shapes: Array.isArray(object?.shapes) ? object.shapes.map((e: any) => Shape.fromJSON(e)) : [],
+      nextId: isSet(object.nextId) ? String(object.nextId) : undefined,
+    };
+  },
+
+  toJSON(message: ListShapesReply): unknown {
+    const obj: any = {};
+    if (message.shapes) {
+      obj.shapes = message.shapes.map((e) => e ? Shape.toJSON(e) : undefined);
+    } else {
+      obj.shapes = [];
+    }
+    message.nextId !== undefined && (obj.nextId = message.nextId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListShapesReply>, I>>(base?: I): ListShapesReply {
+    return ListShapesReply.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListShapesReply>, I>>(object: I): ListShapesReply {
+    const message = createBaseListShapesReply();
+    message.shapes = object.shapes?.map((e) => Shape.fromPartial(e)) || [];
+    message.nextId = object.nextId ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGetShapeRequest(): GetShapeRequest {
+  return { systemId: "", shapeId: "" };
+}
+
+export const GetShapeRequest = {
+  encode(message: GetShapeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.systemId !== "") {
+      writer.uint32(10).string(message.systemId);
+    }
+    if (message.shapeId !== "") {
+      writer.uint32(18).string(message.shapeId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetShapeRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetShapeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.systemId = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.shapeId = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetShapeRequest {
+    return {
+      systemId: isSet(object.systemId) ? String(object.systemId) : "",
+      shapeId: isSet(object.shapeId) ? String(object.shapeId) : "",
+    };
+  },
+
+  toJSON(message: GetShapeRequest): unknown {
+    const obj: any = {};
+    message.systemId !== undefined && (obj.systemId = message.systemId);
+    message.shapeId !== undefined && (obj.shapeId = message.shapeId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetShapeRequest>, I>>(base?: I): GetShapeRequest {
+    return GetShapeRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetShapeRequest>, I>>(object: I): GetShapeRequest {
+    const message = createBaseGetShapeRequest();
+    message.systemId = object.systemId ?? "";
+    message.shapeId = object.shapeId ?? "";
     return message;
   },
 };
@@ -5321,6 +5974,7 @@ function createBaseTrip(): Trip {
     vehicle: undefined,
     directionId: false,
     stopTimes: [],
+    shape: undefined,
   };
 }
 
@@ -5346,6 +6000,9 @@ export const Trip = {
     }
     for (const v of message.stopTimes) {
       StopTime.encode(v!, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.shape !== undefined) {
+      Shape_Reference.encode(message.shape, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -5406,6 +6063,13 @@ export const Trip = {
 
           message.stopTimes.push(StopTime.decode(reader, reader.uint32()));
           continue;
+        case 8:
+          if (tag != 66) {
+            break;
+          }
+
+          message.shape = Shape_Reference.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5424,6 +6088,7 @@ export const Trip = {
       vehicle: isSet(object.vehicle) ? Vehicle_Reference.fromJSON(object.vehicle) : undefined,
       directionId: isSet(object.directionId) ? Boolean(object.directionId) : false,
       stopTimes: Array.isArray(object?.stopTimes) ? object.stopTimes.map((e: any) => StopTime.fromJSON(e)) : [],
+      shape: isSet(object.shape) ? Shape_Reference.fromJSON(object.shape) : undefined,
     };
   },
 
@@ -5441,6 +6106,7 @@ export const Trip = {
     } else {
       obj.stopTimes = [];
     }
+    message.shape !== undefined && (obj.shape = message.shape ? Shape_Reference.toJSON(message.shape) : undefined);
     return obj;
   },
 
@@ -5463,6 +6129,9 @@ export const Trip = {
       : undefined;
     message.directionId = object.directionId ?? false;
     message.stopTimes = object.stopTimes?.map((e) => StopTime.fromPartial(e)) || [];
+    message.shape = (object.shape !== undefined && object.shape !== null)
+      ? Shape_Reference.fromPartial(object.shape)
+      : undefined;
     return message;
   },
 };
@@ -5475,6 +6144,7 @@ function createBaseTrip_Reference(): Trip_Reference {
     destination: undefined,
     vehicle: undefined,
     directionId: false,
+    shape: undefined,
   };
 }
 
@@ -5497,6 +6167,9 @@ export const Trip_Reference = {
     }
     if (message.directionId === true) {
       writer.uint32(48).bool(message.directionId);
+    }
+    if (message.shape !== undefined) {
+      Shape_Reference.encode(message.shape, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -5550,6 +6223,13 @@ export const Trip_Reference = {
 
           message.directionId = reader.bool();
           continue;
+        case 7:
+          if (tag != 58) {
+            break;
+          }
+
+          message.shape = Shape_Reference.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5567,6 +6247,7 @@ export const Trip_Reference = {
       destination: isSet(object.destination) ? Stop_Reference.fromJSON(object.destination) : undefined,
       vehicle: isSet(object.vehicle) ? Vehicle_Reference.fromJSON(object.vehicle) : undefined,
       directionId: isSet(object.directionId) ? Boolean(object.directionId) : false,
+      shape: isSet(object.shape) ? Shape_Reference.fromJSON(object.shape) : undefined,
     };
   },
 
@@ -5580,6 +6261,7 @@ export const Trip_Reference = {
     message.vehicle !== undefined &&
       (obj.vehicle = message.vehicle ? Vehicle_Reference.toJSON(message.vehicle) : undefined);
     message.directionId !== undefined && (obj.directionId = message.directionId);
+    message.shape !== undefined && (obj.shape = message.shape ? Shape_Reference.toJSON(message.shape) : undefined);
     return obj;
   },
 
@@ -5603,16 +6285,76 @@ export const Trip_Reference = {
       ? Vehicle_Reference.fromPartial(object.vehicle)
       : undefined;
     message.directionId = object.directionId ?? false;
+    message.shape = (object.shape !== undefined && object.shape !== null)
+      ? Shape_Reference.fromPartial(object.shape)
+      : undefined;
     return message;
   },
 };
 
 function createBaseVehicle(): Vehicle {
-  return {};
+  return {
+    id: "",
+    trip: undefined,
+    latitude: undefined,
+    longitude: undefined,
+    bearing: undefined,
+    odometer: undefined,
+    speed: undefined,
+    stopSequence: undefined,
+    stop: undefined,
+    currentStatus: undefined,
+    updatedAt: undefined,
+    congestionLevel: 0,
+    occupancyStatus: undefined,
+    occupancyPercentage: undefined,
+  };
 }
 
 export const Vehicle = {
-  encode(_: Vehicle, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: Vehicle, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.trip !== undefined) {
+      Trip_Reference.encode(message.trip, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.latitude !== undefined) {
+      writer.uint32(25).double(message.latitude);
+    }
+    if (message.longitude !== undefined) {
+      writer.uint32(33).double(message.longitude);
+    }
+    if (message.bearing !== undefined) {
+      writer.uint32(45).float(message.bearing);
+    }
+    if (message.odometer !== undefined) {
+      writer.uint32(49).double(message.odometer);
+    }
+    if (message.speed !== undefined) {
+      writer.uint32(61).float(message.speed);
+    }
+    if (message.stopSequence !== undefined) {
+      writer.uint32(64).int32(message.stopSequence);
+    }
+    if (message.stop !== undefined) {
+      Stop_Reference.encode(message.stop, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.currentStatus !== undefined) {
+      writer.uint32(80).int32(message.currentStatus);
+    }
+    if (message.updatedAt !== undefined) {
+      writer.uint32(88).int64(message.updatedAt);
+    }
+    if (message.congestionLevel !== 0) {
+      writer.uint32(96).int32(message.congestionLevel);
+    }
+    if (message.occupancyStatus !== undefined) {
+      writer.uint32(104).int32(message.occupancyStatus);
+    }
+    if (message.occupancyPercentage !== undefined) {
+      writer.uint32(112).int32(message.occupancyPercentage);
+    }
     return writer;
   },
 
@@ -5623,6 +6365,104 @@ export const Vehicle = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.trip = Trip_Reference.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag != 25) {
+            break;
+          }
+
+          message.latitude = reader.double();
+          continue;
+        case 4:
+          if (tag != 33) {
+            break;
+          }
+
+          message.longitude = reader.double();
+          continue;
+        case 5:
+          if (tag != 45) {
+            break;
+          }
+
+          message.bearing = reader.float();
+          continue;
+        case 6:
+          if (tag != 49) {
+            break;
+          }
+
+          message.odometer = reader.double();
+          continue;
+        case 7:
+          if (tag != 61) {
+            break;
+          }
+
+          message.speed = reader.float();
+          continue;
+        case 8:
+          if (tag != 64) {
+            break;
+          }
+
+          message.stopSequence = reader.int32();
+          continue;
+        case 9:
+          if (tag != 74) {
+            break;
+          }
+
+          message.stop = Stop_Reference.decode(reader, reader.uint32());
+          continue;
+        case 10:
+          if (tag != 80) {
+            break;
+          }
+
+          message.currentStatus = reader.int32() as any;
+          continue;
+        case 11:
+          if (tag != 88) {
+            break;
+          }
+
+          message.updatedAt = longToNumber(reader.int64() as Long);
+          continue;
+        case 12:
+          if (tag != 96) {
+            break;
+          }
+
+          message.congestionLevel = reader.int32() as any;
+          continue;
+        case 13:
+          if (tag != 104) {
+            break;
+          }
+
+          message.occupancyStatus = reader.int32() as any;
+          continue;
+        case 14:
+          if (tag != 112) {
+            break;
+          }
+
+          message.occupancyPercentage = reader.int32();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5632,12 +6472,48 @@ export const Vehicle = {
     return message;
   },
 
-  fromJSON(_: any): Vehicle {
-    return {};
+  fromJSON(object: any): Vehicle {
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+      trip: isSet(object.trip) ? Trip_Reference.fromJSON(object.trip) : undefined,
+      latitude: isSet(object.latitude) ? Number(object.latitude) : undefined,
+      longitude: isSet(object.longitude) ? Number(object.longitude) : undefined,
+      bearing: isSet(object.bearing) ? Number(object.bearing) : undefined,
+      odometer: isSet(object.odometer) ? Number(object.odometer) : undefined,
+      speed: isSet(object.speed) ? Number(object.speed) : undefined,
+      stopSequence: isSet(object.stopSequence) ? Number(object.stopSequence) : undefined,
+      stop: isSet(object.stop) ? Stop_Reference.fromJSON(object.stop) : undefined,
+      currentStatus: isSet(object.currentStatus) ? vehicle_CurrentStatusFromJSON(object.currentStatus) : undefined,
+      updatedAt: isSet(object.updatedAt) ? Number(object.updatedAt) : undefined,
+      congestionLevel: isSet(object.congestionLevel) ? vehicle_CongestionLevelFromJSON(object.congestionLevel) : 0,
+      occupancyStatus: isSet(object.occupancyStatus)
+        ? vehicle_OccupancyStatusFromJSON(object.occupancyStatus)
+        : undefined,
+      occupancyPercentage: isSet(object.occupancyPercentage) ? Number(object.occupancyPercentage) : undefined,
+    };
   },
 
-  toJSON(_: Vehicle): unknown {
+  toJSON(message: Vehicle): unknown {
     const obj: any = {};
+    message.id !== undefined && (obj.id = message.id);
+    message.trip !== undefined && (obj.trip = message.trip ? Trip_Reference.toJSON(message.trip) : undefined);
+    message.latitude !== undefined && (obj.latitude = message.latitude);
+    message.longitude !== undefined && (obj.longitude = message.longitude);
+    message.bearing !== undefined && (obj.bearing = message.bearing);
+    message.odometer !== undefined && (obj.odometer = message.odometer);
+    message.speed !== undefined && (obj.speed = message.speed);
+    message.stopSequence !== undefined && (obj.stopSequence = Math.round(message.stopSequence));
+    message.stop !== undefined && (obj.stop = message.stop ? Stop_Reference.toJSON(message.stop) : undefined);
+    message.currentStatus !== undefined && (obj.currentStatus = message.currentStatus !== undefined
+      ? vehicle_CurrentStatusToJSON(message.currentStatus)
+      : undefined);
+    message.updatedAt !== undefined && (obj.updatedAt = Math.round(message.updatedAt));
+    message.congestionLevel !== undefined &&
+      (obj.congestionLevel = vehicle_CongestionLevelToJSON(message.congestionLevel));
+    message.occupancyStatus !== undefined && (obj.occupancyStatus = message.occupancyStatus !== undefined
+      ? vehicle_OccupancyStatusToJSON(message.occupancyStatus)
+      : undefined);
+    message.occupancyPercentage !== undefined && (obj.occupancyPercentage = Math.round(message.occupancyPercentage));
     return obj;
   },
 
@@ -5645,20 +6521,41 @@ export const Vehicle = {
     return Vehicle.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Vehicle>, I>>(_: I): Vehicle {
+  fromPartial<I extends Exact<DeepPartial<Vehicle>, I>>(object: I): Vehicle {
     const message = createBaseVehicle();
+    message.id = object.id ?? "";
+    message.trip = (object.trip !== undefined && object.trip !== null)
+      ? Trip_Reference.fromPartial(object.trip)
+      : undefined;
+    message.latitude = object.latitude ?? undefined;
+    message.longitude = object.longitude ?? undefined;
+    message.bearing = object.bearing ?? undefined;
+    message.odometer = object.odometer ?? undefined;
+    message.speed = object.speed ?? undefined;
+    message.stopSequence = object.stopSequence ?? undefined;
+    message.stop = (object.stop !== undefined && object.stop !== null)
+      ? Stop_Reference.fromPartial(object.stop)
+      : undefined;
+    message.currentStatus = object.currentStatus ?? undefined;
+    message.updatedAt = object.updatedAt ?? undefined;
+    message.congestionLevel = object.congestionLevel ?? 0;
+    message.occupancyStatus = object.occupancyStatus ?? undefined;
+    message.occupancyPercentage = object.occupancyPercentage ?? undefined;
     return message;
   },
 };
 
 function createBaseVehicle_Reference(): Vehicle_Reference {
-  return { id: "" };
+  return { id: "", resource: undefined };
 }
 
 export const Vehicle_Reference = {
   encode(message: Vehicle_Reference, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
+    }
+    if (message.resource !== undefined) {
+      Resource.encode(message.resource, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -5677,6 +6574,13 @@ export const Vehicle_Reference = {
 
           message.id = reader.string();
           continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.resource = Resource.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -5687,12 +6591,16 @@ export const Vehicle_Reference = {
   },
 
   fromJSON(object: any): Vehicle_Reference {
-    return { id: isSet(object.id) ? String(object.id) : "" };
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+      resource: isSet(object.resource) ? Resource.fromJSON(object.resource) : undefined,
+    };
   },
 
   toJSON(message: Vehicle_Reference): unknown {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
+    message.resource !== undefined && (obj.resource = message.resource ? Resource.toJSON(message.resource) : undefined);
     return obj;
   },
 
@@ -5703,6 +6611,9 @@ export const Vehicle_Reference = {
   fromPartial<I extends Exact<DeepPartial<Vehicle_Reference>, I>>(object: I): Vehicle_Reference {
     const message = createBaseVehicle_Reference();
     message.id = object.id ?? "";
+    message.resource = (object.resource !== undefined && object.resource !== null)
+      ? Resource.fromPartial(object.resource)
+      : undefined;
     return message;
   },
 };
@@ -6186,7 +7097,15 @@ export const Route_Reference = {
 };
 
 function createBaseFeed(): Feed {
-  return { id: "", resource: undefined, system: undefined, updates: undefined };
+  return {
+    id: "",
+    resource: undefined,
+    system: undefined,
+    lastUpdateMs: undefined,
+    lastSuccessfulUpdateMs: undefined,
+    lastSkippedUpdateMs: undefined,
+    lastFailedUpdateMs: undefined,
+  };
 }
 
 export const Feed = {
@@ -6200,8 +7119,17 @@ export const Feed = {
     if (message.system !== undefined) {
       System_Reference.encode(message.system, writer.uint32(26).fork()).ldelim();
     }
-    if (message.updates !== undefined) {
-      ChildResources.encode(message.updates, writer.uint32(34).fork()).ldelim();
+    if (message.lastUpdateMs !== undefined) {
+      writer.uint32(32).int64(message.lastUpdateMs);
+    }
+    if (message.lastSuccessfulUpdateMs !== undefined) {
+      writer.uint32(40).int64(message.lastSuccessfulUpdateMs);
+    }
+    if (message.lastSkippedUpdateMs !== undefined) {
+      writer.uint32(48).int64(message.lastSkippedUpdateMs);
+    }
+    if (message.lastFailedUpdateMs !== undefined) {
+      writer.uint32(56).int64(message.lastFailedUpdateMs);
     }
     return writer;
   },
@@ -6235,11 +7163,32 @@ export const Feed = {
           message.system = System_Reference.decode(reader, reader.uint32());
           continue;
         case 4:
-          if (tag != 34) {
+          if (tag != 32) {
             break;
           }
 
-          message.updates = ChildResources.decode(reader, reader.uint32());
+          message.lastUpdateMs = longToNumber(reader.int64() as Long);
+          continue;
+        case 5:
+          if (tag != 40) {
+            break;
+          }
+
+          message.lastSuccessfulUpdateMs = longToNumber(reader.int64() as Long);
+          continue;
+        case 6:
+          if (tag != 48) {
+            break;
+          }
+
+          message.lastSkippedUpdateMs = longToNumber(reader.int64() as Long);
+          continue;
+        case 7:
+          if (tag != 56) {
+            break;
+          }
+
+          message.lastFailedUpdateMs = longToNumber(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
@@ -6255,7 +7204,10 @@ export const Feed = {
       id: isSet(object.id) ? String(object.id) : "",
       resource: isSet(object.resource) ? Resource.fromJSON(object.resource) : undefined,
       system: isSet(object.system) ? System_Reference.fromJSON(object.system) : undefined,
-      updates: isSet(object.updates) ? ChildResources.fromJSON(object.updates) : undefined,
+      lastUpdateMs: isSet(object.lastUpdateMs) ? Number(object.lastUpdateMs) : undefined,
+      lastSuccessfulUpdateMs: isSet(object.lastSuccessfulUpdateMs) ? Number(object.lastSuccessfulUpdateMs) : undefined,
+      lastSkippedUpdateMs: isSet(object.lastSkippedUpdateMs) ? Number(object.lastSkippedUpdateMs) : undefined,
+      lastFailedUpdateMs: isSet(object.lastFailedUpdateMs) ? Number(object.lastFailedUpdateMs) : undefined,
     };
   },
 
@@ -6264,8 +7216,11 @@ export const Feed = {
     message.id !== undefined && (obj.id = message.id);
     message.resource !== undefined && (obj.resource = message.resource ? Resource.toJSON(message.resource) : undefined);
     message.system !== undefined && (obj.system = message.system ? System_Reference.toJSON(message.system) : undefined);
-    message.updates !== undefined &&
-      (obj.updates = message.updates ? ChildResources.toJSON(message.updates) : undefined);
+    message.lastUpdateMs !== undefined && (obj.lastUpdateMs = Math.round(message.lastUpdateMs));
+    message.lastSuccessfulUpdateMs !== undefined &&
+      (obj.lastSuccessfulUpdateMs = Math.round(message.lastSuccessfulUpdateMs));
+    message.lastSkippedUpdateMs !== undefined && (obj.lastSkippedUpdateMs = Math.round(message.lastSkippedUpdateMs));
+    message.lastFailedUpdateMs !== undefined && (obj.lastFailedUpdateMs = Math.round(message.lastFailedUpdateMs));
     return obj;
   },
 
@@ -6282,9 +7237,10 @@ export const Feed = {
     message.system = (object.system !== undefined && object.system !== null)
       ? System_Reference.fromPartial(object.system)
       : undefined;
-    message.updates = (object.updates !== undefined && object.updates !== null)
-      ? ChildResources.fromPartial(object.updates)
-      : undefined;
+    message.lastUpdateMs = object.lastUpdateMs ?? undefined;
+    message.lastSuccessfulUpdateMs = object.lastSuccessfulUpdateMs ?? undefined;
+    message.lastSkippedUpdateMs = object.lastSkippedUpdateMs ?? undefined;
+    message.lastFailedUpdateMs = object.lastFailedUpdateMs ?? undefined;
     return message;
   },
 };
@@ -7289,60 +8245,184 @@ export const Transfer = {
   },
 };
 
-function createBaseFeedUpdate(): FeedUpdate {
-  return {
-    id: "",
-    resource: undefined,
-    feed: undefined,
-    startedAt: 0,
-    finished: false,
-    finishedAt: undefined,
-    result: undefined,
-    contentLength: undefined,
-    contentHash: undefined,
-    errorMessage: undefined,
-  };
+function createBaseShape(): Shape {
+  return { id: "", points: [] };
 }
 
-export const FeedUpdate = {
-  encode(message: FeedUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Shape = {
+  encode(message: Shape, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    for (const v of message.points) {
+      Shape_ShapePoint.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Shape {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShape();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.points.push(Shape_ShapePoint.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Shape {
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+      points: Array.isArray(object?.points) ? object.points.map((e: any) => Shape_ShapePoint.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Shape): unknown {
+    const obj: any = {};
+    message.id !== undefined && (obj.id = message.id);
+    if (message.points) {
+      obj.points = message.points.map((e) => e ? Shape_ShapePoint.toJSON(e) : undefined);
+    } else {
+      obj.points = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Shape>, I>>(base?: I): Shape {
+    return Shape.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Shape>, I>>(object: I): Shape {
+    const message = createBaseShape();
+    message.id = object.id ?? "";
+    message.points = object.points?.map((e) => Shape_ShapePoint.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseShape_ShapePoint(): Shape_ShapePoint {
+  return { latitude: 0, longitude: 0, distance: undefined };
+}
+
+export const Shape_ShapePoint = {
+  encode(message: Shape_ShapePoint, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.latitude !== 0) {
+      writer.uint32(9).double(message.latitude);
+    }
+    if (message.longitude !== 0) {
+      writer.uint32(17).double(message.longitude);
+    }
+    if (message.distance !== undefined) {
+      writer.uint32(25).double(message.distance);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Shape_ShapePoint {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShape_ShapePoint();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 9) {
+            break;
+          }
+
+          message.latitude = reader.double();
+          continue;
+        case 2:
+          if (tag != 17) {
+            break;
+          }
+
+          message.longitude = reader.double();
+          continue;
+        case 3:
+          if (tag != 25) {
+            break;
+          }
+
+          message.distance = reader.double();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Shape_ShapePoint {
+    return {
+      latitude: isSet(object.latitude) ? Number(object.latitude) : 0,
+      longitude: isSet(object.longitude) ? Number(object.longitude) : 0,
+      distance: isSet(object.distance) ? Number(object.distance) : undefined,
+    };
+  },
+
+  toJSON(message: Shape_ShapePoint): unknown {
+    const obj: any = {};
+    message.latitude !== undefined && (obj.latitude = message.latitude);
+    message.longitude !== undefined && (obj.longitude = message.longitude);
+    message.distance !== undefined && (obj.distance = message.distance);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Shape_ShapePoint>, I>>(base?: I): Shape_ShapePoint {
+    return Shape_ShapePoint.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Shape_ShapePoint>, I>>(object: I): Shape_ShapePoint {
+    const message = createBaseShape_ShapePoint();
+    message.latitude = object.latitude ?? 0;
+    message.longitude = object.longitude ?? 0;
+    message.distance = object.distance ?? undefined;
+    return message;
+  },
+};
+
+function createBaseShape_Reference(): Shape_Reference {
+  return { id: "", resource: undefined };
+}
+
+export const Shape_Reference = {
+  encode(message: Shape_Reference, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
     if (message.resource !== undefined) {
       Resource.encode(message.resource, writer.uint32(18).fork()).ldelim();
     }
-    if (message.feed !== undefined) {
-      Feed_Reference.encode(message.feed, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.startedAt !== 0) {
-      writer.uint32(32).int64(message.startedAt);
-    }
-    if (message.finished === true) {
-      writer.uint32(40).bool(message.finished);
-    }
-    if (message.finishedAt !== undefined) {
-      writer.uint32(48).int64(message.finishedAt);
-    }
-    if (message.result !== undefined) {
-      writer.uint32(56).int32(message.result);
-    }
-    if (message.contentLength !== undefined) {
-      writer.uint32(64).int32(message.contentLength);
-    }
-    if (message.contentHash !== undefined) {
-      writer.uint32(74).string(message.contentHash);
-    }
-    if (message.errorMessage !== undefined) {
-      writer.uint32(82).string(message.errorMessage);
-    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): FeedUpdate {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Shape_Reference {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseFeedUpdate();
+    const message = createBaseShape_Reference();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7360,62 +8440,6 @@ export const FeedUpdate = {
 
           message.resource = Resource.decode(reader, reader.uint32());
           continue;
-        case 3:
-          if (tag != 26) {
-            break;
-          }
-
-          message.feed = Feed_Reference.decode(reader, reader.uint32());
-          continue;
-        case 4:
-          if (tag != 32) {
-            break;
-          }
-
-          message.startedAt = longToNumber(reader.int64() as Long);
-          continue;
-        case 5:
-          if (tag != 40) {
-            break;
-          }
-
-          message.finished = reader.bool();
-          continue;
-        case 6:
-          if (tag != 48) {
-            break;
-          }
-
-          message.finishedAt = longToNumber(reader.int64() as Long);
-          continue;
-        case 7:
-          if (tag != 56) {
-            break;
-          }
-
-          message.result = reader.int32() as any;
-          continue;
-        case 8:
-          if (tag != 64) {
-            break;
-          }
-
-          message.contentLength = reader.int32();
-          continue;
-        case 9:
-          if (tag != 74) {
-            break;
-          }
-
-          message.contentHash = reader.string();
-          continue;
-        case 10:
-          if (tag != 82) {
-            break;
-          }
-
-          message.errorMessage = reader.string();
-          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -7425,57 +8449,30 @@ export const FeedUpdate = {
     return message;
   },
 
-  fromJSON(object: any): FeedUpdate {
+  fromJSON(object: any): Shape_Reference {
     return {
       id: isSet(object.id) ? String(object.id) : "",
       resource: isSet(object.resource) ? Resource.fromJSON(object.resource) : undefined,
-      feed: isSet(object.feed) ? Feed_Reference.fromJSON(object.feed) : undefined,
-      startedAt: isSet(object.startedAt) ? Number(object.startedAt) : 0,
-      finished: isSet(object.finished) ? Boolean(object.finished) : false,
-      finishedAt: isSet(object.finishedAt) ? Number(object.finishedAt) : undefined,
-      result: isSet(object.result) ? feedUpdate_ResultFromJSON(object.result) : undefined,
-      contentLength: isSet(object.contentLength) ? Number(object.contentLength) : undefined,
-      contentHash: isSet(object.contentHash) ? String(object.contentHash) : undefined,
-      errorMessage: isSet(object.errorMessage) ? String(object.errorMessage) : undefined,
     };
   },
 
-  toJSON(message: FeedUpdate): unknown {
+  toJSON(message: Shape_Reference): unknown {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
     message.resource !== undefined && (obj.resource = message.resource ? Resource.toJSON(message.resource) : undefined);
-    message.feed !== undefined && (obj.feed = message.feed ? Feed_Reference.toJSON(message.feed) : undefined);
-    message.startedAt !== undefined && (obj.startedAt = Math.round(message.startedAt));
-    message.finished !== undefined && (obj.finished = message.finished);
-    message.finishedAt !== undefined && (obj.finishedAt = Math.round(message.finishedAt));
-    message.result !== undefined &&
-      (obj.result = message.result !== undefined ? feedUpdate_ResultToJSON(message.result) : undefined);
-    message.contentLength !== undefined && (obj.contentLength = Math.round(message.contentLength));
-    message.contentHash !== undefined && (obj.contentHash = message.contentHash);
-    message.errorMessage !== undefined && (obj.errorMessage = message.errorMessage);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<FeedUpdate>, I>>(base?: I): FeedUpdate {
-    return FeedUpdate.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Shape_Reference>, I>>(base?: I): Shape_Reference {
+    return Shape_Reference.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<FeedUpdate>, I>>(object: I): FeedUpdate {
-    const message = createBaseFeedUpdate();
+  fromPartial<I extends Exact<DeepPartial<Shape_Reference>, I>>(object: I): Shape_Reference {
+    const message = createBaseShape_Reference();
     message.id = object.id ?? "";
     message.resource = (object.resource !== undefined && object.resource !== null)
       ? Resource.fromPartial(object.resource)
       : undefined;
-    message.feed = (object.feed !== undefined && object.feed !== null)
-      ? Feed_Reference.fromPartial(object.feed)
-      : undefined;
-    message.startedAt = object.startedAt ?? 0;
-    message.finished = object.finished ?? false;
-    message.finishedAt = object.finishedAt ?? undefined;
-    message.result = object.result ?? undefined;
-    message.contentLength = object.contentLength ?? undefined;
-    message.contentHash = object.contentHash ?? undefined;
-    message.errorMessage = object.errorMessage ?? undefined;
     return message;
   },
 };
@@ -7616,13 +8613,37 @@ export interface Public {
    */
   GetFeed(request: GetFeedRequest): Promise<Feed>;
   /**
-   * List feed updates
+   * List vehicles
    *
-   * `GET /systems/<system_id>/feeds/<feed_id>/updates`
+   * `GET /systems/<system_id>/vehicles`
    *
-   * List feeds updates for a feed.
+   * List all feeds for a system.
    */
-  ListFeedUpdates(request: ListFeedUpdatesRequest): Promise<ListFeedUpdatesReply>;
+  ListVehicles(request: ListVehiclesRequest): Promise<ListVehiclesReply>;
+  /**
+   * Get vehicle
+   *
+   * `GET /systems/<system_id>/vehicles/<vehicle_id>`
+   *
+   * Get a vehicle in a system by its ID.
+   */
+  GetVehicle(request: GetVehicleRequest): Promise<Vehicle>;
+  /**
+   * List shapes
+   *
+   * `GET /systems/<system_id>/shapes`
+   *
+   * List all shapes in a system.
+   */
+  ListShapes(request: ListShapesRequest): Promise<ListShapesReply>;
+  /**
+   * Get shape
+   *
+   * `GET /systems/<system_id>/shapes/<shape_id>`
+   *
+   * Get a shape in a system by its ID.
+   */
+  GetShape(request: GetShapeRequest): Promise<Shape>;
 }
 
 export class PublicClientImpl implements Public {
@@ -7647,7 +8668,10 @@ export class PublicClientImpl implements Public {
     this.ListTransfers = this.ListTransfers.bind(this);
     this.ListFeeds = this.ListFeeds.bind(this);
     this.GetFeed = this.GetFeed.bind(this);
-    this.ListFeedUpdates = this.ListFeedUpdates.bind(this);
+    this.ListVehicles = this.ListVehicles.bind(this);
+    this.GetVehicle = this.GetVehicle.bind(this);
+    this.ListShapes = this.ListShapes.bind(this);
+    this.GetShape = this.GetShape.bind(this);
   }
   Entrypoint(request: EntrypointRequest): Promise<EntrypointReply> {
     const data = EntrypointRequest.encode(request).finish();
@@ -7745,10 +8769,28 @@ export class PublicClientImpl implements Public {
     return promise.then((data) => Feed.decode(_m0.Reader.create(data)));
   }
 
-  ListFeedUpdates(request: ListFeedUpdatesRequest): Promise<ListFeedUpdatesReply> {
-    const data = ListFeedUpdatesRequest.encode(request).finish();
-    const promise = this.rpc.request(this.service, "ListFeedUpdates", data);
-    return promise.then((data) => ListFeedUpdatesReply.decode(_m0.Reader.create(data)));
+  ListVehicles(request: ListVehiclesRequest): Promise<ListVehiclesReply> {
+    const data = ListVehiclesRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ListVehicles", data);
+    return promise.then((data) => ListVehiclesReply.decode(_m0.Reader.create(data)));
+  }
+
+  GetVehicle(request: GetVehicleRequest): Promise<Vehicle> {
+    const data = GetVehicleRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetVehicle", data);
+    return promise.then((data) => Vehicle.decode(_m0.Reader.create(data)));
+  }
+
+  ListShapes(request: ListShapesRequest): Promise<ListShapesReply> {
+    const data = ListShapesRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ListShapes", data);
+    return promise.then((data) => ListShapesReply.decode(_m0.Reader.create(data)));
+  }
+
+  GetShape(request: GetShapeRequest): Promise<Shape> {
+    const data = GetShapeRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetShape", data);
+    return promise.then((data) => Shape.decode(_m0.Reader.create(data)));
   }
 }
 

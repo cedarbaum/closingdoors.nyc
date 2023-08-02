@@ -148,7 +148,10 @@ export const TripArrivalTime: React.FC<TripArrivalTimeProps> = ({
             } whitespace-nowrap ${
               displayArrivingNow ? "animate-arrivalTimeFadeInOutAnimation" : ""
             }`}
-            onClick={cycleFormattingOptions}
+            onClick={(e) => {
+              cycleFormattingOptions();
+              e.stopPropagation();
+            }}
           >
             {displayArrivingNow ? "Now" : durationStr}
           </span>

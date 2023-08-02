@@ -1,4 +1,5 @@
 import { FullScreenError } from "@/components/FullScreenError";
+import NycBusScheduleView from "@/components/NycBusScheduleView";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -27,6 +28,8 @@ const Schedule: React.FC = () => {
 
   if (system === "us-ny-subway") {
     return <NycSubwayScheduleViewer />;
+  } else if (system === "us-ny-nycbus") {
+    return <NycBusScheduleView />;
   } else if (system === "us-ny-path") {
     return <PathScheduleView />;
   }

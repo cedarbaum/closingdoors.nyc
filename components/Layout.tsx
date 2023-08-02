@@ -19,12 +19,17 @@ const tabs: Tab[] = [
   {
     name: "subway",
     content: "subway",
-    widthPercent: 35,
+    widthPercent: 25,
+  },
+  {
+    name: "bus",
+    content: "bus",
+    widthPercent: 25,
   },
   {
     name: "path",
     content: "path",
-    widthPercent: 35,
+    widthPercent: 25,
   },
   {
     name: "chat",
@@ -33,7 +38,7 @@ const tabs: Tab[] = [
         <ChatBubbleLeftEllipsisIcon />
       </div>
     ),
-    widthPercent: 15,
+    widthPercent: 12.5,
   },
   {
     name: "settings",
@@ -42,13 +47,14 @@ const tabs: Tab[] = [
         <Cog6ToothIcon />
       </div>
     ),
-    widthPercent: 15,
+    widthPercent: 12.5,
   },
 ];
 
 const pathToTabName = new Map([
   ["/us-ny-subway", "subway"],
   ["/us-ny-subway/schedule", "subway"],
+  ["/us-ny-nycbus/schedule", "bus"],
   ["/us-ny-path/schedule", "path"],
   ["/chat", "chat"],
   ["/settings", "settings"],
@@ -56,6 +62,7 @@ const pathToTabName = new Map([
 
 const tabOnClickRoutes = new Map([
   ["/us-ny-subway", "subway"],
+  ["/us-ny-nycbus/schedule", "bus"],
   ["/us-ny-path/schedule", "path"],
   ["/chat", "chat"],
   ["/settings", "settings"],

@@ -58,3 +58,17 @@ bug: https://github.com/vercel/next.js/issues/33286 */
     transform: translateX(15%);
   }
 }
+
+/* Mapbox GL JS custom control styles */
+.mapboxgl-bus-ctrl-icon {
+  background-image: url("/mta-alert-icons/bus.svg");
+  background-size: auto;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 30px;
+  height: 30px;
+}
+
+.mapboxgl-bus-ctrl-icon.active {
+  background-image: url("/mta-alert-icons/bus_highlighted.svg");
+}

@@ -8,17 +8,17 @@ export function getMtaAlertPropsFromRouteAlerts(
   const allAlertProps = alerts
     ?.map((alert) => {
       const enHtmlHeader = alert?.header?.find(
-        (header) => header.language === "en-html"
+        (header) => header.language.toLowerCase() === "en-html"
       );
       const enHtmlDescription = alert?.description?.find(
-        (header) => header.language === "en-html"
+        (header) => header.language.toLowerCase() === "en-html"
       );
 
       const enHeader = alert?.header?.find(
-        (header) => header.language === "en"
+        (header) => header.language.toLowerCase() === "en"
       );
       const enDescription = alert?.description?.find(
-        (header) => header.language === "en"
+        (header) => header.language.toLowerCase() === "en"
       );
 
       const baseAlertProps = {

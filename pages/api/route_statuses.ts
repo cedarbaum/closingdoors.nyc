@@ -16,7 +16,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RouteStatuses[] | { error: string }>
 ) {
-  const { system, routes, get_is_running } = req.query;
+  const { system, routes, get_is_running, only_get_routes_with_alerts } = req.query;
   if (system === undefined) {
     res.status(400).json({ error: "system is required" });
     return;
@@ -46,6 +46,11 @@ export default async function handler(
           .filter((a) => a !== undefined) ?? [],
     };
   }) as RouteStatuses[];
+
+  if (only_get_routes_with_alerts === "true") {
+    res.status(200).json(routeStatusesResp.filter((r) => r.alerts.length > 0));
+    return;
+  }
 
   res.status(200).json(routeStatusesResp);
 }

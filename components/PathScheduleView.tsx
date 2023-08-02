@@ -1,4 +1,4 @@
-import { WatchMode, usePosition } from "@/utils/usePosition";
+import { usePosition, WatchMode } from "@/utils/usePosition";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
@@ -28,11 +28,11 @@ export default function PathScheduleView() {
       maximumAge: 60 * 1000,
       timeout: 30 * 1000,
       enableHighAccuracy: false,
-    }
+    },
   );
   const [direction, setDirection] = useQueryState(
     "direction",
-    queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ)
+    queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ),
   );
 
   const [, setTime] = useState(Date.now());
@@ -43,7 +43,7 @@ export default function PathScheduleView() {
     isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
   } = useQuery(
-    ["nearby_trips_us_ny_path", direction],
+    ["nearby_trips", "us_ny_path", direction],
     async () => {
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +
@@ -52,7 +52,7 @@ export default function PathScheduleView() {
             latitude: latitude!.toString(),
             longitude: longitude!.toString(),
             direction_id: direction === NjOrNy.NY ? "true" : "false",
-          })
+          }),
       );
 
       if (!nearbyRouteTrips.ok) {
@@ -64,7 +64,7 @@ export default function PathScheduleView() {
     {
       enabled: latitude !== undefined && longitude !== undefined,
       refetchInterval: 10000,
-    }
+    },
   );
 
   const { distanceUnit } = useSettings();
@@ -137,7 +137,7 @@ export default function PathScheduleView() {
     now,
     nearbyTripsData,
     excludedPathRoutes,
-    30
+    30,
   );
 
   // If data is stale, show loading view
@@ -154,12 +154,14 @@ export default function PathScheduleView() {
         error={
           <>
             {`No PATH routes appear to be running at any stops within
-            ${formatKmToLocalizedString(
-              parseFloat(
-                process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!
-              ),
-              distanceUnit
-            )} of you.`}
+            ${
+              formatKmToLocalizedString(
+                parseFloat(
+                  process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!,
+                ),
+                distanceUnit,
+              )
+            } of you.`}
           </>
         }
       />

@@ -46,7 +46,7 @@ export default function NycSubwayRoutePicker() {
   >(undefined);
 
   const { data, isLoading, error } = useQuery(
-    ["all_route_statuses"],
+    ["all_route_statuses", "us-ny-subway"],
     async () => {
       const routeStatusesResp = await fetch(
         "/api/route_statuses?" +
