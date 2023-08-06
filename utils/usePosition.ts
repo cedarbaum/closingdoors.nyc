@@ -81,6 +81,22 @@ export const usePosition = (
       return;
     }
 
+    if (mockLat !== undefined && mockLng !== undefined) {
+      onChange({
+        coords: {
+          latitude: parseFloat(mockLat),
+          longitude: parseFloat(mockLng),
+          accuracy: 0,
+          speed: 0,
+          heading: 0,
+          altitude: null,
+          altitudeAccuracy: null,
+        },
+        timestamp: Date.now(),
+      });
+      return;
+    }
+
     if (!navigator || !navigator.geolocation) {
       setError("Geolocation is not supported");
       return;
