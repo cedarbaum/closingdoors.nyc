@@ -121,7 +121,7 @@ const functions: ChatCompletionFunctions[] = [
           descrition: "The mode of transit",
           enum: ["subway", "bus", "subway_and_bus"],
         },
-        transit_routing_preferences: {
+        transit_routing_preference: {
           type: "string",
           descrition: "Transit routing preferences",
           enum: ["less_walking", "fewer_transfers", "none"],
@@ -258,7 +258,8 @@ ${
               await get_transit_directions(
                 functionArgs.origin,
                 functionArgs.destination,
-                functionArgs.transit_mode
+                functionArgs.transit_mode,
+                functionArgs.transit_routing_preference
               );
 
             if (error) {
