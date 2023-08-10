@@ -96,6 +96,14 @@ const NycSubwayScheduleView: React.FC = () => {
   } = useQuery(
     ["nearby_trips_us_ny_subway", routesString, direction],
     async () => {
+      let direction_id = "both";
+      // Northbound = 0,false and Southbound = 1,true
+      if (direction === "N") {
+        direction_id = "false";
+      } else if (direction === "S") {
+        direction_id = "true";
+      }
+
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +
           new URLSearchParams({
@@ -103,8 +111,7 @@ const NycSubwayScheduleView: React.FC = () => {
             latitude: latitude!.toString(),
             longitude: longitude!.toString(),
             routes: routesString,
-            // Northbound = 0,false and Southbound = 1,true
-            direction_id: direction === "N" ? "false" : "true",
+            direction_id,
             stop_type: "parent",
           })
       );
