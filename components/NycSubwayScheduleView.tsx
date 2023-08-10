@@ -35,10 +35,21 @@ function routesQueryParamToSet(queryParam: string | null) {
 }
 
 function directionQueryParamToDirection(queryParam: string | null) {
-  return queryParam?.toLowerCase() === "n" ||
-    queryParam?.toLowerCase() === "north"
-    ? SubwayDirection.North
-    : SubwayDirection.South;
+  const lowerCaseQueryParam = queryParam?.toLowerCase();
+  switch (lowerCaseQueryParam) {
+    case "n":
+    case "north":
+      return SubwayDirection.North;
+    case "s":
+    case "south":
+      return SubwayDirection.South;
+    default:
+      return undefined;
+  }
+}
+
+function directionIdToDirection(directionId: boolean) {
+  return directionId ? SubwayDirection.South : SubwayDirection.North;
 }
 
 const NycSubwayScheduleView: React.FC = () => {
@@ -96,6 +107,13 @@ const NycSubwayScheduleView: React.FC = () => {
   } = useQuery(
     ["nearby_trips_us_ny_subway", routesString, direction],
     async () => {
+      let directionId = "both";
+      if (direction === SubwayDirection.North) {
+        directionId = "false";
+      } else if (direction === SubwayDirection.South) {
+        directionId = "true";
+      }
+
       const nearbyRouteTrips = await fetch(
         "/api/nearby_route_trips?" +
           new URLSearchParams({
@@ -103,8 +121,7 @@ const NycSubwayScheduleView: React.FC = () => {
             latitude: latitude!.toString(),
             longitude: longitude!.toString(),
             routes: routesString,
-            // Northbound = 0,false and Southbound = 1,true
-            direction_id: direction === "N" ? "false" : "true",
+            direction_id: directionId,
             stop_type: "parent",
           })
       );
@@ -213,9 +230,11 @@ const NycSubwayScheduleView: React.FC = () => {
       )}
       <table className="w-full border-spacing-0 border-collapse">
         {sanitizedNearbyTripsData.map((stopRouteTrip) => {
-          const stopWithDirection = `${stopRouteTrip.stop.id}${direction}`;
           const header = (
-            <thead key={stopWithDirection} className="p-0 sticky top-0 z-50">
+            <thead
+              key={`${stopRouteTrip.stop.id}header`}
+              className="p-0 sticky top-0 z-50"
+            >
               <tr>
                 <th className="p-0">
                   <StopHeader stopName={stopRouteTrip.stop.name} />
@@ -232,12 +251,12 @@ const NycSubwayScheduleView: React.FC = () => {
 
                 return [
                   trip.arrival,
-                  <tr key={`${stopWithDirection}${trip.id}${idx}`}>
+                  <tr key={`${stopRouteTrip.stop.id}${trip.id}${idx}`}>
                     <td className="p-2">
                       <NycSubwayTripArrivalTime
                         route={routeTrip.route}
                         timeUntilArrival={delta}
-                        direction={direction}
+                        direction={directionIdToDirection(trip.direction_id)}
                       />
                     </td>
                   </tr>,
@@ -248,7 +267,7 @@ const NycSubwayScheduleView: React.FC = () => {
             .map((t) => t[1]);
 
           const tbody = (
-            <tbody key={`${stopWithDirection}header`}>{stopRows}</tbody>
+            <tbody key={`${stopRouteTrip.stop.id}body`}>{stopRows}</tbody>
           );
 
           return [header, tbody];

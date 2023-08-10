@@ -15,6 +15,7 @@ export type Stop = {
 export type Trip = {
   id: string;
   arrival: number;
+  direction_id: boolean;
 };
 
 export type RouteTrips = {
@@ -31,7 +32,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StopRouteTrips[] | { error: string }>
 ) {
-  const { system, latitude, longitude, routes, direction_id, stop_type } =
+  let { system, latitude, longitude, routes, direction_id, stop_type } =
     req.query;
   if (latitude === undefined || longitude === undefined) {
     res.status(400).json({ error: "Missing latitude or longitude" });
@@ -41,6 +42,11 @@ export default async function handler(
   if (system === undefined) {
     res.status(400).json({ error: "Missing system" });
     return;
+  }
+
+  // If direction_id is unspecified or invalid, return both
+  if (direction_id !== "true" && direction_id !== "false") {
+    direction_id = undefined;
   }
 
   const stops = await getNearbyStops(
@@ -121,13 +127,15 @@ function getTripsByRouteForStop(
         )
         .map((stopTime) => ({
           id: stopTime.trip!.id!,
-          // BUG: arrival is number in proto schema but string in API response
+          // arrival/departure time are strings to avoid precision loss
           arrival: parseInt(
             (stopTime?.arrival?.time
               ? stopTime.arrival.time
               : stopTime.departure!.time!) as unknown as string
           ),
-        })),
+          direction_id: stopTime.trip!.directionId!,
+        }))
+        .sort((a, b) => a.arrival - b.arrival),
     }))
     .filter(({ trips }) => trips.length > 0);
 }
