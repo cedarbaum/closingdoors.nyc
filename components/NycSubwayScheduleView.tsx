@@ -196,7 +196,7 @@ const NycSubwayScheduleView: React.FC = () => {
 
   // If data is stale, show loading view
   if (nearbyTripsFetching && sanitizedNearbyTripsData?.length === 0) {
-    return loadingView;
+    return <NycSubwayLoadingView />;
   }
 
   if (
