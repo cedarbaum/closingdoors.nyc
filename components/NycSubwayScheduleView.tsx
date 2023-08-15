@@ -103,6 +103,7 @@ const NycSubwayScheduleView: React.FC = () => {
   const {
     data: nearbyTripsData,
     isLoading: nearbyTripsLoading,
+    isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
   } = useQuery(
     ["nearby_trips_us_ny_subway", routesString, direction],
@@ -192,6 +193,11 @@ const NycSubwayScheduleView: React.FC = () => {
     now,
     nearbyTripsData
   );
+
+  // If data is stale, show loading view
+  if (nearbyTripsFetching && sanitizedNearbyTripsData?.length === 0) {
+    return loadingView;
+  }
 
   if (
     sanitizedNearbyTripsData?.length === 0 ||
