@@ -37,6 +37,10 @@ bug: https://github.com/vercel/next.js/issues/33286 */
   list-style-position: inside;
 }
 
+.alert-container a {
+  text-decoration: underline;
+}
+
 .alert-container ul li > p {
   display: inline;
 }
