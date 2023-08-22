@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/solid";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { getChatEnabled, getSystemEnabled } from "@/utils/Features";
 
 export interface PopoverAlert {
   type: "info" | "error";
@@ -15,21 +16,31 @@ export interface PopoverAlert {
 
 export const PopoverAlertContext = createContext((_alert: PopoverAlert) => {});
 
-const tabs: Tab[] = [
+type Feature = {
+  type: "chat" | "settings" | "system";
+  name: string;
+  content: React.ReactNode;
+  enabled: () => boolean;
+};
+
+const features: Feature[] = [
   {
     name: "subway",
     content: "subway",
-    widthPercent: 25,
+    type: "system",
+    enabled: () => getSystemEnabled("us-ny-subway"),
   },
   {
     name: "bus",
     content: "bus",
-    widthPercent: 25,
+    type: "system",
+    enabled: () => getSystemEnabled("us-ny-nycbus"),
   },
   {
     name: "path",
     content: "path",
-    widthPercent: 25,
+    type: "system",
+    enabled: () => getSystemEnabled("us-ny-path"),
   },
   {
     name: "chat",
@@ -38,7 +49,8 @@ const tabs: Tab[] = [
         <ChatBubbleLeftEllipsisIcon />
       </div>
     ),
-    widthPercent: 12.5,
+    type: "chat",
+    enabled: () => getChatEnabled(),
   },
   {
     name: "settings",
@@ -47,9 +59,41 @@ const tabs: Tab[] = [
         <Cog6ToothIcon />
       </div>
     ),
-    widthPercent: 12.5,
+    type: "settings",
+    enabled: () => true,
   },
 ];
+
+function getTabsFromFeatures(features: Feature[]) {
+  const chatEnabled = getChatEnabled();
+  const otherTabWidthPercent = 12.5;
+  const allOtherTabsWidthPercent = otherTabWidthPercent +
+    (chatEnabled ? otherTabWidthPercent : 0);
+
+  const allSystemsWidthPercent = 100 - allOtherTabsWidthPercent;
+  const numEnabledSystems =
+    features.filter((f) => f.type === "system" && f.enabled()).length;
+
+  let tabs: Tab[] = [];
+  for (const feature of features) {
+    if (!feature.enabled()) continue;
+    if (feature.type === "system") {
+      tabs.push({
+        name: feature.name,
+        content: feature.content,
+        widthPercent: allSystemsWidthPercent / numEnabledSystems,
+      });
+    } else {
+      tabs.push({
+        name: feature.name,
+        content: feature.content,
+        widthPercent: otherTabWidthPercent,
+      });
+    }
+  }
+
+  return tabs;
+}
 
 const pathToTabName = new Map([
   ["/us-ny-subway", "subway"],
@@ -69,7 +113,7 @@ const tabOnClickRoutes = new Map([
 ]);
 
 const tabNameToPath = new Map(
-  Array.from(tabOnClickRoutes.entries()).map(([key, value]) => [value, key])
+  Array.from(tabOnClickRoutes.entries()).map(([key, value]) => [value, key]),
 );
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -138,7 +182,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
           <div className="flex flex-col bg-black max-w-md mx-auto w-full h-full">
             <PageSelectorHeader
-              tabs={tabs}
+              tabs={getTabsFromFeatures(features)}
               activeTab={pathToTabName.get(pathWithSystem)!}
               onTabClick={(tab) => {
                 router.push(tabNameToPath.get(tab)!);

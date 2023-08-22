@@ -18,7 +18,11 @@ This project relies on [Transiter](https://github.com/jamespfennell/transiter) f
 TRANSITER_URL="http://localhost:8080"
 ```
 
-You will also need to install the NYC Subway, bus, and PATH systems within Transiter.
+By default, it is assumed that the NYC Subway (`us-ny-subway`) is installed in your Transiter instance. The UI also supports the NYC Bus system (`us-ny-nycbus`) and the NYC/NJ PATH train (`us-ny-path`). If you wish to enable other systems, you can set the below environment variable with a comma separated list of system IDs. Note that if you wish to remove the NYC subway, you should also change the root path redirect set in [next.config.js](./next.config.js) to point to the path of an installed system.
+
+```
+NEXT_PUBLIC_ENABLED_SYSTEMS="us-ny-subway,us-ny-nycbus,us-ny-path"
+```
 
 Transiter uses gRPC protobuf definitions for it's API. TypeScript types can be generated from this, which are then used to annotate the data returned from Transiter. To generate new types:
 
@@ -30,10 +34,10 @@ The above only needs to be done if the API definition changes, since generated f
 
 ### Configuring max stop distance for each system
 
-The maximum range (in KM) to fetch stops for each system, can be configured with the below environment variables:
+The maximum range (in KM) to fetch stops for each system can be configured with the below environment variables:
 
 ```
-# Default max stop distance if not specified for a system,
+# Default max stop distance if not specified for a system
 NEXT_PUBLIC_MAX_STOP_DISTANCE_KM=3.2
 
 # Max distance for NYC Subway stops
@@ -53,6 +57,12 @@ NEXT_PUBLIC_US_NY_BUSES_MAX_STOPS=30
 ```
 
 ### Chat feature (experimental)
+
+To enable the chat feature, set the below environment variable:
+
+```
+NEXT_PUBLIC_CHAT_ENABLED="true"
+```
 
 In addition to Transiter, the chat feature requires an OpenAI API key and a Google Maps API key:
 

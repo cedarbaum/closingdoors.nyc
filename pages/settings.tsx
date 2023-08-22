@@ -10,6 +10,7 @@ import { classNames } from "@/utils/CssUtils";
 import { TripArrivalTime } from "@/components/TripArrivalTime";
 import { Duration } from "luxon";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { getChatEnabled } from "@/utils/Features";
 
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
@@ -178,16 +179,18 @@ export default function Settings() {
           </div>
         </div>
       </section>
-      <section>
-        <h1 className="text-xl font-bold">Chat</h1>
-        <div className="py-2">
-          <LabelledSwitch
-            label="Use location by default"
-            onChange={setChatUseLocation}
-            enabled={useLocation}
-          />
-        </div>
-      </section>
+      {getChatEnabled() && (
+        <section>
+          <h1 className="text-xl font-bold">Chat</h1>
+          <div className="py-2">
+            <LabelledSwitch
+              label="Use location by default"
+              onChange={setChatUseLocation}
+              enabled={useLocation}
+            />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
