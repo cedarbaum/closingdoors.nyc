@@ -1,10 +1,9 @@
 import { Alert } from "@/generated/proto/transiter/public";
 import { getNycDateTimeStringFromSeconds } from "@/utils/DateTimeUtils";
-import apiQuotaAvailable from "@/utils/RateLimiting";
+import apiQuotaAvailable, { rateLimitingEnabled } from "@/utils/RateLimiting";
 import {
   getAlerts,
   getHumanReadableActivePeriodFromAlert,
-  getNYCTAlertsMetadata,
   getRouteIsRunning,
   getRoutes,
 } from "@/utils/TransiterUtils";
@@ -136,7 +135,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ChatData | Error>
 ) {
-  if (!(await apiQuotaAvailable(req))) {
+  if (rateLimitingEnabled() && !(await apiQuotaAvailable(req))) {
     res.status(429).json({ error: "Exceeded request limit" });
     return;
   }

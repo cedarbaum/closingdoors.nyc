@@ -9,7 +9,11 @@ const GLOBAL_API_LIMIT_ID = `${APP_NAME}_GLOBAL_LIMIT`;
 let globalRateLimit: Ratelimit | null = null;
 let ipLimit: Ratelimit | null = null;
 
-if (process.env.ENABLE_RATE_LIMITING === "true") {
+export function rateLimitingEnabled() {
+  return process.env.ENABLE_RATE_LIMITING === "true";
+}
+
+if (rateLimitingEnabled()) {
   const globalRequestLimit = parseInt(process.env.DAILY_API_LIMIT!);
   globalRateLimit = new Ratelimit({
     redis: Redis.fromEnv(),
