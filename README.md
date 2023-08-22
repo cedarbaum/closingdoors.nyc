@@ -72,19 +72,29 @@ OPENAI_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 GOOGLE_MAPS_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-Also, by default, a Redis URL and access token from [Upstash](https://upstash.com/) are used to enable rate limiting:
+#### Rate limiting
+
+Since the APIs used by the chat feature can be expensive, rate limiting can optionally be enabled:
+
+```
+ENABLE_RATE_LIMITING="true"
+```
+
+If it is enabled, a Redis URL and access token from [Upstash](https://upstash.com/) are also required:
 
 ```
 # Redis credentials
 UPSTASH_REDIS_REST_URL="https://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 UPSTASH_REDIS_REST_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
 
+Finally, global daily and per-ip/per-minute rate limits can be configured:
+
+```
 # Daily and per IP address limits
 DAILY_API_LIMIT=1000
 PER_IP_PER_MIN_LIMIT=5
 ```
-
-This can be manually disabled by modifying the [RateLimiting](./utils/RateLimiting.ts) file.
 
 ## Building and running
 
