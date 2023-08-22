@@ -20,8 +20,6 @@ TRANSITER_URL="http://localhost:8080"
 
 You will also need to install the NYC Subway, bus, and PATH systems within Transiter.
 
-Note that while we try to stay in sync with the mainline of Transiter, the version used in this application is a forked version that can sometimes be incompatible with the official version: [Transiter (closingdoors branch)](https://github.com/cedarbaum/transiter/tree/closingdoors). This version can be found on [Docker Hub](https://hub.docker.com/r/scedarbaum/transiter).
-
 Transiter uses gRPC protobuf definitions for it's API. TypeScript types can be generated from this, which are then used to annotate the data returned from Transiter. To generate new types:
 
 1. Install the [Buf CLI](https://buf.build/product/cli/)
