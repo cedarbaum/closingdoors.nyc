@@ -1,10 +1,10 @@
 # [closingdoors.nyc](https://closingdoors.nyc/)
 
-A minimalist subway and PATH schedule viewer written in React.
+A minimalist NYC subway, bus, and PATH schedule viewer written in React.
 
 <p align="center">
-  <img src="./.images/subway_home.png" width="250" />
   <img src="./.images/subway_schedule.png" width="250" />
+  <img src="./.images/bus_schedule.png" width="250" />
   <img src="./.images/path_schedule.png" width="250" />
 </p>
 
