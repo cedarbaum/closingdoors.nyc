@@ -59,6 +59,15 @@ bug: https://github.com/vercel/next.js/issues/33286 */
   }
 }
 
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
 /* Mapbox GL JS custom control styles */
 .mapboxgl-bus-ctrl-icon {
   background-image: url("/mta-alert-icons/bus.svg");

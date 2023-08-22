@@ -166,12 +166,19 @@ export default function NycBusScheduleView() {
     };
   }, []);
 
+  const usingMockedLocation =
+    process.env.NEXT_PUBLIC_MOCK_LAT !== undefined &&
+    process.env.NEXT_PUBLIC_MOCK_LNG !== undefined;
+
   const mapRef = useRef<MapRef>(null);
   const geoControlRef = useRef<mapboxgl.GeolocateControl>(null);
   useEffect(() => {
+    if (usingMockedLocation) {
+      return;
+    }
     // Activate as soon as the control is loaded
     geoControlRef.current?.trigger();
-  }, [geoControlRef.current]);
+  }, [geoControlRef.current, usingMockedLocation]);
 
   useEffect(() => {
     if (!followBus) {
@@ -428,6 +435,19 @@ export default function NycBusScheduleView() {
     );
   }
 
+  let mockLocationMarker = undefined;
+  if (usingMockedLocation) {
+    mockLocationMarker = (
+      <Marker
+        key="mock-location"
+        longitude={parseFloat(process.env.NEXT_PUBLIC_MOCK_LNG!)}
+        latitude={parseFloat(process.env.NEXT_PUBLIC_MOCK_LAT!)}
+      >
+        <div className="w-4 h-4 bg-blue-500 rounded-full border-2 border-white animate-pulseKeyFramesAnimation" />
+      </Marker>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="pt-[10px] sticky top-0 bg-black z-[60]">
@@ -454,6 +474,7 @@ export default function NycBusScheduleView() {
           {routeSource}
           {stopsSource}
           {vehicleMarker}
+          {mockLocationMarker}
         </ReactMapGl>
       </div>
       <AnimatePresence>
