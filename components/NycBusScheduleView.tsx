@@ -26,7 +26,6 @@ import mapboxgl from "mapbox-gl";
 import { Alert } from "@/generated/proto/transiter/public";
 import { Behavior, MtaAlertList } from "./MtaAlertList";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
-import { AnimatePresence, motion } from "framer-motion";
 import { NycBusLoadingView } from "./NycBusLoadingView";
 import { M15 } from "@/utils/NycBus";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
@@ -477,23 +476,14 @@ export default function NycBusScheduleView() {
           {mockLocationMarker}
         </ReactMapGl>
       </div>
-      <AnimatePresence>
-        {focusedTrip?.routeId && alertsByRoute?.has(focusedTrip.routeId) && (
-          <motion.div
-            key="alerts"
-            initial={{ height: "0%" }}
-            animate={{ height: "100%" }}
-            exit={{ height: "0%" }}
-          >
-            <MtaAlertList
-              alerts={getMtaAlertPropsFromRouteAlerts(
-                alertsByRoute.get(focusedTrip.routeId!)!
-              )}
-              behavior={Behavior.Collapsable}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {focusedTrip?.routeId && alertsByRoute?.has(focusedTrip.routeId) && (
+        <MtaAlertList
+          alerts={getMtaAlertPropsFromRouteAlerts(
+            alertsByRoute.get(focusedTrip.routeId!)!
+          )}
+          behavior={Behavior.Collapsable}
+        />
+      )}
       <div className="grow overflow-auto scrollbar-hide snap-y bg-black">
         <table className="w-full bg-black p-0">
           {sanitizedNearbyTripsData.map((stopRouteTrip) => {
