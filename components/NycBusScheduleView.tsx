@@ -312,7 +312,7 @@ export default function NycBusScheduleView() {
             {`No bus routes appear to be running at any stops within
             ${formatKmToLocalizedString(
               parseFloat(
-                process.env.NEXT_PUBLIC_US_NY_BUSES_MAX_STOP_DISTANCE_KM!
+                process.env.NEXT_PUBLIC_US_NY_NYCBUS_MAX_STOP_DISTANCE_KM!
               ),
               distanceUnit
             )} of you.`}
