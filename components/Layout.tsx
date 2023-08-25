@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { createContext, useEffect, useState } from "react";
-import Head from "next/head";
 import { PageSelectorHeader, Tab } from "./PageSelectorHeader";
 import { useRouter } from "next/router";
 
@@ -136,26 +135,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Head>
-        <title>Closing Doors</title>
-        <meta
-          name="description"
-          content="Minimalist NYC subway and PATH schedule viewer"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link
-          rel="shortcut icon"
-          href="/favicon-light.ico"
-          media="(prefers-color-scheme: light)"
-        />
-        <link
-          rel="shortcut icon"
-          href="/favicon-dark.ico"
-          media="(prefers-color-scheme: dark)"
-        />
-        <link rel="shortcut icon" href="/favicon-light.ico" />
-        <meta name="theme-color" content="#000000" />
-      </Head>
       <PopoverAlertContext.Provider value={setAlert}>
         <div className="bg-black h-full w-full">
           <AnimatePresence>
