@@ -181,7 +181,7 @@ export default function NycSubwayRoutePicker() {
 
   return (
     <>
-      <div className="safe-fill-to-bottom text-white">
+      <div className="overflow-auto scrollbar-hide safe-fill-to-bottom text-white">
         {focusedRoute !== undefined && (
           <div
             className="fixed left-0 w-full h-full bg-transparent z-30 select-none"
@@ -325,7 +325,7 @@ export default function NycSubwayRoutePicker() {
           })}
         </div>
         <button
-          className={`sticky safe-offset-bottom bg-black text-2xl font-bold border border-white w-full z-50 py-4 ${
+          className={`sticky bottom-0 bg-black text-2xl font-bold border border-white w-full z-50 py-4 ${
             !formIsValid ? "border-opacity-50" : ""
           }`}
           onClick={handleOnClick}
