@@ -4,15 +4,6 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        <title>Closing Doors</title>
-        <meta
-          name="description"
-          content="Minimalist NYC subway, bus, and PATH schedule viewer"
-        />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
         <link
           rel="shortcut icon"
           href="/icons/favicon-light.ico"

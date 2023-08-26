@@ -177,6 +177,7 @@ export default function NycBusScheduleView() {
     }
     // Activate as soon as the control is loaded
     geoControlRef.current?.trigger();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geoControlRef.current, usingMockedLocation]);
 
   useEffect(() => {
@@ -215,11 +216,13 @@ export default function NycBusScheduleView() {
       padding: 50,
       maxZoom: 14,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     followBus,
     mapRef.current,
     longitude,
     latitude,
+    focusedTrip,
     focusedTripData?.vehicle?.latitude,
     focusedTripData?.vehicle?.longitude,
   ]);
