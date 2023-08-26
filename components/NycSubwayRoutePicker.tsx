@@ -1,10 +1,10 @@
-import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
+import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import {
-  autoUpdate,
   arrow,
   autoPlacement,
+  autoUpdate,
   offset,
   shift,
   size,
@@ -15,9 +15,9 @@ import { useRouter } from "next/router";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertProps } from "@/components/MtaAlert";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
-import { MtaColors, allLines, allRoutes } from "@/utils/SubwayLines";
+import { allLines, allRoutes, MtaColors } from "@/utils/SubwayLines";
 import { NycSubwayIcon } from "@/components/NycSubwayIcon";
-import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
+import { Behavior, MtaAlertList } from "@/components/MtaAlertList";
 import { PopoverAlertContext } from "@/components/Layout";
 import { useQuery } from "react-query";
 import { RouteStatuses } from "@/pages/api/route_statuses";
@@ -32,13 +32,13 @@ export default function NycSubwayRoutePicker() {
   const { push } = useRouter();
   const [selectedRoutes, setSelectedRoutes] = useState(new Set<string>());
   const [focusedRoute, setFocusedRoute] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [northboundAlias, setNorthBoundAlias] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [southboundAlias, setSouthBoundAlias] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [direction, setDirection] = useState<Direction | null>(null);
   const [popupAvailableHeight, setPopupAvailableHeight] = useState<
@@ -53,7 +53,7 @@ export default function NycSubwayRoutePicker() {
           new URLSearchParams({
             system: "us-ny-subway",
             get_is_running: "true",
-          })
+          }),
       );
       if (!routeStatusesResp.ok) {
         throw new Error("Failed to fetch route statuses");
@@ -63,14 +63,14 @@ export default function NycSubwayRoutePicker() {
     },
     {
       refetchInterval: 10000,
-    }
+    },
   );
 
   let routesToDisplay: Set<string> | undefined = undefined;
   let alertsByRoute: Map<string, Alert[]> | undefined = undefined;
   if (data && !error) {
     alertsByRoute = new Map(
-      data.map((routeStatus) => [routeStatus.route, routeStatus.alerts])
+      data.map((routeStatus) => [routeStatus.route, routeStatus.alerts]),
     );
 
     routesToDisplay = new Set(
@@ -81,9 +81,9 @@ export default function NycSubwayRoutePicker() {
             routeStatus.running === undefined ||
             routeStatus.running ||
             (alertsByRoute?.has(routeStatus.route) &&
-              alertsByRoute!.get(routeStatus.route)!.length > 0)
+              alertsByRoute!.get(routeStatus.route)!.length > 0),
         )
-        .map((routeStatus) => routeStatus.route)
+        .map((routeStatus) => routeStatus.route),
     );
   }
 
@@ -96,7 +96,7 @@ export default function NycSubwayRoutePicker() {
         setFocusedRoute(context.route);
       }
     },
-    [alertsByRoute]
+    [alertsByRoute],
   );
 
   const bind = useLongPress(callback, {
@@ -134,17 +134,20 @@ export default function NycSubwayRoutePicker() {
   });
 
   const directionNotSetError = useMemo(() => {
-    return northboundAlias !== undefined ? (
-      <span className="font-bold">
-        Select {northboundAlias} or {southboundAlias}.
-      </span>
-    ) : (
-      <span className="font-bold inline-flex items-center">
-        Select{" "}
-        <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or{" "}
-        <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4 ml-1" />.
-      </span>
-    );
+    return northboundAlias !== undefined
+      ? (
+        <span className="font-bold">
+          Select {northboundAlias} or {southboundAlias}.
+        </span>
+      )
+      : (
+        <span className="font-bold inline-flex items-center">
+          Select{" "}
+          <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or
+          {" "}
+          <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4 ml-1" />.
+        </span>
+      );
   }, [northboundAlias, southboundAlias]);
 
   const setAlert = useContext(PopoverAlertContext);
@@ -155,9 +158,11 @@ export default function NycSubwayRoutePicker() {
       setAlert({ type: "error", content: noRoutesSelected });
     } else {
       push(
-        `/us-ny-subway/schedule?routes=${Array.from(
-          selectedRoutes
-        )}&direction=${direction}`
+        `/us-ny-subway/schedule?routes=${
+          Array.from(
+            selectedRoutes,
+          )
+        }&direction=${direction}`,
       );
     }
   }, [push, selectedRoutes, direction, directionNotSetError, setAlert]);
@@ -170,13 +175,13 @@ export default function NycSubwayRoutePicker() {
   let visibleAlertMessages: MtaAlertProps[] | undefined = undefined;
   if (focusedRoute !== undefined && alertsByRoute?.has(focusedRoute)) {
     visibleAlertMessages = getMtaAlertPropsFromRouteAlerts(
-      alertsByRoute.get(focusedRoute) ?? []
+      alertsByRoute.get(focusedRoute) ?? [],
     );
   }
 
   return (
     <>
-      <div className="h-full text-white">
+      <div className="safe-fill-to-bottom text-white">
         {focusedRoute !== undefined && (
           <div
             className="fixed left-0 w-full h-full bg-transparent z-30 select-none"
@@ -206,8 +211,7 @@ export default function NycSubwayRoutePicker() {
                     return null;
                   }
 
-                  const hasAlerts =
-                    alertsByRoute?.has(routeKey) &&
+                  const hasAlerts = alertsByRoute?.has(routeKey) &&
                     alertsByRoute.get(routeKey)!.length > 0;
 
                   const isFocused = routeKey === focusedRoute;
@@ -238,12 +242,9 @@ export default function NycSubwayRoutePicker() {
                             ref={arrowRef}
                             style={{
                               left: arrowX != null ? `${arrowX}px` : "",
-                              top:
-                                placement === "top"
-                                  ? arrowY != null
-                                    ? `${arrowY}px`
-                                    : ""
-                                  : "-4px",
+                              top: placement === "top"
+                                ? arrowY != null ? `${arrowY}px` : ""
+                                : "-4px",
                               bottom: placement === "top" ? "-4px" : "",
                               position: "absolute",
                               background: MtaColors.Yellow,
@@ -270,11 +271,9 @@ export default function NycSubwayRoutePicker() {
                         width={50}
                         height={50}
                         opacity={isSelected || isFocused ? 1.0 : 0.7}
-                        border={
-                          isSelected || isFocused
-                            ? "4px solid white"
-                            : undefined
-                        }
+                        border={isSelected || isFocused
+                          ? "4px solid white"
+                          : undefined}
                         onClick={() => {
                           // Don't detect a normal click if a long press is happening
                           if (focusedRoute !== undefined) {
@@ -326,7 +325,7 @@ export default function NycSubwayRoutePicker() {
           })}
         </div>
         <button
-          className={`sticky my-1 bg-black text-2xl font-bold border border-white bottom-0 w-full z-50 py-4 ${
+          className={`sticky safe-offset-bottom bg-black text-2xl font-bold border border-white w-full z-50 py-4 ${
             !formIsValid ? "border-opacity-50" : ""
           }`}
           onClick={handleOnClick}

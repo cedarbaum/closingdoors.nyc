@@ -11,6 +11,14 @@ main {
   background-color: black;
 }
 
+.safe-fill-to-bottom {
+  height: calc(100% - env(safe-area-inset-bottom, 0px));
+}
+
+.safe-offset-bottom {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Below should be in a CSS module, but since the schedule view
 is dynamically imported to avoid SSR, it runs into this
 bug: https://github.com/vercel/next.js/issues/33286 */
@@ -60,7 +68,8 @@ bug: https://github.com/vercel/next.js/issues/33286 */
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
