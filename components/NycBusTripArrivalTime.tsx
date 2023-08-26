@@ -8,6 +8,7 @@ export interface NycBusTripArrivalTimeProps
   routeColor?: string;
   destination: string;
   showAlertIcon?: boolean;
+  isFocused?: boolean;
 }
 
 export const NycBusTripArrivalTime: React.FC<NycBusTripArrivalTimeProps> = ({
@@ -15,6 +16,7 @@ export const NycBusTripArrivalTime: React.FC<NycBusTripArrivalTimeProps> = ({
   routeColor,
   destination,
   showAlertIcon,
+  isFocused,
   ...props
 }: NycBusTripArrivalTimeProps) => {
   const routeColorAsHex = routeColor ? `#${routeColor}` : "#000000";
@@ -33,5 +35,11 @@ export const NycBusTripArrivalTime: React.FC<NycBusTripArrivalTimeProps> = ({
     </div>
   );
 
-  return <TripArrivalTime {...props} routeDisplay={routeDisplay} />;
+  return (
+    <TripArrivalTime
+      {...props}
+      interactive={isFocused}
+      routeDisplay={routeDisplay}
+    />
+  );
 };

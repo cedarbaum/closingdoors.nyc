@@ -525,7 +525,7 @@ export default function NycBusScheduleView() {
                       <td>
                         <div
                           className={`p-2 bg-black ${
-                            isFocusedTrip ? "border-4 border-white" : ""
+                            isFocusedTrip ? "border-4 border-white" : "cursor-pointer"
                           }`}
                         >
                           <NycBusTripArrivalTime
@@ -534,6 +534,7 @@ export default function NycBusScheduleView() {
                             routeColor={routeTrip.route_color}
                             destination={trip.destination.name}
                             showAlertIcon={alertsByRoute?.has(routeTrip.route)}
+                            isFocused={isFocusedTrip}
                           />
                         </div>
                       </td>

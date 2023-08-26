@@ -23,10 +23,6 @@ export const TripArrivalTime: React.FC<TripArrivalTimeProps> = ({
 
   const setAlert = useContext(PopoverAlertContext);
   const cycleFormattingOptions = () => {
-    if (!interactive) {
-      return;
-    }
-
     // Cycle formatting options
     const countdownDisplayFormatOptions = [
       ScheduleCountdownDisplayFormat.MinuteRounded,
@@ -149,6 +145,7 @@ export const TripArrivalTime: React.FC<TripArrivalTimeProps> = ({
               displayArrivingNow ? "animate-arrivalTimeFadeInOutAnimation" : ""
             }`}
             onClick={(e) => {
+              if (!interactive) return;
               cycleFormattingOptions();
               e.stopPropagation();
             }}
