@@ -9,7 +9,10 @@ export default function Document() {
           name="description"
           content="Minimalist NYC subway, bus, and PATH schedule viewer"
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
         <link
           rel="shortcut icon"
           href="/icons/favicon-light.ico"
