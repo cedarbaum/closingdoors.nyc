@@ -227,6 +227,7 @@ ${
       const responseMessageContent = response.data.choices[0].message?.content;
 
       if (functionCall !== undefined) {
+        allMessages.push(response.data.choices[0].message!);
         switch (functionCall.name) {
           case "get_running_routes":
             allMessages.push({
