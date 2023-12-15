@@ -2,11 +2,12 @@ import React from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Notice, useServiceStatus } from "@/utils/ServiceStatus";
 import { System } from "@/utils/System";
+import { DateTime } from "luxon";
 
 export interface FullScreenErrorProps {
   error: React.ReactNode;
   errorDetails?: React.ReactNode;
-  system?: System
+  system?: System;
 }
 
 export const FullScreenError: React.FC<FullScreenErrorProps> = (props) => {
@@ -38,6 +39,14 @@ function ServiceStatus({ notice }: { notice: Notice }) {
     <div className="px-4 py-2 w-full border border-black flex flex-col">
       <div className="font-bold text-lg">{notice.title}</div>
       <div className="text-md">{notice.message}</div>
+      {notice.timestamp !== undefined && (
+        <div className="font-bold text-sm mt-2">
+          Time posted:{" "}
+          {DateTime.fromSeconds(notice.timestamp).toLocaleString(
+            DateTime.DATETIME_MED,
+          )}
+        </div>
+      )}
     </div>
   );
 }
