@@ -1,5 +1,5 @@
 import { usePosition, WatchMode } from "@/utils/usePosition";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { FullScreenError } from "./FullScreenError";
@@ -36,6 +36,7 @@ export default function PathScheduleView() {
   );
 
   const [, setTime] = useState(Date.now());
+  const isDisplayingErorRef = useRef(false);
 
   const {
     data: nearbyTripsData,
@@ -99,9 +100,10 @@ export default function PathScheduleView() {
   );
 
   if (
-    nearbyTripsLoading ||
-    (!locationErrorMessage &&
-      (latitude === undefined || longitude === undefined))
+    (nearbyTripsLoading ||
+      (!locationErrorMessage &&
+        (latitude === undefined || longitude === undefined))) &&
+    !isDisplayingErorRef.current
   ) {
     return loadingView;
   }
@@ -110,8 +112,10 @@ export default function PathScheduleView() {
     locationErrorMessage &&
     (latitude === undefined || longitude === undefined)
   ) {
+    isDisplayingErorRef.current = true;
     return (
       <FullScreenError
+        system="us-ny-path"
         error={
           <>
             Failed to get current location. Please ensure location access is
@@ -123,8 +127,10 @@ export default function PathScheduleView() {
   }
 
   if (nearbyTripsError) {
+    isDisplayingErorRef.current = true;
     return (
       <FullScreenError
+        system="us-ny-path"
         error={
           <>An error occurred while fetching schedules. Will retry shortly.</>
         }
@@ -141,7 +147,11 @@ export default function PathScheduleView() {
   );
 
   // If data is stale, show loading view
-  if (nearbyTripsFetching && sanitizedNearbyTripsData?.length === 0) {
+  if (
+    !isDisplayingErorRef &&
+    nearbyTripsFetching &&
+    sanitizedNearbyTripsData?.length === 0
+  ) {
     return loadingView;
   }
 
@@ -149,25 +159,26 @@ export default function PathScheduleView() {
     sanitizedNearbyTripsData?.length === 0 ||
     sanitizedNearbyTripsData === undefined
   ) {
+    isDisplayingErorRef.current = true;
     return (
       <FullScreenError
+        system="us-ny-path"
         error={
           <>
             {`No PATH routes appear to be running at any stops within
-            ${
-              formatKmToLocalizedString(
-                parseFloat(
-                  process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!,
-                ),
-                distanceUnit,
-              )
-            } of you.`}
+            ${formatKmToLocalizedString(
+              parseFloat(
+                process.env.NEXT_PUBLIC_US_NY_PATH_MAX_STOP_DISTANCE_KM!,
+              ),
+              distanceUnit,
+            )} of you.`}
           </>
         }
       />
     );
   }
 
+  isDisplayingErorRef.current = false;
   return (
     <>
       {directionSelectors}

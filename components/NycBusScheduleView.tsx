@@ -52,9 +52,10 @@ export default function NycBusScheduleView() {
       maximumAge: 60 * 1000,
       timeout: 30 * 1000,
       enableHighAccuracy: false,
-    }
+    },
   );
   const [, setTime] = useState(Date.now());
+  const isDisplayingErrorRef = useRef(false);
 
   const {
     data: nearbyTripsData,
@@ -72,7 +73,7 @@ export default function NycBusScheduleView() {
             longitude: longitude!.toString(),
             direction_id: "both",
             max_stops: getMaxNumStops().toString(),
-          })
+          }),
       );
 
       if (!nearbyRouteTrips.ok) {
@@ -84,11 +85,11 @@ export default function NycBusScheduleView() {
     {
       enabled: latitude !== undefined && longitude !== undefined,
       refetchInterval: 10000,
-    }
+    },
   );
 
   const [focusedTrip, setFocusedTrip] = useState<FocusedTripData | undefined>(
-    undefined
+    undefined,
   );
   const [followBus, setFollowBus] = useState(true);
 
@@ -105,7 +106,7 @@ export default function NycBusScheduleView() {
             system: "us-ny-nycbus",
             get_is_running: "false",
             only_get_routes_with_alerts: "true",
-          })
+          }),
       );
       if (!routeStatusesResp.ok) {
         throw new Error("Failed to fetch route statuses");
@@ -115,7 +116,7 @@ export default function NycBusScheduleView() {
     },
     {
       refetchInterval: 10000,
-    }
+    },
   );
 
   let alertsByRoute: Map<string, Alert[]> | undefined = undefined;
@@ -124,7 +125,7 @@ export default function NycBusScheduleView() {
       routeStatuses.map((routeStatus) => [
         routeStatus.route,
         routeStatus.alerts,
-      ])
+      ]),
     );
   }
 
@@ -141,7 +142,7 @@ export default function NycBusScheduleView() {
             system: "us-ny-nycbus",
             route_id: focusedTrip!.routeId,
             trip_id: focusedTrip!.tripId,
-          })
+          }),
       );
 
       if (!tripInfo.ok) {
@@ -153,7 +154,7 @@ export default function NycBusScheduleView() {
     {
       enabled: focusedTrip !== undefined,
       refetchInterval: 10000,
-    }
+    },
   );
 
   const { distanceUnit } = useSettings();
@@ -258,9 +259,10 @@ export default function NycBusScheduleView() {
   );
 
   if (
-    nearbyTripsLoading ||
-    (!locationErrorMessage &&
-      (latitude === undefined || longitude === undefined))
+    !isDisplayingErrorRef.current &&
+    (nearbyTripsLoading ||
+      (!locationErrorMessage &&
+        (latitude === undefined || longitude === undefined)))
   ) {
     return loadingView;
   }
@@ -269,8 +271,10 @@ export default function NycBusScheduleView() {
     locationErrorMessage &&
     (latitude === undefined || longitude === undefined)
   ) {
+    isDisplayingErrorRef.current = true;
     return (
       <FullScreenError
+        system="us-ny-nycbus"
         error={
           <>
             Failed to get current location. Please ensure location access is
@@ -282,8 +286,10 @@ export default function NycBusScheduleView() {
   }
 
   if (nearbyTripsError) {
+    isDisplayingErrorRef.current = true;
     return (
       <FullScreenError
+        system="us-ny-nycbus"
         error={
           <>An error occurred while fetching schedules. Will retry shortly.</>
         }
@@ -296,7 +302,7 @@ export default function NycBusScheduleView() {
     now,
     nearbyTripsData,
     new Set(),
-    30
+    30,
   );
 
   // If data is stale, show loading view
@@ -308,16 +314,18 @@ export default function NycBusScheduleView() {
     sanitizedNearbyTripsData?.length === 0 ||
     sanitizedNearbyTripsData === undefined
   ) {
+    isDisplayingErrorRef.current = true;
     return (
       <FullScreenError
+        system="us-ny-nycbus"
         error={
           <>
             {`No bus routes appear to be running at any stops within
             ${formatKmToLocalizedString(
               parseFloat(
-                process.env.NEXT_PUBLIC_US_NY_NYCBUS_MAX_STOP_DISTANCE_KM!
+                process.env.NEXT_PUBLIC_US_NY_NYCBUS_MAX_STOP_DISTANCE_KM!,
               ),
-              distanceUnit
+              distanceUnit,
             )} of you.`}
           </>
         }
@@ -450,6 +458,7 @@ export default function NycBusScheduleView() {
     );
   }
 
+  isDisplayingErrorRef.current = false;
   return (
     <div className="flex flex-col h-full">
       <div className="pt-[10px] sticky top-0 bg-black z-[60]">
@@ -482,7 +491,7 @@ export default function NycBusScheduleView() {
       {focusedTrip?.routeId && alertsByRoute?.has(focusedTrip.routeId) && (
         <MtaAlertList
           alerts={getMtaAlertPropsFromRouteAlerts(
-            alertsByRoute.get(focusedTrip.routeId!)!
+            alertsByRoute.get(focusedTrip.routeId!)!,
           )}
           behavior={Behavior.Collapsable}
         />
@@ -525,7 +534,9 @@ export default function NycBusScheduleView() {
                       <td>
                         <div
                           className={`p-2 bg-black ${
-                            isFocusedTrip ? "border-4 border-white" : "cursor-pointer"
+                            isFocusedTrip
+                              ? "border-4 border-white"
+                              : "cursor-pointer"
                           }`}
                         >
                           <NycBusTripArrivalTime
