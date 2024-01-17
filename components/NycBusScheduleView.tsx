@@ -306,7 +306,11 @@ export default function NycBusScheduleView() {
   );
 
   // If data is stale, show loading view
-  if (nearbyTripsFetching && sanitizedNearbyTripsData?.length === 0) {
+  if (
+    nearbyTripsFetching &&
+    sanitizedNearbyTripsData?.length === 0 &&
+    !isDisplayingErrorRef.current
+  ) {
     return loadingView;
   }
 
