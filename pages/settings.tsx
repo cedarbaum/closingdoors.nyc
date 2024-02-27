@@ -5,13 +5,18 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Fragment } from "react";
 import { Listbox, Tab, Transition } from "@headlessui/react";
-import { ChevronUpDownIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
+import {
+  ChevronUpDownIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/react/20/solid";
 import { classNames } from "@/utils/cssUtils";
 import { TripArrivalTime } from "@/components/TripArrivalTime";
 import { Duration } from "luxon";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { getChatEnabled } from "@/utils/features";
 import Link from "next/link";
+import { getBuildInfo } from "@/utils/build";
+import build from "next/dist/build";
 
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
@@ -135,6 +140,8 @@ export default function Settings() {
       break;
   }
 
+  const buildInfo = getBuildInfo();
+
   return (
     <div className="text-white px-2">
       <section>
@@ -182,7 +189,7 @@ export default function Settings() {
       </section>
       {getChatEnabled() && (
         <section>
-          <h1 className="text-xl font-bold">Chat</h1>
+          <h1 className="text-xl font-bold mt-4">Chat</h1>
           <div className="py-2">
             <LabelledSwitch
               label="Use location by default"
@@ -192,6 +199,48 @@ export default function Settings() {
           </div>
         </section>
       )}
+      <section>
+        <h1 className="text-xl font-bold">About</h1>
+        <div className="py-2">
+          <div className="flex flex-row justify-between">
+            <label>License</label>
+            <Link
+              className="flex flex-row items-center"
+              target="_blank"
+              href="https://en.wikipedia.org/wiki/MIT_License"
+            >
+              MIT
+              <ArrowTopRightOnSquareIcon
+                className="ml-2"
+                color="white"
+                width={20}
+                height={20}
+              />
+            </Link>
+          </div>
+          {buildInfo.GIT_BRANCH && buildInfo.GIT_COMMIT_HASH && (
+            <div className="flex flex-row justify-between mt-2">
+              <label>Build</label>
+              <Link
+                className="flex flex-row items-center"
+                target="_blank"
+                href={`https://github.com/cedarbaum/closingdoors.nyc/commit/${buildInfo.GIT_COMMIT_HASH}`}
+              >
+                {`${buildInfo.GIT_BRANCH} (${buildInfo.GIT_COMMIT_HASH.slice(
+                  0,
+                  7,
+                )})`}
+                <ArrowTopRightOnSquareIcon
+                  className="ml-2"
+                  color="white"
+                  width={20}
+                  height={20}
+                />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
@@ -328,7 +377,7 @@ function LabelledTabSwitcher({
                   "w-full py-2.5 text-sm font-medium leading-5",
                   selected
                     ? "bg-mtaYellow text-black"
-                    : "bg-gray-400 text-white hover:bg-gray-500"
+                    : "bg-gray-400 text-white hover:bg-gray-500",
                 )
               }
             >

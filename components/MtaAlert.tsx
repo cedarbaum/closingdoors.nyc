@@ -1,4 +1,4 @@
-import { getNycDateTimeStringFromSeconds } from "@/utils/datetimeUtils";
+import { getNycDateTimeStringFromSeconds } from "@/utils/dateTimeUtils";
 import { processMtaText } from "@/utils/textProcessing";
 import { useEffect, useState } from "react";
 

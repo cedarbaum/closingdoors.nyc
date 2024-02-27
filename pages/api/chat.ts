@@ -1,5 +1,5 @@
 import { Alert } from "@/generated/proto/transiter/public";
-import { getNycDateTimeStringFromSeconds } from "@/utils/datetimeUtils";
+import { getNycDateTimeStringFromSeconds } from "@/utils/dateTimeUtils";
 import apiQuotaAvailable, { rateLimitingEnabled } from "@/utils/rateLimiting";
 import {
   getAlerts,
