@@ -1,5 +1,5 @@
-import { getNycDateTimeStringFromSeconds } from "@/utils/DateTimeUtils";
-import { processMtaText } from "@/utils/TextProcessing";
+import { getNycDateTimeStringFromSeconds } from "@/utils/datetimeUtils";
+import { processMtaText } from "@/utils/textProcessing";
 import { useEffect, useState } from "react";
 
 export interface MtaAlertProps {

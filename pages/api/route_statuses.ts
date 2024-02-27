@@ -3,7 +3,7 @@ import {
   getAlerts,
   getRouteIsRunning,
   getRoutes,
-} from "@/utils/TransiterUtils";
+} from "@/utils/transiterUtils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export type RouteStatuses = {

@@ -1,7 +1,7 @@
 import React from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { Notice, useServiceStatus } from "@/utils/ServiceStatus";
-import { System } from "@/utils/System";
+import { Notice, useServiceStatus } from "@/utils/serviceStatus";
+import { System } from "@/utils/system";
 import { DateTime } from "luxon";
 
 export interface FullScreenErrorProps {

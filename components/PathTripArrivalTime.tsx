@@ -1,6 +1,6 @@
 import React from "react";
 import { TripArrivalTime, TripArrivalTimeProps } from "./TripArrivalTime";
-import { NjOrNy, PathRoute, routeIdToPathMetadata } from "@/utils/PathRoutes";
+import { NjOrNy, PathRoute, routeIdToPathMetadata } from "@/utils/pathRoutes";
 
 export interface PathTripArrivalTimeProps
   extends Omit<TripArrivalTimeProps, "routeDisplay"> {

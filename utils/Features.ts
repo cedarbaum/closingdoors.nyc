@@ -1,4 +1,4 @@
-import { System } from "./System";
+import { System } from "./system";
 
 export function getEnabledSystems() {
   const enabledSystems = process.env.NEXT_PUBLIC_ENABLED_SYSTEMS?.split(

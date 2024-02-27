@@ -5,12 +5,13 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Fragment } from "react";
 import { Listbox, Tab, Transition } from "@headlessui/react";
-import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
-import { classNames } from "@/utils/CssUtils";
+import { ChevronUpDownIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
+import { classNames } from "@/utils/cssUtils";
 import { TripArrivalTime } from "@/components/TripArrivalTime";
 import { Duration } from "luxon";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import { getChatEnabled } from "@/utils/Features";
+import { getChatEnabled } from "@/utils/features";
+import Link from "next/link";
 
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
@@ -52,7 +53,7 @@ export interface Settings {
   distanceUnit: DistanceUnits;
   setChatUseLocation: (useLocation: boolean) => void;
   setScheduleCountdownDisplayFormat: (
-    countdownDisplayFormat: ScheduleCountdownDisplayFormat
+    countdownDisplayFormat: ScheduleCountdownDisplayFormat,
   ) => void;
   setDistanceUnit: (distanceUnit: DistanceUnits) => void;
 }
@@ -82,8 +83,8 @@ const useSettingsStore = create<Settings>()(
     }),
     {
       name: "settings",
-    }
-  )
+    },
+  ),
 );
 
 export function useSettings() {

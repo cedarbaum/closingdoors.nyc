@@ -1,9 +1,9 @@
 import { NycSubwayIcon } from "@/components/NycSubwayIcon";
-import { convertReactComponentToHtml } from "./ReactUtils";
+import { convertReactComponentToHtml } from "./reactUtils";
 import Image from "next/image";
 import DOMPurify from "dompurify";
-import { allRoutesIds } from "./SubwayLines";
-import { setUnion, setIntersection } from "./CollectionUtils";
+import { allRoutesIds } from "./subwayLines";
+import { setUnion, setIntersection } from "./collectionUtils";
 
 const additionalRouteIcons = new Set(["S", "SI"].map((r) => r.toLowerCase()));
 

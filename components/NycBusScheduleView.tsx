@@ -4,9 +4,9 @@ import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { FullScreenError } from "./FullScreenError";
 import { DateTime } from "luxon";
-import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
+import { applyQaToStopRouteTrips } from "@/utils/scheduleUtils";
 import { StopHeader } from "./StopHeader";
-import { formatKmToLocalizedString } from "@/utils/MeasurementUtils";
+import { formatKmToLocalizedString } from "@/utils/measurementUtils";
 import { useSettings } from "@/pages/settings";
 import { NycBusTripArrivalTime } from "./NycBusTripArrivalTime";
 import {
@@ -25,9 +25,9 @@ import ToggleFollowBusControl from "./ToggleFollowBusControl";
 import mapboxgl from "mapbox-gl";
 import { Alert } from "@/generated/proto/transiter/public";
 import { Behavior, MtaAlertList } from "./MtaAlertList";
-import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
+import { getMtaAlertPropsFromRouteAlerts } from "@/utils/alertUtils";
 import { NycBusLoadingView } from "./NycBusLoadingView";
-import { M15 } from "@/utils/NycBus";
+import { M15 } from "@/utils/nycBus";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
 
 interface FocusedTripData {

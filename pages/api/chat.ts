@@ -1,12 +1,12 @@
 import { Alert } from "@/generated/proto/transiter/public";
-import { getNycDateTimeStringFromSeconds } from "@/utils/DateTimeUtils";
-import apiQuotaAvailable, { rateLimitingEnabled } from "@/utils/RateLimiting";
+import { getNycDateTimeStringFromSeconds } from "@/utils/datetimeUtils";
+import apiQuotaAvailable, { rateLimitingEnabled } from "@/utils/rateLimiting";
 import {
   getAlerts,
   getHumanReadableActivePeriodFromAlert,
   getRouteIsRunning,
   getRoutes,
-} from "@/utils/TransiterUtils";
+} from "@/utils/transiterUtils";
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   ChatCompletionFunctions,
@@ -22,7 +22,7 @@ import {
   TravelMode,
 } from "@googlemaps/google-maps-services-js";
 import assert from "assert";
-import log from "@/utils/Log";
+import log from "@/utils/log";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,

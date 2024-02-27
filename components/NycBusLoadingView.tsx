@@ -1,5 +1,5 @@
 import React from "react";
-import { allRoutes } from "@/utils/NycBus";
+import { allRoutes } from "@/utils/nycBus";
 
 export function NycBusLoadingView() {
   return (

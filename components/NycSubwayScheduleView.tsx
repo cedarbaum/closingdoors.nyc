@@ -6,15 +6,15 @@ import { DateTime } from "luxon";
 import { FullScreenError } from "@/components/FullScreenError";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
 import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
-import { getMtaAlertPropsFromRouteAlerts } from "@/utils/AlertUtils";
+import { getMtaAlertPropsFromRouteAlerts } from "@/utils/alertUtils";
 import { useRouter } from "next/router";
 import { useQuery } from "react-query";
 import { RouteStatuses } from "@/pages/api/route_statuses";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { Alert } from "@/generated/proto/transiter/public";
-import { SubwayDirection } from "@/utils/SubwayLines";
-import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
-import { formatKmToLocalizedString } from "@/utils/MeasurementUtils";
+import { SubwayDirection } from "@/utils/subwayLines";
+import { applyQaToStopRouteTrips } from "@/utils/scheduleUtils";
+import { formatKmToLocalizedString } from "@/utils/measurementUtils";
 import { useSettings } from "@/pages/settings";
 
 export interface ScheduleViewProps {

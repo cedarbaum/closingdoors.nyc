@@ -1,5 +1,5 @@
 import React from "react";
-import { PathRoute, routeIdToPathMetadata } from "@/utils/PathRoutes";
+import { PathRoute, routeIdToPathMetadata } from "@/utils/pathRoutes";
 
 export function PathLoadingView({
   excludedPathRoutes,

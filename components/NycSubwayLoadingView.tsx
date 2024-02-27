@@ -1,5 +1,5 @@
 import React from "react";
-import { MtaColors } from "@/utils/SubwayLines";
+import { MtaColors } from "@/utils/subwayLines";
 
 const animationDelays = [0, -0.4, -0.8, -0.4, -0.8, -1.2, -0.8, -1.2, -1.6];
 const colorGrid = [

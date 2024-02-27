@@ -1,6 +1,6 @@
 import { Alert } from "@/generated/proto/transiter/public";
 import { MtaAlertProps } from "@/components/MtaAlert";
-import { getHumanReadableActivePeriodFromAlert } from "./TransiterUtils";
+import { getHumanReadableActivePeriodFromAlert } from "./transiterUtils";
 
 export function getMtaAlertPropsFromRouteAlerts(
   alerts: Alert[]

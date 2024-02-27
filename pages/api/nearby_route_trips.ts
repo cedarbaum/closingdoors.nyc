@@ -2,7 +2,7 @@ import {
   Stop as TransiterStop,
   StopTime,
 } from "@/generated/proto/transiter/public";
-import { getNearbyStops } from "@/utils/TransiterUtils";
+import { getNearbyStops } from "@/utils/transiterUtils";
 import haversineDistance from "haversine-distance";
 import type { NextApiRequest, NextApiResponse } from "next";
 

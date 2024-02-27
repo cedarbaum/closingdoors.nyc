@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/solid";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { getChatEnabled, getSystemEnabled } from "@/utils/Features";
+import { getChatEnabled, getSystemEnabled } from "@/utils/features";
 
 export interface PopoverAlert {
   type: "info" | "error";

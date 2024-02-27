@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "@/styles/loadingdots.module.css";
 import { useQuery } from "react-query";
-import { processMtaText } from "@/utils/TextProcessing";
+import { processMtaText } from "@/utils/textProcessing";
 import { ChatData, Datasource, DatasourceType } from "@/pages/api/chat";
 import {
   InformationCircleIcon,

@@ -4,13 +4,13 @@ import { useQuery } from "react-query";
 import { StopRouteTrips } from "@/pages/api/nearby_route_trips";
 import { FullScreenError } from "./FullScreenError";
 import { DateTime } from "luxon";
-import { applyQaToStopRouteTrips } from "@/utils/ScheduleUtils";
+import { applyQaToStopRouteTrips } from "@/utils/scheduleUtils";
 import { StopHeader } from "./StopHeader";
 import DirectionSelectors, { Direction } from "./DirectionsSelector";
 import { PathTripArrivalTime } from "./PathTripArrivalTime";
 import { queryTypes, useQueryState } from "next-usequerystate";
-import { formatKmToLocalizedString } from "@/utils/MeasurementUtils";
-import { NjOrNy, PathRoute } from "@/utils/PathRoutes";
+import { formatKmToLocalizedString } from "@/utils/measurementUtils";
+import { NjOrNy, PathRoute } from "@/utils/pathRoutes";
 import { PathLoadingView } from "./PathLoadingView";
 import { useSettings } from "@/pages/settings";
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { NycSubwayIcon } from "./NycSubwayIcon";
-import { SubwayDirection, allRoutes } from "@/utils/SubwayLines";
+import { SubwayDirection, allRoutes } from "@/utils/subwayLines";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
 import { TripArrivalTime, TripArrivalTimeProps } from "./TripArrivalTime";
 
