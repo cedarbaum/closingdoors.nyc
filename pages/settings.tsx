@@ -8,6 +8,7 @@ import { Listbox, Tab, Transition } from "@headlessui/react";
 import {
   ChevronUpDownIcon,
   ArrowTopRightOnSquareIcon,
+  BarsArrowUpIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "@/utils/cssUtils";
 import { TripArrivalTime } from "@/components/TripArrivalTime";
@@ -16,7 +17,12 @@ import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { getChatEnabled } from "@/utils/features";
 import Link from "next/link";
 import { getBuildInfo } from "@/utils/build";
-import build from "next/dist/build";
+import { Drawer } from "vaul";
+
+// Markdown
+import fs from "fs";
+import matter from "gray-matter";
+import md from "markdown-it";
 
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
@@ -103,7 +109,24 @@ export function useSettings() {
   return { ...settings, settingsReady: mounted };
 }
 
-export default function Settings() {
+export async function getStaticProps() {
+  const filePath = "./md/privacy-and-terms.md";
+  const fileContents = fs.readFileSync(filePath, "utf8");
+
+  // Use gray-matter to parse the post metadata section
+  const { content, data } = matter(fileContents);
+  console.log(content);
+
+  // Combine the data with the id and contentHtml
+  return {
+    props: {
+      content,
+      data,
+    },
+  };
+}
+
+export default function Settings({ content }: any) {
   const {
     chat: { useLocation },
     schedule: { countdownDisplayFormat },
@@ -202,7 +225,35 @@ export default function Settings() {
       <section>
         <h1 className="text-xl font-bold">About</h1>
         <div className="py-2">
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row justify-between items-center">
+            <label>Privacy &amp; Terms</label>
+            <Drawer.Root>
+              <Drawer.Trigger className="flex flex-row items-center">
+                View
+                <BarsArrowUpIcon
+                  className="ml-2"
+                  color="white"
+                  width={20}
+                  height={20}
+                />
+              </Drawer.Trigger>
+              <Drawer.Portal>
+                <Drawer.Overlay className="fixed inset-0 bg-black/60" />
+                <Drawer.Content className="bg-black flex flex-col fixed bottom-0 left-0 mx-auto right-0 max-h-[67%] max-w-md">
+                  <div className="max-w-md prose text-white w-full mx-auto flex flex-col overflow-auto p-4">
+                    <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-zinc-300 mb-8" />
+                    <div
+                      className="overflow-auto"
+                      dangerouslySetInnerHTML={{
+                        __html: md().render(content),
+                      }}
+                    />
+                  </div>
+                </Drawer.Content>
+              </Drawer.Portal>
+            </Drawer.Root>
+          </div>
+          <div className="flex flex-row justify-between mt-4">
             <label>License</label>
             <Link
               className="flex flex-row items-center"
@@ -218,8 +269,26 @@ export default function Settings() {
               />
             </Link>
           </div>
+          {process.env.NEXT_PUBLIC_CONTACT_EMAIL && (
+            <div className="flex flex-row justify-between mt-4">
+              <label>Contact</label>
+              <Link
+                className="flex flex-row items-center"
+                target="_blank"
+                href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`}
+              >
+                Email
+                <ArrowTopRightOnSquareIcon
+                  className="ml-2"
+                  color="white"
+                  width={20}
+                  height={20}
+                />
+              </Link>
+            </div>
+          )}
           {buildInfo.GIT_BRANCH && buildInfo.GIT_COMMIT_HASH && (
-            <div className="flex flex-row justify-between mt-2">
+            <div className="flex flex-row justify-between mt-4">
               <label>Build</label>
               <Link
                 className="flex flex-row items-center"

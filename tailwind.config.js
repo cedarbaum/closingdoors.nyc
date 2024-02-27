@@ -15,6 +15,25 @@ module.exports = {
   ],
   theme: {
     extend: {
+      typography: {
+        DEFAULT: {
+          css: {
+            color: "white",
+            h1: {
+              color: "white",
+            },
+            h2: {
+              color: "white",
+            },
+            h3: {
+              color: "white",
+            },
+            a: {
+              color: "white",
+            },
+          },
+        },
+      },
       colors: {
         mtaRed: MtaColors.Red,
         mtaGreen: MtaColors.Green,
@@ -60,6 +79,7 @@ module.exports = {
   },
   plugins: [
     require("tailwind-scrollbar-hide"),
+    require("@tailwindcss/typography"),
     plugin(function ({ addVariant }) {
       addVariant("not-last", "&:not(:last-child)");
     }),
