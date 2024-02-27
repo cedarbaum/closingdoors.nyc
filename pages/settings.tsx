@@ -115,7 +115,6 @@ export async function getStaticProps() {
 
   // Use gray-matter to parse the post metadata section
   const { content, data } = matter(fileContents);
-  console.log(content);
 
   // Combine the data with the id and contentHtml
   return {
