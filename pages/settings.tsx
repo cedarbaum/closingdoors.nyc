@@ -24,6 +24,22 @@ import fs from "fs";
 import matter from "gray-matter";
 import md from "markdown-it";
 
+// Email info
+const EMAIL_SUBJECT = encodeURI("closingdoors.nyc - feedback");
+const getDebugInfo = () => {
+  const buildInfo = getBuildInfo();
+  const userAgent = navigator.userAgent;
+  return {
+    buildInfo,
+    userAgent,
+  };
+};
+const buildEmailBody = () =>
+  encodeURI(`Feedback:
+
+Debug information:
+${JSON.stringify(getDebugInfo(), null, 2)}`);
+
 export enum ScheduleCountdownDisplayFormat {
   MinuteRounded = "MINUTE_ROUNDED",
   MinuteFloor = "MINUTE_FLOOR",
@@ -274,7 +290,7 @@ export default function Settings({ content }: any) {
               <Link
                 className="flex flex-row items-center"
                 target="_blank"
-                href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`}
+                href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}?subject=${EMAIL_SUBJECT}&body=${buildEmailBody()}`}
               >
                 Email
                 <ArrowTopRightOnSquareIcon
