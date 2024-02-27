@@ -1,4 +1,4 @@
-import { MtaColors } from "./utils/SubwayLines";
+import { MtaColors } from "./utils/subwayLines";
 
 const plugin = require("tailwindcss/plugin");
 
