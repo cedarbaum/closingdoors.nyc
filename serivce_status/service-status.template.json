@@ -1,0 +1,10 @@
+{
+  "notices": [
+    {
+      "affected_systems": "AFFECTED_SYSTEMS",
+      "title": "TITLE",
+      "message": "MESSAGE",
+      "timestamp": 1709833496
+    }
+  ]
+}
