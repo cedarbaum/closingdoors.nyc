@@ -1,33 +1,33 @@
 import { Alert } from "@/generated/proto/transiter/public";
-import { MtaAlertProps } from "@/components/MtaAlert";
+import { AlertProps } from "@/components/Alert";
 import { getHumanReadableActivePeriodFromAlert } from "./transiterUtils";
+import { Notice } from "@/utils/serviceStatus";
 
-export function getMtaAlertPropsFromRouteAlerts(
-  alerts: Alert[]
-): MtaAlertProps[] {
+export function getMtaAlertPropsFromRouteAlerts(alerts: Alert[]): AlertProps[] {
   const allAlertProps = alerts
     ?.map((alert) => {
       const enHtmlHeader = alert?.header?.find(
-        (header) => header.language.toLowerCase() === "en-html"
+        (header) => header.language.toLowerCase() === "en-html",
       );
       const enHtmlDescription = alert?.description?.find(
-        (header) => header.language.toLowerCase() === "en-html"
+        (header) => header.language.toLowerCase() === "en-html",
       );
 
       const enHeader = alert?.header?.find(
-        (header) => header.language.toLowerCase() === "en"
+        (header) => header.language.toLowerCase() === "en",
       );
       const enDescription = alert?.description?.find(
-        (header) => header.language.toLowerCase() === "en"
+        (header) => header.language.toLowerCase() === "en",
       );
 
       const baseAlertProps = {
         id: alert?.id,
+        isMtaAlert: true,
         humanReadableActivePeriod: getHumanReadableActivePeriodFromAlert(alert),
         startsAt:
           alert?.currentActivePeriod?.startsAt !== undefined
             ? parseInt(
-                alert?.currentActivePeriod?.startsAt as unknown as string
+                alert?.currentActivePeriod?.startsAt as unknown as string,
               )
             : undefined,
         endsAt:
@@ -53,6 +53,18 @@ export function getMtaAlertPropsFromRouteAlerts(
   // Deduplicate
   return allAlertProps.filter(
     ({ id }, idx) =>
-      allAlertProps.findIndex(({ id: otherId }) => otherId === id) === idx
+      allAlertProps.findIndex(({ id: otherId }) => otherId === id) === idx,
   );
+}
+
+export function getAlertPropsFromSystemNotices(
+  notices: Notice[],
+): AlertProps[] {
+  return notices.map((notice) => {
+    return {
+      header: notice.title,
+      description: notice.message,
+      startsAt: notice.timestamp,
+    };
+  });
 }

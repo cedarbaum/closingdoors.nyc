@@ -13,11 +13,11 @@ import {
 import { useLongPress } from "use-long-press";
 import { useRouter } from "next/router";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
-import { MtaAlertProps } from "@/components/MtaAlert";
+import { AlertProps } from "@/components/Alert";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/alertUtils";
 import { allLines, allRoutes, MtaColors } from "@/utils/subwayLines";
 import { NycSubwayIcon } from "@/components/NycSubwayIcon";
-import { Behavior, MtaAlertList } from "@/components/MtaAlertList";
+import { Behavior, AlertList } from "@/components/AlertList";
 import { PopoverAlertContext } from "@/components/Layout";
 import { useQuery } from "react-query";
 import { RouteStatuses } from "@/pages/api/route_statuses";
@@ -172,7 +172,7 @@ export default function NycSubwayRoutePicker() {
     return <NycSubwayLoadingView />;
   }
 
-  let visibleAlertMessages: MtaAlertProps[] | undefined = undefined;
+  let visibleAlertMessages: AlertProps[] | undefined = undefined;
   if (focusedRoute !== undefined && alertsByRoute?.has(focusedRoute)) {
     visibleAlertMessages = getMtaAlertPropsFromRouteAlerts(
       alertsByRoute.get(focusedRoute) ?? [],
@@ -257,7 +257,7 @@ export default function NycSubwayRoutePicker() {
                             className="relative scrollbar-hide overflow-scroll"
                             style={{ maxHeight: popupAvailableHeight }}
                           >
-                            <MtaAlertList
+                            <AlertList
                               alerts={visibleAlertMessages!}
                               behavior={Behavior.Closable}
                               onClose={() => setFocusedRoute(undefined)}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MtaAlert, MtaAlertProps } from "./MtaAlert";
+import { Alert, AlertProps } from "./Alert";
 import {
   XMarkIcon,
   ChevronDownIcon,
@@ -13,16 +13,18 @@ export enum Behavior {
   None,
 }
 
-export interface MtaAlertListProps {
-  alerts: MtaAlertProps[];
+export interface AlertListProps {
+  alerts: AlertProps[];
   behavior: Behavior;
+  title?: string;
   hideAlertIcon?: boolean;
   onClose?(): void;
 }
 
-export const MtaAlertList: React.FC<MtaAlertListProps> = ({
+export const AlertList: React.FC<AlertListProps> = ({
   alerts,
   behavior,
+  title,
   hideAlertIcon,
   onClose,
 }) => {
@@ -74,6 +76,7 @@ export const MtaAlertList: React.FC<MtaAlertListProps> = ({
     }
   })();
 
+  const alertTitle = title || `${numAlerts} service ${numAlerts > 1 ? "alerts" : "alert"}`;
   return (
     <div className="justify-between items-center bg-mtaYellow text-black">
       <div
@@ -89,7 +92,7 @@ export const MtaAlertList: React.FC<MtaAlertListProps> = ({
             <ExclamationTriangleIcon className="mr-2 inline-block h-6 w-6 stroke-[2px]" />
           )}
           <h1 className="inline-block font-bold">
-            {numAlerts} service {numAlerts > 1 ? "alerts" : "alert"}
+            {alertTitle}
           </h1>
         </div>
         {headerRightIcon}
@@ -106,7 +109,7 @@ export const MtaAlertList: React.FC<MtaAlertListProps> = ({
                 key={`alert${idx}`}
                 className="p-4 first-of-type:pt-0 border-dotted not-last:border-b-2 border-black"
               >
-                <MtaAlert {...alert} />
+                <Alert {...alert} />
               </div>
             );
           })}

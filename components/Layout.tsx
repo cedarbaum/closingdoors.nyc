@@ -2,11 +2,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createContext, useEffect, useState } from "react";
 import { PageSelectorHeader, Tab } from "./PageSelectorHeader";
 import { useRouter } from "next/router";
+import { useServiceStatus } from "@/utils/serviceStatus";
 
 import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/solid";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { getChatEnabled, getSystemEnabled } from "@/utils/features";
+import { AlertList, Behavior } from "./AlertList";
+import { getAlertPropsFromSystemNotices } from "@/utils/alertUtils";
 
 export interface PopoverAlert {
   type: "info" | "error";
@@ -66,12 +69,13 @@ const features: Feature[] = [
 function getTabsFromFeatures(features: Feature[]) {
   const chatEnabled = getChatEnabled();
   const otherTabWidthPercent = 12.5;
-  const allOtherTabsWidthPercent = otherTabWidthPercent +
-    (chatEnabled ? otherTabWidthPercent : 0);
+  const allOtherTabsWidthPercent =
+    otherTabWidthPercent + (chatEnabled ? otherTabWidthPercent : 0);
 
   const allSystemsWidthPercent = 100 - allOtherTabsWidthPercent;
-  const numEnabledSystems =
-    features.filter((f) => f.type === "system" && f.enabled()).length;
+  const numEnabledSystems = features.filter(
+    (f) => f.type === "system" && f.enabled(),
+  ).length;
 
   let tabs: Tab[] = [];
   for (const feature of features) {
@@ -122,6 +126,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const system = router.query.system as string;
   const path = router.pathname as string;
   const pathWithSystem = path.replace("[system]", system);
+  const { data: serviceStatusData } = useServiceStatus();
+  const serivceStatusForSystem = serviceStatusData?.filter((notice) => {
+    const affectedSystems = notice?.affected_systems;
+    return (
+      affectedSystems?.includes(system) || affectedSystems?.includes("all")
+    );
+  }) ?? [];
 
   useEffect(() => {
     if (!alert) return;
@@ -175,9 +186,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ← Back to route picker
               </Link>
             )}
-            <main className="w-full overflow-auto scrollbar-hide">
-              {children}
-            </main>
+            <div className="flex flex-col relative h-full w-full">
+              {serivceStatusForSystem.length > 0 && (
+                <AlertList
+                  title="Ongoing issues with this page."
+                  alerts={getAlertPropsFromSystemNotices(
+                    serivceStatusForSystem,
+                  )}
+                  behavior={Behavior.Collapsable}
+                />
+              )}
+              <main className="w-full overflow-auto scrollbar-hide">
+                {children}
+              </main>
+            </div>
           </div>
         </div>
       </PopoverAlertContext.Provider>

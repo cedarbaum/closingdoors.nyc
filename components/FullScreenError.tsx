@@ -17,7 +17,7 @@ export const FullScreenError: React.FC<FullScreenErrorProps> = (props) => {
   );
 
   return (
-    <div className="w-full h-full bg-mtaYellow scrollbar-hide overflow-scroll box-border">
+    <div className="absolute z-100 top-0 left-0 w-full h-full bg-mtaYellow scrollbar-hide overflow-scroll box-border">
       <div className="font-bold text-4xl p-4">
         <ExclamationTriangleIcon className="w-[75px] h-[75px] mb-4 ml-[-5px]" />
         <p>{props.error}</p>

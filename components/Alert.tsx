@@ -2,39 +2,54 @@ import { getNycDateTimeStringFromSeconds } from "@/utils/dateTimeUtils";
 import { processMtaText } from "@/utils/textProcessing";
 import { useEffect, useState } from "react";
 
-export interface MtaAlertProps {
+export interface AlertProps {
   header?: string | null;
   description?: string | null;
   humanReadableActivePeriod?: string | null;
   startsAt?: number | null;
   endsAt?: number | null;
+  isMtaAlert?: boolean;
 }
 
 const routesToShowBorderFor = new Set(
-  ["N", "Q", "R", "W"].map((r) => r.toLowerCase())
+  ["N", "Q", "R", "W"].map((r) => r.toLowerCase()),
 );
 
-export const MtaAlert: React.FC<MtaAlertProps> = ({
+export const Alert: React.FC<AlertProps> = ({
   header,
   description,
   humanReadableActivePeriod,
   startsAt,
   endsAt,
+  isMtaAlert,
 }) => {
   const [headerHtml, setHeaderHtml] = useState("");
   const [descriptionHtml, setDescriptionHtml] = useState("");
 
   useEffect(() => {
     queueMicrotask(() => {
-      if (header) {
-        setHeaderHtml(processMtaText(header, routesToShowBorderFor));
-      }
+      if (isMtaAlert) {
+        if (header) {
+          setHeaderHtml(processMtaText(header, routesToShowBorderFor));
+        }
 
-      if (description) {
-        setDescriptionHtml(processMtaText(description, routesToShowBorderFor));
+        if (description) {
+          setDescriptionHtml(
+            processMtaText(description, routesToShowBorderFor),
+          );
+        }
+      }
+      else {
+        if (header) {
+          setHeaderHtml(`<b>${header}</b>`);
+        }
+
+        if (description) {
+          setDescriptionHtml(description);
+        }
       }
     });
-  }, [header, description]);
+  }, [header, description, isMtaAlert]);
 
   let currentActivePeriod = null;
   if (humanReadableActivePeriod) {

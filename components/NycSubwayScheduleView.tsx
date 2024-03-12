@@ -5,7 +5,7 @@ import { NycSubwayTripArrivalTime } from "@/components/NycSubwayTripArrivalTime"
 import { DateTime } from "luxon";
 import { FullScreenError } from "@/components/FullScreenError";
 import { NycSubwayLoadingView } from "@/components/NycSubwayLoadingView";
-import { MtaAlertList, Behavior } from "@/components/MtaAlertList";
+import { AlertList, Behavior } from "@/components/AlertList";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/alertUtils";
 import { useRouter } from "next/router";
 import { useQuery } from "react-query";
@@ -226,7 +226,7 @@ const NycSubwayScheduleView: React.FC = () => {
         }
         errorDetails={
           alertMessages?.length > 0 ? (
-            <MtaAlertList
+            <AlertList
               alerts={alertMessages}
               behavior={Behavior.None}
               hideAlertIcon
@@ -241,7 +241,7 @@ const NycSubwayScheduleView: React.FC = () => {
   return (
     <>
       {alertMessages !== undefined && (
-        <MtaAlertList alerts={alertMessages} behavior={Behavior.Collapsable} />
+        <AlertList alerts={alertMessages} behavior={Behavior.Collapsable} />
       )}
       <table className="w-full border-spacing-0 border-collapse">
         {sanitizedNearbyTripsData.map((stopRouteTrip) => {

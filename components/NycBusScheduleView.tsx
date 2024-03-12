@@ -24,7 +24,7 @@ import Image from "next/image";
 import ToggleFollowBusControl from "./ToggleFollowBusControl";
 import mapboxgl from "mapbox-gl";
 import { Alert } from "@/generated/proto/transiter/public";
-import { Behavior, MtaAlertList } from "./MtaAlertList";
+import { Behavior, AlertList } from "./AlertList";
 import { getMtaAlertPropsFromRouteAlerts } from "@/utils/alertUtils";
 import { NycBusLoadingView } from "./NycBusLoadingView";
 import { M15 } from "@/utils/nycBus";
@@ -493,7 +493,7 @@ export default function NycBusScheduleView() {
         </ReactMapGl>
       </div>
       {focusedTrip?.routeId && alertsByRoute?.has(focusedTrip.routeId) && (
-        <MtaAlertList
+        <AlertList
           alerts={getMtaAlertPropsFromRouteAlerts(
             alertsByRoute.get(focusedTrip.routeId!)!,
           )}
