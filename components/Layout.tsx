@@ -127,12 +127,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const path = router.pathname as string;
   const pathWithSystem = path.replace("[system]", system);
   const { data: serviceStatusData } = useServiceStatus();
-  const serivceStatusForSystem = serviceStatusData?.filter((notice) => {
-    const affectedSystems = notice?.affected_systems;
-    return (
-      affectedSystems?.includes(system) || affectedSystems?.includes("all")
-    );
-  }) ?? [];
+  const serivceStatusForSystem =
+    serviceStatusData?.filter((notice) => {
+      const affectedSystems = notice?.affected_systems;
+      return (
+        affectedSystems?.includes(system) || affectedSystems?.includes("all")
+      );
+    }) ?? [];
 
   useEffect(() => {
     if (!alert) return;
@@ -186,20 +187,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ← Back to route picker
               </Link>
             )}
-            <div className="flex flex-col relative h-full w-full">
-              {serivceStatusForSystem.length > 0 && (
-                <AlertList
-                  title="Ongoing issues with this page."
-                  alerts={getAlertPropsFromSystemNotices(
-                    serivceStatusForSystem,
-                  )}
-                  behavior={Behavior.Collapsable}
-                />
-              )}
-              <main className="w-full overflow-auto scrollbar-hide">
+            <main className="w-full overflow-auto scrollbar-hide">
+              <div className="flex flex-col relative w-full h-full">
+                {serivceStatusForSystem.length > 0 && (
+                  <AlertList
+                    title="Ongoing issues with this page."
+                    alerts={getAlertPropsFromSystemNotices(
+                      serivceStatusForSystem,
+                    )}
+                    behavior={Behavior.Collapsable}
+                  />
+                )}
                 {children}
-              </main>
-            </div>
+              </div>
+            </main>
           </div>
         </div>
       </PopoverAlertContext.Provider>
