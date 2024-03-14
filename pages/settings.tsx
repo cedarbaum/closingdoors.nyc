@@ -308,7 +308,7 @@ export default function Settings({ content }: any) {
               <Link
                 className="flex flex-row items-center"
                 target="_blank"
-                href={`https://github.com/cedarbaum/closingdoors.nyc/commit/${buildInfo.GIT_COMMIT_HASH}`}
+                href={`https://github.com/cedarbaum/closingdoors.nyc/tree/${buildInfo.GIT_COMMIT_HASH}`}
               >
                 {`${buildInfo.GIT_BRANCH} (${buildInfo.GIT_COMMIT_HASH.slice(
                   0,
