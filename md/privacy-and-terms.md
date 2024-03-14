@@ -1,5 +1,7 @@
 # Privacy & Terms
 
+[Privacy](#privacy) | [Terms](#terms)
+
 ## Privacy
 
 Your privacy is important! The core application (train & bus times) does not track you or retain information that could be linked to your session.
