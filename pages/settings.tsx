@@ -325,6 +325,9 @@ export default function Settings({ content }: any) {
           )}
         </div>
       </section>
+      <footer className="flex flex-col items-center mt-8">
+        <div className="font-bold">Designed & Built in New York, NY 🗽</div>
+      </footer>
     </div>
   );
 }
