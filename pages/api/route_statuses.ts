@@ -6,10 +6,6 @@ import {
 } from "@/utils/transiterUtils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export const config = {
-  runtime: 'edge'
-}
-
 export type RouteStatuses = {
   route: string;
   running?: boolean;

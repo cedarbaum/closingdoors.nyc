@@ -6,10 +6,6 @@ import { getNearbyStops } from "@/utils/transiterUtils";
 import haversineDistance from "haversine-distance";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export const config = {
-  runtime: 'edge'
-}
-
 export type Stop = {
   id: string;
   name: string;
