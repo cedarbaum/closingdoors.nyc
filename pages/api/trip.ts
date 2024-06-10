@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { Shape, Stop, Vehicle } from "@/generated/proto/transiter/public";
 import {
   getShape,
@@ -5,7 +7,6 @@ import {
   getVehicle,
   listStopsByIds,
 } from "@/utils/transiterUtils";
-import type { NextApiRequest, NextApiResponse } from "next";
 
 export type TripInfo = {
   stops: Stop[];
@@ -13,30 +14,24 @@ export type TripInfo = {
   vehicle?: Vehicle;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<TripInfo | { error: string }>
-) {
-  const { system, route_id, trip_id } = req.query;
-  if (system === undefined) {
-    res.status(400).json({ error: "system is required" });
-    return;
+export default async function handler(req: Request) {
+  const { system, route_id, trip_id } = getEdgeQueryParams(req);
+  if (system === null) {
+    return new Response("Missing system", { status: 400 });
   }
 
-  if (route_id === undefined) {
-    res.status(400).json({ error: "route_id is required" });
-    return;
+  if (route_id === null) {
+    return new Response("Missing route_id", { status: 400 });
   }
 
-  if (trip_id === undefined) {
-    res.status(400).json({ error: "trip_id is required" });
-    return;
+  if (trip_id === null) {
+    return new Response("Missing trip_id", { status: 400 });
   }
 
   const trip = await getTrip(
     system as string,
     route_id as string,
-    trip_id as string
+    trip_id as string,
   );
   const stopsIDs = trip.stopTimes
     .map((stopTime) => stopTime.stop?.id)
@@ -47,7 +42,7 @@ export default async function handler(
     true,
     true,
     true,
-    false
+    false,
   );
 
   let shape = undefined;
@@ -67,5 +62,16 @@ export default async function handler(
     }
   }
 
-  res.status(200).json({ stops, shape, vehicle });
+  return new Response(JSON.stringify({ stops, shape, vehicle }), {
+    status: 200,
+  });
+}
+
+function getEdgeQueryParams(req: Request) {
+  const searchParams = new URL(req.url ?? "").searchParams;
+  return {
+    system: searchParams.get("system"),
+    route_id: searchParams.get("route_id"),
+    trip_id: searchParams.get("trip_id"),
+  };
 }
