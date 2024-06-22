@@ -17,7 +17,7 @@ export async function getNearbyStops(
   latitude: string,
   longitude: string,
   max_distance_km: number | string,
-  limit?: number | number
+  limit?: number | number | null
 ) {
   const stopsDataResp = await fetch(
     `${TRANSITER_URL}/systems/${system}/stops?` +

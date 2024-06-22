@@ -1,10 +1,11 @@
+export const runtime = "edge";
+
 import {
   Stop as TransiterStop,
   StopTime,
 } from "@/generated/proto/transiter/public";
 import { getNearbyStops } from "@/utils/transiterUtils";
 import haversineDistance from "haversine-distance";
-import type { NextApiRequest, NextApiResponse } from "next";
 
 export type Stop = {
   id: string;
@@ -35,10 +36,7 @@ export type StopRouteTrips = {
   routeTrips: RouteTrips[];
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<StopRouteTrips[] | { error: string }>
-) {
+export default async function handler(req: Request) {
   let {
     system,
     latitude,
@@ -47,28 +45,26 @@ export default async function handler(
     direction_id,
     stop_type,
     max_stops,
-  } = req.query;
-  if (latitude === undefined || longitude === undefined) {
-    res.status(400).json({ error: "Missing latitude or longitude" });
-    return;
+  } = getEdgeQueryParams(req);
+
+  if (latitude === null || longitude === null) {
+    return new Response("Missing latitude or longitude", { status: 400 });
   }
 
-  if (system === undefined) {
-    res.status(400).json({ error: "Missing system" });
-    return;
+  if (system === null) {
+    return new Response("Missing system", { status: 400 });
   }
 
   // If direction_id is unspecified or invalid, return both
   if (direction_id !== "true" && direction_id !== "false") {
-    direction_id = undefined;
+    direction_id = null;
   }
 
-  let max_stops_as_number: number | undefined;
-  if (max_stops !== undefined) {
+  let max_stops_as_number: number | null = null;
+  if (max_stops !== null) {
     max_stops_as_number = parseInt(max_stops as string);
     if (isNaN(max_stops_as_number)) {
-      res.status(400).json({ error: "Invalid max_stops" });
-      return;
+      return new Response("Invalid max_stops", { status: 400 });
     }
   }
 
@@ -77,7 +73,7 @@ export default async function handler(
     latitude as string,
     longitude as string,
     getMaxStopDistance(system as string),
-    max_stops_as_number
+    max_stops_as_number,
   );
 
   const stopDistanceByStopId = new Map<string, number>(
@@ -88,9 +84,9 @@ export default async function handler(
         {
           lat: parseFloat(latitude as string),
           lon: parseFloat(longitude as string),
-        }
+        },
       ),
-    ])
+    ]),
   );
 
   const routesSet = routes
@@ -100,9 +96,9 @@ export default async function handler(
   const stopRouteTrips = stops
     .filter(
       (stop) =>
-        stop_type === undefined ||
+        stop_type === null ||
         (stop_type === "parent" && stop.parentStop === undefined) ||
-        (stop_type === "child" && stop.parentStop !== undefined)
+        (stop_type === "child" && stop.parentStop !== undefined),
     )
     .map((stop) => ({
       stop: {
@@ -115,25 +111,27 @@ export default async function handler(
       routeTrips: getTripsByRouteForStop(
         stop,
         routesSet,
-        direction_id !== undefined ? direction_id === "true" : null
+        direction_id !== null ? direction_id === "true" : null,
       ),
     }))
     .filter(({ routeTrips }) => routeTrips.length > 0)
     .sort((a, b) => a.stop.distance - b.stop.distance) as StopRouteTrips[];
 
-  res.status(200).json(stopRouteTrips);
+  return new Response(JSON.stringify(stopRouteTrips), {
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 function getTripsByRouteForStop(
   stop: TransiterStop,
   routes: Set<string> | null,
-  direction_id: boolean | null
+  direction_id: boolean | null,
 ) {
   const stopTimesByRoute = stop.stopTimes
     .filter(
       (stopTime) =>
         stopTime.trip !== undefined &&
-        (direction_id === null || stopTime?.trip.directionId === direction_id)
+        (direction_id === null || stopTime?.trip.directionId === direction_id),
     )
     .reduce((grouped, stopTime) => {
       const route = stopTime.trip!.route!.id!;
@@ -147,7 +145,7 @@ function getTripsByRouteForStop(
       .map((stopTime) => [
         stopTime.trip!.route!.id!,
         stopTime.trip!.route!.color!,
-      ])
+      ]),
   );
 
   return Array.from(stopTimesByRoute.entries())
@@ -159,7 +157,7 @@ function getTripsByRouteForStop(
         .filter(
           (stopTime) =>
             stopTime?.arrival?.time !== undefined ||
-            stopTime?.departure?.time !== undefined
+            stopTime?.departure?.time !== undefined,
         )
         .map((stopTime) => ({
           id: stopTime.trip!.id!,
@@ -167,7 +165,7 @@ function getTripsByRouteForStop(
           arrival: parseInt(
             (stopTime?.arrival?.time
               ? stopTime.arrival.time
-              : stopTime.departure!.time!) as unknown as string
+              : stopTime.departure!.time!) as unknown as string,
           ),
           direction_id: stopTime.trip!.directionId!,
           destination: {
@@ -178,6 +176,19 @@ function getTripsByRouteForStop(
         .sort((a, b) => a.arrival - b.arrival),
     }))
     .filter(({ trips }) => trips.length > 0);
+}
+
+function getEdgeQueryParams(req: Request) {
+  const searchParams = new URL(req.url ?? "").searchParams;
+  return {
+    system: searchParams.get("system"),
+    latitude: searchParams.get("latitude"),
+    longitude: searchParams.get("longitude"),
+    routes: searchParams.get("routes"),
+    direction_id: searchParams.get("direction_id"),
+    stop_type: searchParams.get("stop_type"),
+    max_stops: searchParams.get("max_stops"),
+  };
 }
 
 function getMaxStopDistance(system: string) {

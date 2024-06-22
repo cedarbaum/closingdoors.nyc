@@ -1,10 +1,11 @@
+export const runtime = "edge";
+
 import { Alert } from "@/generated/proto/transiter/public";
 import {
   getAlerts,
   getRouteIsRunning,
   getRoutes,
 } from "@/utils/transiterUtils";
-import type { NextApiRequest, NextApiResponse } from "next";
 
 export type RouteStatuses = {
   route: string;
@@ -12,14 +13,11 @@ export type RouteStatuses = {
   alerts: Alert[];
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<RouteStatuses[] | { error: string }>
-) {
-  const { system, routes, get_is_running, only_get_routes_with_alerts } = req.query;
-  if (system === undefined) {
-    res.status(400).json({ error: "system is required" });
-    return;
+export default async function handler(req: Request) {
+  const { system, routes, get_is_running, only_get_routes_with_alerts } =
+    getEdgeQueryParams(req);
+  if (system === null) {
+    return new Response("Missing system", { status: 400 });
   }
 
   const routesSet = routes
@@ -33,7 +31,7 @@ export default async function handler(
 
   const alerts = await getAlerts(system as string);
   const alertIdToAlert = new Map(
-    alerts.map((alert) => [alert.id, alert] as [string, Alert])
+    alerts.map((alert) => [alert.id, alert] as [string, Alert]),
   );
 
   const routeStatusesResp = allRoutes.map((route) => {
@@ -48,9 +46,23 @@ export default async function handler(
   }) as RouteStatuses[];
 
   if (only_get_routes_with_alerts === "true") {
-    res.status(200).json(routeStatusesResp.filter((r) => r.alerts.length > 0));
-    return;
+    return new Response(
+      JSON.stringify(routeStatusesResp.filter((r) => r.alerts.length > 0)),
+      { status: 200 },
+    );
   }
 
-  res.status(200).json(routeStatusesResp);
+  return new Response(JSON.stringify(routeStatusesResp), { status: 200 });
+}
+
+function getEdgeQueryParams(req: Request) {
+  const searchParams = new URL(req.url ?? "").searchParams;
+  return {
+    system: searchParams.get("system"),
+    routes: searchParams.get("routes"),
+    get_is_running: searchParams.get("get_is_running"),
+    only_get_routes_with_alerts: searchParams.get(
+      "only_get_routes_with_alerts",
+    ),
+  };
 }
