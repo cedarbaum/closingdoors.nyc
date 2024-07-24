@@ -1,3 +1,4 @@
+import CitiBikeView from "@/components/CitiBikeView";
 import { FullScreenError } from "@/components/FullScreenError";
 import NycSubwayRoutePicker from "@/components/NycSubwayRoutePicker";
 import Link from "next/link";
@@ -9,6 +10,10 @@ export default function System() {
 
   if (!router.isReady) {
     return null;
+  }
+
+  if (system === "us-ny-nyccitibike") {
+    return <CitiBikeView />;
   }
 
   if (system === "us-ny-subway") {
