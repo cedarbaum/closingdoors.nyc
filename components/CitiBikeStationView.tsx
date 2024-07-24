@@ -17,10 +17,11 @@ export const CitiBikeStationView: React.FC<CitiBikeStationProps> = ({
         <div
           className={clsx(
             "relative text-2xl font-bold",
-            !station.is_renting && "text-gray-400 line-through decoration-[3px]",
+            !station.is_renting &&
+              "text-gray-400 line-through decoration-[3px]",
           )}
         >
-          {station.num_bikes_available - station.num_ebikes_available}
+          {station.num_classic_bikes_available}
         </div>
         <span>
           <span className="text-sm mr-1">Classic</span>
@@ -30,7 +31,8 @@ export const CitiBikeStationView: React.FC<CitiBikeStationProps> = ({
         <div
           className={clsx(
             "relative text-2xl font-bold",
-            !station.is_renting && "text-gray-400 line-through decoration-[3px]",
+            !station.is_renting &&
+              "text-gray-400 line-through decoration-[3px]",
           )}
         >
           {station.num_ebikes_available}
@@ -44,7 +46,8 @@ export const CitiBikeStationView: React.FC<CitiBikeStationProps> = ({
         <div
           className={clsx(
             "relative text-2xl font-bold",
-            !station.is_returning && "text-gray-400 line-through decoration-[3px]",
+            !station.is_returning &&
+              "text-gray-400 line-through decoration-[3px]",
           )}
         >
           {station.num_docks_available}

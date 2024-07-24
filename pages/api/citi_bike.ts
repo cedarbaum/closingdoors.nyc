@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { Gbfs } from "../../utils/gbfs/v2.3/gbfs";
 import { StationInformation } from "../../utils/gbfs/v2.3/station_information";
 import { StationStatus } from "../../utils/gbfs/v2.3/station_status";
+import { fetchJsonAndThrow } from "../../utils/fetchUtils";
 import haversineDistance from "haversine-distance";
 
 const citiBikeSystemUrl =
@@ -35,7 +36,7 @@ export type CitiBikeStation = {
   lat: number;
   lon: number;
   distance: number;
-  num_bikes_available: number;
+  num_classic_bikes_available: number;
   num_ebikes_available: number;
   num_docks_available: number;
   is_renting: boolean;
@@ -103,7 +104,7 @@ export default async function handler(
       ...station,
       ...status,
     };
-  });
+  }) as CitiBikeStationInfoAndStatus[];
 
   // A station should be installed and be able to rent and/or return bikes
   const workingStations = stations.filter(
@@ -124,9 +125,11 @@ export default async function handler(
           name: s.name,
           lat: s.lat,
           lon: s.lon,
-          num_bikes_available: s.num_bikes_available ?? 0,
-          num_ebikes_available: s.num_ebikes_available ?? 0,
+          num_classic_bikes_available: getNumClassicBikes(s),
+          num_ebikes_available: getNumEBikes(s),
           num_docks_available: s.num_docks_available ?? 0,
+          vehichles_available: s.vehicle_types_available,
+          dock_available: s.vehicle_docks_available,
           is_renting: s.is_renting,
           is_returning: s.is_returning,
           distance: haversineDistance(
@@ -145,7 +148,7 @@ export default async function handler(
     .filter((s) => s.distance <= maxDistanceM)
     .reduce<CitiBikeAccumulator>(
       (acc, s) => {
-        const hasClassicBikes = s.num_bikes_available && s.is_renting;
+        const hasClassicBikes = s.num_classic_bikes_available && s.is_renting;
         const hasEBikes = s.num_ebikes_available && s.is_renting;
         const hasSpaces = s.num_docks_available && s.is_returning;
 
@@ -177,10 +180,25 @@ export default async function handler(
   return res.status(200).json(nearbyWorkingStations);
 }
 
-async function fetchJsonAndThrow<T>(url: string) {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(res.statusText);
-  }
-  return res.json() as T;
+const CLASSIC_BIKE_TYPE_ID = "1";
+const EBIKE_TYPE_ID = "2";
+
+function getNumClassicBikes(station: CitiBikeStationInfoAndStatus): number {
+  return (
+    station.vehicle_types_available?.find(
+      (v) => v.vehicle_type_id === CLASSIC_BIKE_TYPE_ID,
+    )?.count ??
+    station.num_bikes_available ??
+    0
+  );
+}
+
+function getNumEBikes(station: CitiBikeStationInfoAndStatus): number {
+  return (
+    station.vehicle_types_available?.find(
+      (v) => v.vehicle_type_id === EBIKE_TYPE_ID,
+    )?.count ??
+    station.num_ebikes_available ??
+    0
+  );
 }
