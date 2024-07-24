@@ -5,8 +5,9 @@ import { StationInformation } from "../../utils/gbfs/v2.3/station_information";
 import { StationStatus } from "../../utils/gbfs/v2.3/station_status";
 import haversineDistance from "haversine-distance";
 
-const citi_bike_system_url = "https://gbfs.citibikenyc.com/gbfs/2.3/gbfs.json";
-
+const citiBikeSystemUrl =
+  process.env.NEXT_PUBLIC_CITIBIKE_GBFS_URL ??
+  "https://gbfs.citibikenyc.com/gbfs/2.3/gbfs.json";
 const maxResults = parseFloat(
   process.env.NEXT_PUBLIC_CITIBIKE_MAX_RESULTS || "100",
 );
@@ -56,7 +57,7 @@ export default async function handler(
     });
   }
 
-  const gbfsData = await fetchJsonAndThrow<Gbfs>(citi_bike_system_url);
+  const gbfsData = await fetchJsonAndThrow<Gbfs>(citiBikeSystemUrl);
   const englishFeeds = gbfsData.data["en"];
   if (!englishFeeds) {
     return res.status(404).json({
