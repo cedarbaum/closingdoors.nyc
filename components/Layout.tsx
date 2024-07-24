@@ -10,6 +10,7 @@ import Link from "next/link";
 import { getChatEnabled, getSystemEnabled } from "@/utils/features";
 import { AlertList, Behavior } from "./AlertList";
 import { getAlertPropsFromSystemNotices } from "@/utils/alertUtils";
+import Image from "next/image";
 
 export interface PopoverAlert {
   type: "info" | "error";
@@ -23,6 +24,7 @@ type Feature = {
   name: string;
   content: React.ReactNode;
   enabled: () => boolean;
+  widthPercent?: number;
 };
 
 const features: Feature[] = [
@@ -45,6 +47,22 @@ const features: Feature[] = [
     enabled: () => getSystemEnabled("us-ny-path"),
   },
   {
+    name: "citibike",
+    content: (
+      <div className="w-6 h-6 relative">
+        <Image
+          className="text-white"
+          src="/citibike-icons/bike.svg"
+          alt="Bike icon"
+          fill
+        />
+      </div>
+    ),
+    type: "system",
+    enabled: () => true,
+    widthPercent: 12.5,
+  },
+  {
     name: "chat",
     content: (
       <div className="w-6 h-6">
@@ -53,6 +71,7 @@ const features: Feature[] = [
     ),
     type: "chat",
     enabled: () => getChatEnabled(),
+    widthPercent: 12.5,
   },
   {
     name: "settings",
@@ -63,34 +82,35 @@ const features: Feature[] = [
     ),
     type: "settings",
     enabled: () => true,
+    widthPercent: 12.5,
   },
 ];
 
 function getTabsFromFeatures(features: Feature[]) {
-  const chatEnabled = getChatEnabled();
-  const otherTabWidthPercent = 12.5;
-  const allOtherTabsWidthPercent =
-    otherTabWidthPercent + (chatEnabled ? otherTabWidthPercent : 0);
-
-  const allSystemsWidthPercent = 100 - allOtherTabsWidthPercent;
-  const numEnabledSystems = features.filter(
-    (f) => f.type === "system" && f.enabled(),
+  const totalWidthOfTabsWithExplicitWidth = features
+    .filter((f) => f.enabled())
+    .filter((f) => f.widthPercent)
+    .reduce((acc, f) => acc + f.widthPercent!, 0);
+  const remainingFleixbleWidthPercent = 100 - totalWidthOfTabsWithExplicitWidth;
+  const numTabsWithFlexibleWidth = features.filter(
+    (f) => f.enabled() && !f.widthPercent,
   ).length;
+  const flexibleWidthPercentPerSystem = remainingFleixbleWidthPercent / numTabsWithFlexibleWidth;
 
   let tabs: Tab[] = [];
   for (const feature of features) {
     if (!feature.enabled()) continue;
-    if (feature.type === "system") {
+    if (feature.widthPercent) {
       tabs.push({
         name: feature.name,
         content: feature.content,
-        widthPercent: allSystemsWidthPercent / numEnabledSystems,
+        widthPercent: feature.widthPercent,
       });
     } else {
       tabs.push({
         name: feature.name,
         content: feature.content,
-        widthPercent: otherTabWidthPercent,
+        widthPercent: flexibleWidthPercentPerSystem,
       });
     }
   }
@@ -103,6 +123,7 @@ const pathToTabName = new Map([
   ["/us-ny-subway/schedule", "subway"],
   ["/us-ny-nycbus/schedule", "bus"],
   ["/us-ny-path/schedule", "path"],
+  ["/us-ny-nyccitibike", "citibike"],
   ["/chat", "chat"],
   ["/settings", "settings"],
 ]);
@@ -111,6 +132,7 @@ const tabOnClickRoutes = new Map([
   ["/us-ny-subway", "subway"],
   ["/us-ny-nycbus/schedule", "bus"],
   ["/us-ny-path/schedule", "path"],
+  ["/us-ny-nyccitibike", "citibike"],
   ["/chat", "chat"],
   ["/settings", "settings"],
 ]);
