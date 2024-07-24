@@ -148,7 +148,7 @@ export default function CitiBikeView() {
     // Activate as soon as the control is loaded
     geoControlRef.current?.trigger();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geoControlRef.current, usingMockedLocation, mapLoaded]);
+  }, [usingMockedLocation, mapLoaded]);
 
   useEffect(() => {
     if (mapRef.current === null || !mapRef.current.loaded) {
