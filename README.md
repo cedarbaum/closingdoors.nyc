@@ -20,6 +20,8 @@ TRANSITER_URL="http://localhost:8080"
 
 By default, it is assumed that the NYC Subway (`us-ny-subway`) is installed in your Transiter instance. The UI also supports the NYC Bus system (`us-ny-nycbus`) and the NYC/NJ PATH train (`us-ny-path`). If you wish to enable other systems, you can set the below environment variable with a comma separated list of system IDs. Note that if you wish to remove the NYC subway, you should also change the root path redirect set in [next.config.js](./next.config.js) to point to the path of an installed system.
 
+In addition to systems in Transiter, you can also enable CitiBike station information by adding the `us-ny-nyccitibike` system. See more details in the [CitiBike Station Information](#CitiBike-station-status) section.
+
 ```
 NEXT_PUBLIC_ENABLED_SYSTEMS="us-ny-subway,us-ny-nycbus,us-ny-path"
 ```
@@ -54,6 +56,35 @@ Additionally, since the NYC bus system is very dense, the max number of stops re
 
 ```
 NEXT_PUBLIC_US_NY_BUSES_MAX_STOPS=30
+```
+
+### CitiBike station status
+
+CitiBike station information can also be displayed. This relies on the public GBFS feed provided by Lyft and does not require any additional configuration once the system is enabled.
+
+There are several environment variables that can be set to customize how this page behaves, though these all have sensible defaults it not specified:
+
+```
+# The URL of the CitiBike GBFS feed
+NEXT_PUBLIC_CITIBIKE_GBFS_URL="https://gbfs.citibikenyc.com/gbfs/2.3/gbfs.json";
+
+# The maximum distance (in KM) that a returned station will be from the user
+NEXT_PUBLIC_CITIBIKE_MAX_STATION_DISTANCE_KM=3.2,
+
+# The maximum number of nearby stations that will be returned
+NEXT_PUBLIC_CITIBIKE_MAX_RESULTS=100
+
+# The minimum number of stations with at least 1 classic bike that will be returned. This is still subject to the max results and max distance
+# paramaters defined above, so there can be cases where fewer stations are returned.
+NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_CLASSIC_BIKES=10,
+
+# The minimum number of stations with at least 1 e-bike that will be returned. This is still subject to the max results and max distance
+# paramaters defined above, so there can be cases where fewer stations are returned.
+NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_EBIKES=10,
+
+# The minimum number of stations with at least 1 open dock that will be returned. This is still subject to the max results and max distance
+# paramaters defined above, so there can be cases where fewer stations are returned.
+NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_SPACES=10
 ```
 
 ### Chat feature (experimental)
