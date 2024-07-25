@@ -25,6 +25,7 @@ import { CitiBikeStationHeader } from "./CitiBikeStationHeader";
 import { CitiBikeLoadingView } from "./CitiBikeLoadingView";
 import { citiBikeLightBlue } from "@/utils/citiBikeColors";
 import useMapStyle from "@/utils/useMapStyle";
+import { DataStatusOverlay } from "./DataStatusOverlay";
 
 export default function CitiBikeView() {
   const {
@@ -48,6 +49,7 @@ export default function CitiBikeView() {
 
   const {
     data: citiBikeStations,
+    dataUpdatedAt: citiBikeStationsUpdatedAt,
     isLoading: citiBikeStationsLoading,
     isFetching: citiBikeStationsFetching,
     error: citiBikeStationsError,
@@ -214,7 +216,7 @@ export default function CitiBikeView() {
     );
   }
 
-  if (citiBikeStationsError) {
+  if (citiBikeStationsError && (filteredCitiBikeStations.length === 0)) {
     isDisplayingErrorRef.current = true;
     return (
       <FullScreenError
@@ -364,6 +366,7 @@ export default function CitiBikeView() {
           })}
         </table>
       </div>
+      <DataStatusOverlay lastUpdate={citiBikeStationsUpdatedAt} />
     </div>
   );
 }

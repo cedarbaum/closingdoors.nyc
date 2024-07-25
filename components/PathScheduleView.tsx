@@ -13,6 +13,7 @@ import { formatKmToLocalizedString } from "@/utils/measurementUtils";
 import { NjOrNy, PathRoute } from "@/utils/pathRoutes";
 import { PathLoadingView } from "./PathLoadingView";
 import { useSettings } from "@/pages/settings";
+import { DataStatusOverlay } from "./DataStatusOverlay";
 
 // Newark - Harrison Shuttle Train
 const excludedPathRoutes = new Set<PathRoute>(["74320"]);
@@ -40,6 +41,7 @@ export default function PathScheduleView() {
 
   const {
     data: nearbyTripsData,
+    dataUpdatedAt: nearbyTripsDataUpdatedAt,
     isLoading: nearbyTripsLoading,
     isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
@@ -227,6 +229,7 @@ export default function PathScheduleView() {
           return [header, tbody];
         })}
       </table>
+      <DataStatusOverlay lastUpdate={nearbyTripsDataUpdatedAt} />
     </>
   );
 }

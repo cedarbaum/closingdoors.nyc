@@ -30,6 +30,7 @@ import { M15 } from "@/utils/nycBus";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import BusIcon from "../public/nyc-bus-icons/bus.svg";
 import useMapStyle from "@/utils/useMapStyle";
+import { DataStatusOverlay } from "./DataStatusOverlay";
 
 interface FocusedTripData {
   tripId: string;
@@ -60,6 +61,7 @@ export default function NycBusScheduleView() {
 
   const {
     data: nearbyTripsData,
+    dataUpdatedAt: nearbyTripsDataUpdatedAt,
     isLoading: nearbyTripsLoading,
     isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
@@ -287,7 +289,18 @@ export default function NycBusScheduleView() {
     );
   }
 
-  if (nearbyTripsError) {
+  const now = DateTime.now();
+  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(
+    now,
+    nearbyTripsData,
+    new Set(),
+    30,
+  );
+
+  if (
+    (!sanitizedNearbyTripsData || sanitizedNearbyTripsData.length === 0) &&
+    nearbyTripsError
+  ) {
     isDisplayingErrorRef.current = true;
     return (
       <FullScreenError
@@ -298,14 +311,6 @@ export default function NycBusScheduleView() {
       />
     );
   }
-
-  const now = DateTime.now();
-  const sanitizedNearbyTripsData = applyQaToStopRouteTrips(
-    now,
-    nearbyTripsData,
-    new Set(),
-    30,
-  );
 
   // If data is stale, show loading view
   if (
@@ -574,6 +579,7 @@ export default function NycBusScheduleView() {
           })}
         </table>
       </div>
+      <DataStatusOverlay lastUpdate={nearbyTripsDataUpdatedAt} />
     </div>
   );
 }

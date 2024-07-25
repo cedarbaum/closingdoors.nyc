@@ -16,6 +16,7 @@ import { SubwayDirection } from "@/utils/subwayLines";
 import { applyQaToStopRouteTrips } from "@/utils/scheduleUtils";
 import { formatKmToLocalizedString } from "@/utils/measurementUtils";
 import { useSettings } from "@/pages/settings";
+import { DataStatusOverlay } from "./DataStatusOverlay";
 
 export interface ScheduleViewProps {
   stops?: Set<string>;
@@ -78,6 +79,7 @@ const NycSubwayScheduleView: React.FC = () => {
 
   const {
     data: routeStatusData,
+    dataUpdatedAt: routeStatusDataUpdatedAt,
     isLoading: routeStatusLoading,
     error: routeStatusError,
   } = useQuery(
@@ -103,6 +105,7 @@ const NycSubwayScheduleView: React.FC = () => {
 
   const {
     data: nearbyTripsData,
+    dataUpdatedAt: nearbyTripsDataUpdatedAt,
     isLoading: nearbyTripsLoading,
     isFetching: nearbyTripsFetching,
     error: nearbyTripsError,
@@ -177,18 +180,6 @@ const NycSubwayScheduleView: React.FC = () => {
     );
   }
 
-  if (nearbyTripsError || routeStatusError) {
-    isDisplayingErrorRef.current = true;
-    return (
-      <FullScreenError
-        system="us-ny-subway"
-        error={
-          <>An error occurred while fetching schedules. Will retry shortly.</>
-        }
-      />
-    );
-  }
-
   const alertMessages = getMtaAlertPropsFromRouteAlerts(
     routeStatusData?.flatMap((routeStatus) => routeStatus.alerts as Alert[]) ??
       [],
@@ -200,8 +191,27 @@ const NycSubwayScheduleView: React.FC = () => {
     nearbyTripsData,
   );
 
+  if (
+    (!sanitizedNearbyTripsData || sanitizedNearbyTripsData.length === 0) &&
+    (nearbyTripsError || routeStatusError)
+  ) {
+    isDisplayingErrorRef.current = true;
+    return (
+      <FullScreenError
+        system="us-ny-subway"
+        error={
+          <>An error occurred while fetching schedules. Will retry shortly.</>
+        }
+      />
+    );
+  }
+
   // If data is stale, show loading view
-  if (!isDisplayingErrorRef && nearbyTripsFetching && sanitizedNearbyTripsData?.length === 0) {
+  if (
+    !isDisplayingErrorRef &&
+    nearbyTripsFetching &&
+    sanitizedNearbyTripsData?.length === 0
+  ) {
     return <NycSubwayLoadingView />;
   }
 
@@ -288,6 +298,7 @@ const NycSubwayScheduleView: React.FC = () => {
           return [header, tbody];
         })}
       </table>
+      <DataStatusOverlay lastUpdate={Math.min(nearbyTripsDataUpdatedAt, routeStatusDataUpdatedAt)} />
     </>
   );
 };
