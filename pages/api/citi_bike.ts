@@ -4,27 +4,10 @@ import { Gbfs } from "../../utils/gbfs/v2.3/gbfs";
 import { StationInformation } from "../../utils/gbfs/v2.3/station_information";
 import { StationStatus } from "../../utils/gbfs/v2.3/station_status";
 import { fetchJsonAndThrow } from "../../utils/fetchUtils";
-import haversineDistance from "haversine-distance";
 
 const citiBikeSystemUrl =
   process.env.NEXT_PUBLIC_CITIBIKE_GBFS_URL ??
   "https://gbfs.citibikenyc.com/gbfs/2.3/gbfs.json";
-const maxResults = parseFloat(
-  process.env.NEXT_PUBLIC_CITIBIKE_MAX_RESULTS || "100",
-);
-const maxDistanceM =
-  parseFloat(
-    process.env.NEXT_PUBLIC_CITIBIKE_MAX_STATION_DISTANCE_KM || "3.2",
-  ) * 1000;
-const minStationsWithClassicBikes = parseFloat(
-  process.env.NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_CLASSIC_BIKES || "10",
-);
-const minStationsWithSpaces = parseFloat(
-  process.env.NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_SPACES || "10",
-);
-const minStationsWithEbikes = parseFloat(
-  process.env.NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_EBIKES || "10",
-);
 
 export type CitiBikeStationInfoAndStatus =
   StationInformation["data"]["stations"][0] &
@@ -35,7 +18,6 @@ export type CitiBikeStation = {
   name: string;
   lat: number;
   lon: number;
-  distance: number;
   num_classic_bikes_available: number;
   num_ebikes_available: number;
   num_docks_available: number;
@@ -47,17 +29,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CitiBikeStation[] | { error: string }>,
 ) {
-  const { latitude, longitude } = req.query as {
-    latitude: string;
-    longitude: string;
-  };
-
-  if (!latitude || !longitude) {
-    return res.status(400).json({
-      error: "Missing user location",
-    });
-  }
-
   const gbfsData = await fetchJsonAndThrow<Gbfs>(citiBikeSystemUrl);
   const englishFeeds = gbfsData.data["en"];
   if (!englishFeeds) {
@@ -111,71 +82,25 @@ export default async function handler(
     (s) => s.is_installed && (s.is_renting || s.is_returning),
   );
 
-  type CitiBikeAccumulator = {
-    stations: CitiBikeStation[];
-    stationsWithClassicBikes: number;
-    stationsWithEBikes: number;
-    stationsWithSpaces: number;
-  };
-  const nearbyWorkingStations = workingStations
-    .map(
-      (s) =>
-        ({
-          station_id: s.station_id,
-          name: s.name,
-          lat: s.lat,
-          lon: s.lon,
-          num_classic_bikes_available: getNumClassicBikes(s),
-          num_ebikes_available: getNumEBikes(s),
-          num_docks_available: s.num_docks_available ?? 0,
-          vehichles_available: s.vehicle_types_available,
-          dock_available: s.vehicle_docks_available,
-          is_renting: s.is_renting,
-          is_returning: s.is_returning,
-          distance: haversineDistance(
-            {
-              lat: parseFloat(latitude),
-              lng: parseFloat(longitude),
-            },
-            {
-              lat: s.lat,
-              lng: s.lon,
-            },
-          ),
-        }) as CitiBikeStation,
-    )
-    .sort((a, b) => a.distance - b.distance)
-    .filter((s) => s.distance <= maxDistanceM)
-    .reduce<CitiBikeAccumulator>(
-      (acc, s) => {
-        const hasClassicBikes = s.num_classic_bikes_available && s.is_renting;
-        const hasEBikes = s.num_ebikes_available && s.is_renting;
-        const hasSpaces = s.num_docks_available && s.is_returning;
+  const nearbyWorkingStations = workingStations.map(
+    (s) =>
+      ({
+        station_id: s.station_id,
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        num_classic_bikes_available: getNumClassicBikes(s),
+        num_ebikes_available: getNumEBikes(s),
+        num_docks_available: s.num_docks_available ?? 0,
+        dock_available: s.vehicle_docks_available,
+        is_renting: s.is_renting,
+        is_returning: s.is_returning,
+      }) as CitiBikeStation,
+  );
 
-        acc.stationsWithClassicBikes += hasClassicBikes ? 1 : 0;
-        acc.stationsWithEBikes += hasEBikes ? 1 : 0;
-        acc.stationsWithSpaces += hasSpaces ? 1 : 0;
-
-        // Add stations until we reach the minimum number of stations with
-        // classic bikes, ebikes and spaces
-        if (
-          acc.stationsWithClassicBikes <= minStationsWithClassicBikes &&
-          acc.stationsWithEBikes <= minStationsWithEbikes &&
-          acc.stationsWithSpaces <= minStationsWithSpaces
-        ) {
-          acc.stations.push(s);
-        }
-
-        return acc;
-      },
-      {
-        stations: [],
-        stationsWithClassicBikes: 0,
-        stationsWithEBikes: 0,
-        stationsWithSpaces: 0,
-      },
-    )
-    .stations.slice(0, maxResults);
+  res.setHeader("Vercel-CDN-Cache-Control", "max-age=5");
+  res.setHeader("CDN-Cache-Control", "max-age=5");
+  res.setHeader("Cache-Control", "s-max-age=5");
 
   return res.status(200).json(nearbyWorkingStations);
 }

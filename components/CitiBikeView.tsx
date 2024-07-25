@@ -26,6 +26,15 @@ import { CitiBikeLoadingView } from "./CitiBikeLoadingView";
 import { citiBikeLightBlue } from "@/utils/citiBikeColors";
 import useMapStyle from "@/utils/useMapStyle";
 import { DataStatusOverlay } from "./DataStatusOverlay";
+import haversineDistance from "haversine-distance";
+import * as turf from "@turf/turf";
+import { BBox, Feature, Polygon } from "geojson";
+import { useDebouncedCallback } from "use-debounce";
+
+const maxDistanceKm = parseFloat(
+  process.env.NEXT_PUBLIC_CITIBIKE_MAX_STATION_DISTANCE_KM || "0.8",
+);
+const maxDistanceM = maxDistanceKm * 1000;
 
 export default function CitiBikeView() {
   const {
@@ -57,14 +66,7 @@ export default function CitiBikeView() {
   } = useQuery(
     ["nearby_citi_bikes"],
     async () => {
-      const nearbyRouteTrips = await fetch(
-        "/api/citi_bike?" +
-          new URLSearchParams({
-            latitude: latitude!.toString(),
-            longitude: longitude!.toString(),
-            max_results: "20",
-          }),
-      );
+      const nearbyRouteTrips = await fetch("/api/citi_bike");
 
       if (!nearbyRouteTrips.ok) {
         throw new Error("Failed to fetch nearby route trips");
@@ -74,7 +76,7 @@ export default function CitiBikeView() {
     },
     {
       enabled: latitude !== undefined && longitude !== undefined,
-      refetchInterval: 10000,
+      refetchInterval: 100000,
     },
   );
 
@@ -87,6 +89,11 @@ export default function CitiBikeView() {
 
   const mapRef = useRef<MapRef>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [viewport, setViewport] = useState<Feature<Polygon> | null>(null);
+  const debouncedSetViewport = useDebouncedCallback((value) => {
+    setViewport(value);
+  }, 1000);
+
   const onClickHandlerRef = useRef<any>(null);
   useEffect(() => {
     if (!mapRef.current?.loaded) {
@@ -115,34 +122,57 @@ export default function CitiBikeView() {
       }
 
       setFocusedStationId(id);
-
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
     };
     mapRef.current.on("click", "stations", onClickHandlerRef.current);
   }, [mapRef.current, mapLoaded]);
 
-  const filteredCitiBikeStations =
-    citiBikeStations?.filter((station) => {
-      if (filterBarState === "all") {
-        return true;
-      }
+  const processedCitiBikeStations =
+    citiBikeStations
+      ?.filter((station) => {
+        if (filterBarState === "all") {
+          return true;
+        }
 
-      if (filterBarState === "ebikes") {
-        return station.num_ebikes_available > 0 && station.is_renting;
-      }
+        if (filterBarState === "ebikes") {
+          return station.num_ebikes_available > 0 && station.is_renting;
+        }
 
-      if (filterBarState === "spaces") {
-        return station.num_docks_available > 0 && station.is_returning;
-      }
+        if (filterBarState === "spaces") {
+          return station.num_docks_available > 0 && station.is_returning;
+        }
 
-      return false;
-    }) ?? [];
+        return false;
+      })
+      .map((station) => {
+        if (latitude === undefined || longitude === undefined) {
+          return {
+            ...station,
+            distance: Number.MAX_SAFE_INTEGER,
+          };
+        }
+        return {
+          ...station,
+          distance: haversineDistance(
+            { latitude: station.lat, longitude: station.lon },
+            { latitude, longitude },
+          ),
+        };
+      })
+      .filter(
+        (station) =>
+          station.distance <= maxDistanceM ||
+          (viewport &&
+            turf.booleanPointInPolygon(
+              turf.point([station.lon, station.lat]),
+              viewport,
+            )),
+      )
+      .sort((a, b) => {
+        return a.distance - b.distance;
+      }) ?? [];
 
   const geoControlRef = useRef<mapboxgl.GeolocateControl>(null);
-  const focusedStation = filteredCitiBikeStations.find(
+  const focusedStation = processedCitiBikeStations.find(
     (station) => station.station_id === focusedStationId,
   );
 
@@ -182,13 +212,24 @@ export default function CitiBikeView() {
       maxZoom: 14,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusedStation, mapRef.current, longitude, latitude, mapLoaded]);
+  }, [
+    focusedStation?.station_id,
+    mapRef.current,
+    longitude,
+    latitude,
+    mapLoaded,
+  ]);
 
-  const loadingView = (
-    <div className="flex flex-col w-full h-full">
-      <CitiBikeLoadingView />
-    </div>
-  );
+  useEffect(() => {
+    if (!focusedStationId || processedCitiBikeStations.length === 0) {
+      return;
+    }
+
+    const element = document.getElementById(focusedStationId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [focusedStationId, processedCitiBikeStations.length]);
 
   if (
     !isDisplayingErrorRef.current &&
@@ -196,7 +237,11 @@ export default function CitiBikeView() {
       (!locationErrorMessage &&
         (latitude === undefined || longitude === undefined)))
   ) {
-    return loadingView;
+    return (
+      <div className="flex flex-col w-full h-full">
+        <CitiBikeLoadingView />
+      </div>
+    );
   }
 
   if (
@@ -217,7 +262,7 @@ export default function CitiBikeView() {
     );
   }
 
-  if (citiBikeStationsError && (filteredCitiBikeStations.length === 0)) {
+  if (citiBikeStationsError && processedCitiBikeStations.length === 0) {
     isDisplayingErrorRef.current = true;
     return (
       <FullScreenError
@@ -232,7 +277,10 @@ export default function CitiBikeView() {
   }
 
   let errorUnderMap = null;
-  if (filteredCitiBikeStations.length === 0 || citiBikeStations === undefined) {
+  if (
+    processedCitiBikeStations.length === 0 ||
+    citiBikeStations === undefined
+  ) {
     isDisplayingErrorRef.current = true;
     errorUnderMap = (
       <RelativeFullScreenError
@@ -240,12 +288,7 @@ export default function CitiBikeView() {
         error={
           <>
             {`No nearby stations within
-            ${formatKmToLocalizedString(
-              parseFloat(
-                process.env.NEXT_PUBLIC_US_NY_NYCBUS_MAX_STOP_DISTANCE_KM!,
-              ),
-              distanceUnit,
-            )} of you.`}
+            ${formatKmToLocalizedString(maxDistanceKm, distanceUnit)} of you.`}
           </>
         }
       />
@@ -254,7 +297,7 @@ export default function CitiBikeView() {
 
   const nearbyStationsGeoJson = {
     type: "FeatureCollection",
-    features: filteredCitiBikeStations.map((station) => {
+    features: processedCitiBikeStations.map((station) => {
       return {
         type: "Feature",
         geometry: {
@@ -321,6 +364,20 @@ export default function CitiBikeView() {
           onLoad={() => {
             setMapLoaded(true);
           }}
+          onMove={() => {
+            const viewport = mapRef.current?.getMap().getBounds();
+            if (!viewport) {
+              return;
+            }
+            const bbox = [
+              viewport.getWest(),
+              viewport.getSouth(),
+              viewport.getEast(),
+              viewport.getNorth(),
+            ] as BBox;
+            const bboxPolygon = turf.bboxPolygon(bbox);
+            debouncedSetViewport(bboxPolygon);
+          }}
         >
           <GeolocateControl
             ref={geoControlRef}
@@ -338,7 +395,7 @@ export default function CitiBikeView() {
       {errorUnderMap}
       <div className="grow overflow-auto scrollbar-hide bg-black">
         <table className="w-full bg-black p-0">
-          {filteredCitiBikeStations.map((station) => {
+          {processedCitiBikeStations.map((station) => {
             const isFocusedStation = station.station_id === focusedStationId;
             return (
               <Fragment key={station.station_id}>
@@ -351,14 +408,16 @@ export default function CitiBikeView() {
                 </thead>
                 <tbody className="scroll-mt-[44px]" id={station.station_id}>
                   <tr onClick={() => setFocusedStationId(station.station_id)}>
-                    <td
-                      className={`bg-black ${
-                        isFocusedStation
-                          ? "border-4 border-white"
-                          : "cursor-pointer"
-                      }`}
-                    >
-                      <CitiBikeStationView station={station} />
+                    <td>
+                      <div
+                        className={`bg-black border-4 ${
+                          isFocusedStation
+                            ? "border-white"
+                            : "cursor-pointer border-black"
+                        }`}
+                      >
+                        <CitiBikeStationView station={station} />
+                      </div>
                     </td>
                   </tr>
                 </tbody>
