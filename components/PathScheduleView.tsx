@@ -14,6 +14,7 @@ import { NjOrNy, PathRoute } from "@/utils/pathRoutes";
 import { PathLoadingView } from "./PathLoadingView";
 import { useSettings } from "@/pages/settings";
 import { DataStatusOverlay } from "./DataStatusOverlay";
+import usePageRefresh from "@/utils/usePageRefresh";
 
 // Newark - Harrison Shuttle Train
 const excludedPathRoutes = new Set<PathRoute>(["74320"]);
@@ -36,7 +37,7 @@ export default function PathScheduleView() {
     queryTypes.stringEnum<NjOrNy>(Object.values(NjOrNy)).withDefault(NjOrNy.NJ),
   );
 
-  const [, setTime] = useState(Date.now());
+  usePageRefresh();
   const isDisplayingErorRef = useRef(false);
 
   const {
@@ -71,13 +72,6 @@ export default function PathScheduleView() {
   );
 
   const { distanceUnit } = useSettings();
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
 
   const directionSelectors = (
     <DirectionSelectors

@@ -17,6 +17,7 @@ import { applyQaToStopRouteTrips } from "@/utils/scheduleUtils";
 import { formatKmToLocalizedString } from "@/utils/measurementUtils";
 import { useSettings } from "@/pages/settings";
 import { DataStatusOverlay } from "./DataStatusOverlay";
+import usePageRefresh from "@/utils/usePageRefresh";
 
 export interface ScheduleViewProps {
   stops?: Set<string>;
@@ -74,7 +75,7 @@ const NycSubwayScheduleView: React.FC = () => {
     },
   );
 
-  const [, setTime] = useState(Date.now());
+  usePageRefresh();
   const isDisplayingErrorRef = React.useRef(false);
 
   const {
@@ -144,13 +145,6 @@ const NycSubwayScheduleView: React.FC = () => {
   );
 
   const { distanceUnit } = useSettings();
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
 
   if (
     !isDisplayingErrorRef.current &&

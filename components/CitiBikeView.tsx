@@ -40,6 +40,7 @@ export default function CitiBikeView() {
       enableHighAccuracy: false,
     },
   );
+
   const isDisplayingErrorRef = useRef(false);
   const [focusedStationId, setFocusedStationId] = useState<string | undefined>(
     undefined,

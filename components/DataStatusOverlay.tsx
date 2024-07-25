@@ -2,6 +2,7 @@ import React from "react";
 import { SignalIcon, SignalSlashIcon } from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
 import useNetworkStatus from "@/utils/useNetworkStatus";
+import usePageRefresh from "@/utils/usePageRefresh";
 
 const DATA_STALE_THRESHOLD_SECONDS = 60;
 
@@ -13,6 +14,10 @@ export const DataStatusOverlay: React.FC<DataStatusOverlayProps> = ({
   lastUpdate,
 }) => {
   const { isOnline } = useNetworkStatus();
+
+  // Periodically refresh page to see if data is stale
+  usePageRefresh(3000);
+
   const timeSinceLastUpdateSeconds = lastUpdate
     ? Math.floor((Date.now() - lastUpdate) / 1000)
     : null;

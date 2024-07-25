@@ -31,6 +31,7 @@ import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import BusIcon from "../public/nyc-bus-icons/bus.svg";
 import useMapStyle from "@/utils/useMapStyle";
 import { DataStatusOverlay } from "./DataStatusOverlay";
+import usePageRefresh from "@/utils/usePageRefresh";
 
 interface FocusedTripData {
   tripId: string;
@@ -56,7 +57,8 @@ export default function NycBusScheduleView() {
       enableHighAccuracy: false,
     },
   );
-  const [, setTime] = useState(Date.now());
+
+  usePageRefresh();
   const isDisplayingErrorRef = useRef(false);
 
   const {
@@ -162,13 +164,6 @@ export default function NycBusScheduleView() {
 
   const { distanceUnit } = useSettings();
   const { mapStyle, mapStyleUrl } = useMapStyle();
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
 
   const usingMockedLocation =
     process.env.NEXT_PUBLIC_MOCK_LAT !== undefined &&
