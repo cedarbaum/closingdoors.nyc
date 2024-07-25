@@ -75,15 +75,15 @@ NEXT_PUBLIC_CITIBIKE_MAX_STATION_DISTANCE_KM=3.2,
 NEXT_PUBLIC_CITIBIKE_MAX_RESULTS=100
 
 # The minimum number of stations with at least 1 classic bike that will be returned. This is still subject to the max results and max distance
-# paramaters defined above, so there can be cases where fewer stations are returned.
+# parameters defined above, so there can be cases where fewer stations are returned.
 NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_CLASSIC_BIKES=10,
 
 # The minimum number of stations with at least 1 e-bike that will be returned. This is still subject to the max results and max distance
-# paramaters defined above, so there can be cases where fewer stations are returned.
+# parameters defined above, so there can be cases where fewer stations are returned.
 NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_EBIKES=10,
 
 # The minimum number of stations with at least 1 open dock that will be returned. This is still subject to the max results and max distance
-# paramaters defined above, so there can be cases where fewer stations are returned.
+# parameters defined above, so there can be cases where fewer stations are returned.
 NEXT_PUBLIC_CITIBIKE_MIN_STATIONS_WITH_SPACES=10
 ```
 
