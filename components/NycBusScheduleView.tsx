@@ -20,7 +20,6 @@ import {
 import "mapbox-gl/dist/mapbox-gl.css";
 import { TripInfo } from "@/pages/api/trip";
 import { RouteStatuses } from "@/pages/api/route_statuses";
-import Image from "next/image";
 import ToggleFollowBusControl from "./ToggleFollowBusControl";
 import mapboxgl from "mapbox-gl";
 import { Alert } from "@/generated/proto/transiter/public";
@@ -29,6 +28,8 @@ import { getMtaAlertPropsFromRouteAlerts } from "@/utils/alertUtils";
 import { NycBusLoadingView } from "./NycBusLoadingView";
 import { M15 } from "@/utils/nycBus";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
+import BusIcon from "../public/nyc-bus-icons/bus.svg";
+import useMapStyle from "@/utils/useMapStyle";
 
 interface FocusedTripData {
   tripId: string;
@@ -158,6 +159,7 @@ export default function NycBusScheduleView() {
   );
 
   const { distanceUnit } = useSettings();
+  const { mapStyle, mapStyleUrl } = useMapStyle();
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 1000);
@@ -403,7 +405,10 @@ export default function NycBusScheduleView() {
           latitude={focusedTripData.vehicle.latitude!}
         >
           <div className="w-[2.25em] h-[2.25em]">
-            <Image src="/mta-alert-icons/bus.svg" alt="Bus" fill />
+            <BusIcon
+              className="w-full h-full"
+              fill={mapStyle === "dark" ? "white" : "black"}
+            />
           </div>
         </Marker>
       );
@@ -476,7 +481,7 @@ export default function NycBusScheduleView() {
             zoom: 3.5,
           }}
           style={{ width: "100%", height: 250 }}
-          mapStyle="mapbox://styles/mapbox/streets-v12"
+          mapStyle={mapStyleUrl}
         >
           {mapContextContent && <MapContextBar {...mapContextContent} />}
           <GeolocateControl

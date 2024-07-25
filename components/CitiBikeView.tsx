@@ -24,6 +24,7 @@ import { MapMouseEvent } from "mapbox-gl";
 import { CitiBikeStationHeader } from "./CitiBikeStationHeader";
 import { CitiBikeLoadingView } from "./CitiBikeLoadingView";
 import { citiBikeLightBlue } from "@/utils/citiBikeColors";
+import useMapStyle from "@/utils/useMapStyle";
 
 export default function CitiBikeView() {
   const {
@@ -75,6 +76,7 @@ export default function CitiBikeView() {
   );
 
   const { distanceUnit } = useSettings();
+  const { mapStyleUrl } = useMapStyle();
 
   const usingMockedLocation =
     process.env.NEXT_PUBLIC_MOCK_LAT !== undefined &&
@@ -312,7 +314,7 @@ export default function CitiBikeView() {
             zoom: 3.5,
           }}
           style={{ width: "100%", height: 250 }}
-          mapStyle="mapbox://styles/mapbox/streets-v12"
+          mapStyle={mapStyleUrl}
           onLoad={() => {
             setMapLoaded(true);
           }}

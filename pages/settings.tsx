@@ -70,6 +70,12 @@ const distanceUnitOptions = [
   { value: "mi", name: "MI" },
 ];
 
+const mapStyleOptions = [
+  { value: "system", name: "System" },
+  { value: "light", name: "Light" },
+  { value: "dark", name: "Dark" },
+];
+
 export interface Settings {
   chat: {
     useLocation: boolean;
@@ -80,6 +86,7 @@ export interface Settings {
   distanceUnit: DistanceUnits;
   chatEnabled: boolean;
   citiBikeEnabled: boolean;
+  mapStyle: "system" | "light" | "dark";
   setChatUseLocation: (useLocation: boolean) => void;
   setScheduleCountdownDisplayFormat: (
     countdownDisplayFormat: ScheduleCountdownDisplayFormat,
@@ -87,6 +94,7 @@ export interface Settings {
   setDistanceUnit: (distanceUnit: DistanceUnits) => void;
   setChatEnabled: (enabled: boolean) => void;
   setCitiBikeEnabled: (enabled: boolean) => void;
+  setMapStyle: (style: "system" | "light" | "dark") => void;
 }
 
 const useSettingsStore = create<Settings>()(
@@ -107,6 +115,7 @@ const useSettingsStore = create<Settings>()(
         set((state) => ({ ...state, chatEnabled: enabled })),
       setCitiBikeEnabled: (enabled) =>
         set((state) => ({ ...state, citiBikeEnabled: enabled })),
+      setMapStyle: (style) => set((state) => ({ ...state, mapStyle: style })),
       chat: {
         useLocation: false as boolean,
       },
@@ -117,6 +126,7 @@ const useSettingsStore = create<Settings>()(
       distanceUnit: "mi" as DistanceUnits,
       chatEnabled: true as boolean,
       citiBikeEnabled: true as boolean,
+      mapStyle: "system" as "system" | "light" | "dark",
     }),
     {
       name: "settings",
@@ -159,12 +169,14 @@ export default function Settings({ content }: any) {
     distanceUnit,
     chatEnabled,
     citiBikeEnabled,
+    mapStyle,
     setChatUseLocation,
     setScheduleCountdownDisplayFormat,
     setDistanceUnit,
     settingsReady,
     setChatEnabled,
     setCitiBikeEnabled,
+    setMapStyle,
   } = settings
 
   if (!settingsReady) {
@@ -238,6 +250,18 @@ export default function Settings({ content }: any) {
             <InformationCircleIcon className="w-4 h-4 mr-1 shrink-0" />
             <span>{displayFormatDescription}</span>
           </div>
+        </div>
+      </section>
+      <section>
+        <h1 className="text-xl font-bold">Map</h1>
+        <div className="py-2">
+          <LabelledTabSwitcher
+            label="Map style"
+            options={mapStyleOptions}
+            selected={mapStyle}
+            setSelected={setMapStyle as (option: string) => void}
+            widthPercent={60}
+          />
         </div>
       </section>
       {getSystemEnabled("us-ny-nyccitibike") && (
@@ -359,7 +383,7 @@ export default function Settings({ content }: any) {
           )}
         </div>
       </section>
-      <footer className="flex flex-col items-center mt-8">
+      <footer className="flex flex-col items-center mt-8 mb-4">
         <div className="font-bold">Designed & Built in New York, NY 🗽</div>
       </footer>
     </div>
