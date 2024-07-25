@@ -6,6 +6,7 @@ export interface NycBusTripArrivalTimeProps
   extends Omit<TripArrivalTimeProps, "routeDisplay"> {
   route: string;
   routeColor?: string;
+  headsign?: string;
   destination: string;
   showAlertIcon?: boolean;
   isFocused?: boolean;
@@ -15,6 +16,7 @@ export const NycBusTripArrivalTime: React.FC<NycBusTripArrivalTimeProps> = ({
   route,
   routeColor,
   destination,
+  headsign,
   showAlertIcon,
   isFocused,
   ...props
@@ -31,7 +33,9 @@ export const NycBusTripArrivalTime: React.FC<NycBusTripArrivalTimeProps> = ({
           <ExclamationCircleIcon className="absolute w-[20px] h-[20px] right-[-10px] top-[-7px] z-30 select-none text-[#FFFF00] animate-alertIconAnimation" />
         )}
       </div>
-      <div className="flex text-white text-sm mt-1">→ {destination}</div>
+      <div className="flex text-white text-sm mt-1">
+        → {headsign ? shortedHeadsign(headsign) : destination}
+      </div>
     </div>
   );
 
@@ -43,3 +47,12 @@ export const NycBusTripArrivalTime: React.FC<NycBusTripArrivalTimeProps> = ({
     />
   );
 };
+
+function shortedHeadsign(headsign: string): string {
+  // Remove "SELECT BUS" prefix
+  const selectBusPrifix = "SELECT BUS";
+  if (headsign.toUpperCase().startsWith(selectBusPrifix)) {
+    return headsign.substring(selectBusPrifix.length).trim();
+  }
+  return headsign;
+}

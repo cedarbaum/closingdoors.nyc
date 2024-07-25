@@ -547,6 +547,7 @@ export default function NycBusScheduleView() {
                             timeUntilArrival={delta}
                             route={routeTrip.route}
                             routeColor={routeTrip.route_color}
+                            headsign={trip.headsign}
                             destination={trip.destination.name}
                             showAlertIcon={alertsByRoute?.has(routeTrip.route)}
                             isFocused={isFocusedTrip}

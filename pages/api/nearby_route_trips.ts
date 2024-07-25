@@ -19,6 +19,7 @@ export type Trip = {
   id: string;
   arrival: number;
   direction_id: boolean;
+  headsign?: string;
   destination: {
     id: string;
     name: string;
@@ -168,6 +169,7 @@ function getTripsByRouteForStop(
               : stopTime.departure!.time!) as unknown as string,
           ),
           direction_id: stopTime.trip!.directionId!,
+          headsign: stopTime.headsign,
           destination: {
             id: stopTime.trip!.destination!.id!,
             name: stopTime.trip!.destination!.name!,
