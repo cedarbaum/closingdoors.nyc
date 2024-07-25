@@ -14,7 +14,7 @@ import { classNames } from "@/utils/cssUtils";
 import { TripArrivalTime } from "@/components/TripArrivalTime";
 import { Duration } from "luxon";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import { getChatEnabled } from "@/utils/features";
+import { getChatEnabled, getSystemEnabled } from "@/utils/features";
 import Link from "next/link";
 import { getBuildInfo } from "@/utils/build";
 import { Drawer } from "vaul";
@@ -78,11 +78,15 @@ export interface Settings {
     countdownDisplayFormat: ScheduleCountdownDisplayFormat;
   };
   distanceUnit: DistanceUnits;
+  chatEnabled: boolean;
+  citiBikeEnabled: boolean;
   setChatUseLocation: (useLocation: boolean) => void;
   setScheduleCountdownDisplayFormat: (
     countdownDisplayFormat: ScheduleCountdownDisplayFormat,
   ) => void;
   setDistanceUnit: (distanceUnit: DistanceUnits) => void;
+  setChatEnabled: (enabled: boolean) => void;
+  setCitiBikeEnabled: (enabled: boolean) => void;
 }
 
 const useSettingsStore = create<Settings>()(
@@ -99,6 +103,10 @@ const useSettingsStore = create<Settings>()(
         })),
       setDistanceUnit: (distanceUnit) =>
         set((state) => ({ ...state, distanceUnit })),
+      setChatEnabled: (enabled) =>
+        set((state) => ({ ...state, chatEnabled: enabled })),
+      setCitiBikeEnabled: (enabled) =>
+        set((state) => ({ ...state, citiBikeEnabled: enabled })),
       chat: {
         useLocation: false as boolean,
       },
@@ -107,6 +115,8 @@ const useSettingsStore = create<Settings>()(
           ScheduleCountdownDisplayFormat.MinuteRounded as ScheduleCountdownDisplayFormat,
       },
       distanceUnit: "mi" as DistanceUnits,
+      chatEnabled: true as boolean,
+      citiBikeEnabled: true as boolean,
     }),
     {
       name: "settings",
@@ -142,15 +152,20 @@ export async function getStaticProps() {
 }
 
 export default function Settings({ content }: any) {
+  const settings = useSettings()
   const {
     chat: { useLocation },
     schedule: { countdownDisplayFormat },
     distanceUnit,
+    chatEnabled,
+    citiBikeEnabled,
     setChatUseLocation,
     setScheduleCountdownDisplayFormat,
     setDistanceUnit,
     settingsReady,
-  } = useSettings();
+    setChatEnabled,
+    setCitiBikeEnabled,
+  } = settings
 
   if (!settingsReady) {
     return null;
@@ -225,9 +240,28 @@ export default function Settings({ content }: any) {
           </div>
         </div>
       </section>
+      {getSystemEnabled("us-ny-nyccitibike") && (
+        <section>
+          <h1 className="text-xl font-bold mt-4">CitiBike</h1>
+          <div className="py-2">
+            <LabelledSwitch
+              label="Enabled"
+              onChange={setCitiBikeEnabled}
+              enabled={citiBikeEnabled}
+            />
+          </div>
+        </section>
+      )}
       {getChatEnabled() && (
         <section>
           <h1 className="text-xl font-bold mt-4">Chat</h1>
+          <div className="py-2">
+            <LabelledSwitch
+              label="Enabled"
+              onChange={setChatEnabled}
+              enabled={chatEnabled}
+            />
+          </div>
           <div className="py-2">
             <LabelledSwitch
               label="Use location by default"

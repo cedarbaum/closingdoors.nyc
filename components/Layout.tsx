@@ -11,6 +11,7 @@ import { getChatEnabled, getSystemEnabled } from "@/utils/features";
 import { AlertList, Behavior } from "./AlertList";
 import { getAlertPropsFromSystemNotices } from "@/utils/alertUtils";
 import Image from "next/image";
+import { useSettings, Settings } from "@/pages/settings";
 
 export interface PopoverAlert {
   type: "info" | "error";
@@ -23,7 +24,7 @@ type Feature = {
   type: "chat" | "settings" | "system";
   name: string;
   content: React.ReactNode;
-  enabled: () => boolean;
+  enabled: (settings?: Settings) => boolean;
   widthPercent?: number;
 };
 
@@ -59,7 +60,8 @@ const features: Feature[] = [
       </div>
     ),
     type: "system",
-    enabled: () => true,
+    enabled: (settings) =>
+      getSystemEnabled("us-ny-nyccitibike") && !!settings?.citiBikeEnabled,
     widthPercent: 12.5,
   },
   {
@@ -70,7 +72,7 @@ const features: Feature[] = [
       </div>
     ),
     type: "chat",
-    enabled: () => getChatEnabled(),
+    enabled: (settings) => getChatEnabled() && !!settings?.chatEnabled,
     widthPercent: 12.5,
   },
   {
@@ -86,20 +88,21 @@ const features: Feature[] = [
   },
 ];
 
-function getTabsFromFeatures(features: Feature[]) {
+function getTabsFromFeatures(features: Feature[], settings?: Settings) {
   const totalWidthOfTabsWithExplicitWidth = features
-    .filter((f) => f.enabled())
+    .filter((f) => f.enabled(settings))
     .filter((f) => f.widthPercent)
     .reduce((acc, f) => acc + f.widthPercent!, 0);
   const remainingFleixbleWidthPercent = 100 - totalWidthOfTabsWithExplicitWidth;
   const numTabsWithFlexibleWidth = features.filter(
-    (f) => f.enabled() && !f.widthPercent,
+    (f) => f.enabled(settings) && !f.widthPercent,
   ).length;
-  const flexibleWidthPercentPerSystem = remainingFleixbleWidthPercent / numTabsWithFlexibleWidth;
+  const flexibleWidthPercentPerSystem =
+    remainingFleixbleWidthPercent / numTabsWithFlexibleWidth;
 
   let tabs: Tab[] = [];
   for (const feature of features) {
-    if (!feature.enabled()) continue;
+    if (!feature.enabled(settings)) continue;
     if (feature.widthPercent) {
       tabs.push({
         name: feature.name,
@@ -148,6 +151,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const system = router.query.system as string;
   const path = router.pathname as string;
   const pathWithSystem = path.replace("[system]", system);
+
   const { data: serviceStatusData } = useServiceStatus();
   const serivceStatusForSystem =
     serviceStatusData?.filter((notice) => {
@@ -166,6 +170,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
     return () => clearTimeout(timeout);
   }, [alert]);
+
+  const settings = useSettings();
+  if (!settings.settingsReady) return null;
 
   return (
     <>
@@ -195,7 +202,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
           <div className="flex flex-col bg-black max-w-md mx-auto w-full h-full">
             <PageSelectorHeader
-              tabs={getTabsFromFeatures(features)}
+              tabs={getTabsFromFeatures(features, settings)}
               activeTab={pathToTabName.get(pathWithSystem)!}
               onTabClick={(tab) => {
                 router.push(tabNameToPath.get(tab)!);
