@@ -184,21 +184,25 @@ const CLASSIC_BIKE_TYPE_ID = "1";
 const EBIKE_TYPE_ID = "2";
 
 function getNumClassicBikes(station: CitiBikeStationInfoAndStatus): number {
+  if (!station.vehicle_types_available) {
+    return station.num_bikes_available - station.num_ebikes_available;
+  }
+
   return (
     station.vehicle_types_available?.find(
       (v) => v.vehicle_type_id === CLASSIC_BIKE_TYPE_ID,
-    )?.count ??
-    station.num_bikes_available ??
-    0
+    )?.count ?? 0
   );
 }
 
 function getNumEBikes(station: CitiBikeStationInfoAndStatus): number {
+  if (!station.vehicle_types_available) {
+    return station.num_ebikes_available;
+  }
+
   return (
     station.vehicle_types_available?.find(
       (v) => v.vehicle_type_id === EBIKE_TYPE_ID,
-    )?.count ??
-    station.num_ebikes_available ??
-    0
+    )?.count ?? 0
   );
 }
