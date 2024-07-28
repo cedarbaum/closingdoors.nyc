@@ -29,7 +29,7 @@ export const DataStatusOverlay: React.FC<DataStatusOverlayProps> = ({
     <AnimatePresence>
       {dataIsStale && (
         <motion.div
-          className="fixed z-[100] bottom-4 p-4 w-full flex flex-row items-center justify-center pointer-events-none"
+          className="fixed z-[100] bottom-4 left-0 p-4 w-full flex flex-row items-center justify-center pointer-events-none"
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
