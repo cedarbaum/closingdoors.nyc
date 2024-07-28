@@ -8,6 +8,8 @@ export interface NycSubwayTripArrivalTimeProps
   extends Omit<TripArrivalTimeProps, "routeDisplay"> {
   route: string;
   direction: SubwayDirection;
+  headsign?: string;
+  destination?: string;
 }
 
 export const NycSubwayTripArrivalTime: React.FC<
@@ -21,7 +23,7 @@ export const NycSubwayTripArrivalTime: React.FC<
     (route) =>
       route.name === normalizedRouteName &&
       (route.isDiamond === isDiamond ||
-        (!isDiamond && route.isDiamond === undefined))
+        (!isDiamond && route.isDiamond === undefined)),
   );
 
   const directionArrow =
@@ -32,25 +34,32 @@ export const NycSubwayTripArrivalTime: React.FC<
     );
 
   const routeDisplay = (
-    <>
-      <NycSubwayIcon
-        route={normalizedRouteName}
-        isDiamond={isDiamond}
-        width={50}
-        height={50}
-      />
-      <div className="ml-4">
-        {route?.useDirectionAliases ? (
-          <span className="text-white text-4xl">
-            {props.direction === SubwayDirection.North
-              ? route.northAlias
-              : route.southAlias}
-          </span>
-        ) : (
-          directionArrow
-        )}
+    <div className="flex flex-col">
+      <div className="flex flex-row items-center">
+        <NycSubwayIcon
+          route={normalizedRouteName}
+          isDiamond={isDiamond}
+          width={50}
+          height={50}
+        />
+        <div className="ml-4">
+          {route?.useDirectionAliases ? (
+            <span className="text-white text-4xl">
+              {props.direction === SubwayDirection.North
+                ? route.northAlias
+                : route.southAlias}
+            </span>
+          ) : (
+            directionArrow
+          )}
+        </div>
       </div>
-    </>
+      {(props.headsign || props.destination) && (
+        <span className="text-white text-sm mt-1 max-w-[min(14rem,calc(50vw))] text-left overflow-hidden whitespace-nowrap text-ellipsis uppercase">
+          → {props.headsign ? props.headsign : props.destination}
+        </span>
+      )}
+    </div>
   );
 
   return <TripArrivalTime {...props} routeDisplay={routeDisplay} />;

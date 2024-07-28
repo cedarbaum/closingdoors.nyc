@@ -276,6 +276,8 @@ const NycSubwayScheduleView: React.FC = () => {
                         route={routeTrip.route}
                         timeUntilArrival={delta}
                         direction={directionIdToDirection(trip.direction_id)}
+                        headsign={trip.headsign}
+                        destination={trip.destination.name}
                       />
                     </td>
                   </tr>,
@@ -292,7 +294,12 @@ const NycSubwayScheduleView: React.FC = () => {
           return [header, tbody];
         })}
       </table>
-      <DataStatusOverlay lastUpdate={Math.min(nearbyTripsDataUpdatedAt, routeStatusDataUpdatedAt)} />
+      <DataStatusOverlay
+        lastUpdate={Math.min(
+          nearbyTripsDataUpdatedAt,
+          routeStatusDataUpdatedAt,
+        )}
+      />
     </>
   );
 };
