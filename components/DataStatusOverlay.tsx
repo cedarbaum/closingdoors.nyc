@@ -1,5 +1,5 @@
 import React from "react";
-import { SignalIcon, SignalSlashIcon } from "@heroicons/react/24/solid";
+import { SignalSlashIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
 import useNetworkStatus from "@/utils/useNetworkStatus";
 import usePageRefresh from "@/utils/usePageRefresh";
@@ -25,6 +25,8 @@ export const DataStatusOverlay: React.FC<DataStatusOverlayProps> = ({
     timeSinceLastUpdateSeconds &&
     timeSinceLastUpdateSeconds > DATA_STALE_THRESHOLD_SECONDS;
 
+  const message = !isOnline ? "No connection" : "Updating data";
+
   return (
     <AnimatePresence>
       {dataIsStale && (
@@ -37,11 +39,11 @@ export const DataStatusOverlay: React.FC<DataStatusOverlayProps> = ({
         >
           <div className="flex p-4 flex-row bg-mtaYellow">
             {isOnline ? (
-              <SignalIcon className="h-6 w-6 mr-2" />
+              <ArrowPathIcon className="h-6 w-6 mr-2 animate-spin" />
             ) : (
               <SignalSlashIcon className="h-6 w-6 mr-2" />
             )}
-            <span className="font-bold">Data is stale</span>
+            <span className="font-bold">{message}</span>
           </div>
         </motion.div>
       )}
