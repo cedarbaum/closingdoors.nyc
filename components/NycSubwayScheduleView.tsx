@@ -59,6 +59,8 @@ const NycSubwayScheduleView: React.FC = () => {
   const direction = directionQueryParamToDirection(
     router.query.direction as string | null,
   );
+  // Show more trips if multiple directions are selected
+  const numTripsToShowPerStopRoute = !direction ? 4 : 2;
   const routes = routesQueryParamToSet(router.query.routes as string | null);
   const routesString = Array.from(routes).join(",");
 
@@ -264,25 +266,27 @@ const NycSubwayScheduleView: React.FC = () => {
 
           const stopRows = stopRouteTrip?.routeTrips
             .flatMap((routeTrip) => {
-              return routeTrip.trips.slice(0, 2).map((trip, idx) => {
-                const estimatedArrival = DateTime.fromSeconds(trip.arrival);
-                const delta = estimatedArrival.diff(now);
+              return routeTrip.trips
+                .slice(0, numTripsToShowPerStopRoute)
+                .map((trip, idx) => {
+                  const estimatedArrival = DateTime.fromSeconds(trip.arrival);
+                  const delta = estimatedArrival.diff(now);
 
-                return [
-                  trip.arrival,
-                  <tr key={`${stopRouteTrip.stop.id}${trip.id}${idx}`}>
-                    <td className="p-2">
-                      <NycSubwayTripArrivalTime
-                        route={routeTrip.route}
-                        timeUntilArrival={delta}
-                        direction={directionIdToDirection(trip.direction_id)}
-                        headsign={trip.headsign}
-                        destination={trip.destination.name}
-                      />
-                    </td>
-                  </tr>,
-                ] as [number, JSX.Element];
-              });
+                  return [
+                    trip.arrival,
+                    <tr key={`${stopRouteTrip.stop.id}${trip.id}${idx}`}>
+                      <td className="p-2">
+                        <NycSubwayTripArrivalTime
+                          route={routeTrip.route}
+                          timeUntilArrival={delta}
+                          direction={directionIdToDirection(trip.direction_id)}
+                          headsign={trip.headsign}
+                          destination={trip.destination.name}
+                        />
+                      </td>
+                    </tr>,
+                  ] as [number, JSX.Element];
+                });
             })
             .sort((t1, t2) => t1[0] - t2[0])
             .map((t) => t[1]);

@@ -24,6 +24,9 @@ import { RouteStatuses } from "@/pages/api/route_statuses";
 import { Alert } from "@/generated/proto/transiter/public";
 import DirectionSelectors, { Direction } from "./DirectionsSelector";
 
+const requireDirection =
+  process.env.NEXT_PUBLIC_US_NY_SUBWAY_REQUIRE_DIRECTION === "true";
+
 const noRoutesSelected = (
   <span className="font-bold">Select at least 1 route.</span>
 );
@@ -134,40 +137,45 @@ export default function NycSubwayRoutePicker() {
   });
 
   const directionNotSetError = useMemo(() => {
-    return northboundAlias !== undefined
-      ? (
-        <span className="font-bold">
-          Select {northboundAlias} or {southboundAlias}.
-        </span>
-      )
-      : (
-        <span className="font-bold inline-flex items-center">
-          Select{" "}
-          <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or
-          {" "}
-          <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4 ml-1" />.
-        </span>
-      );
+    return northboundAlias !== undefined ? (
+      <span className="font-bold">
+        Select {northboundAlias} or {southboundAlias}.
+      </span>
+    ) : (
+      <span className="font-bold inline-flex items-center">
+        Select{" "}
+        <ArrowUpIcon className="inline-block stroke-[4px] w-4 h-4 mx-1" /> or{" "}
+        <ArrowDownIcon className="inline-block stroke-[4px] w-4 h-4 ml-1" />.
+      </span>
+    );
   }, [northboundAlias, southboundAlias]);
 
   const setAlert = useContext(PopoverAlertContext);
   const handleOnClick = useCallback(() => {
-    if (direction == null) {
+    if (direction == null && requireDirection) {
       setAlert({ type: "error", content: directionNotSetError });
     } else if (selectedRoutes.size === 0) {
       setAlert({ type: "error", content: noRoutesSelected });
     } else {
-      push(
-        `/us-ny-subway/schedule?routes=${
-          Array.from(
-            selectedRoutes,
-          )
-        }&direction=${direction}`,
-      );
+      const baseUrl = "/us-ny-subway/schedule";
+      const urlWithRoutes = `${baseUrl}?routes=${Array.from(selectedRoutes)}`;
+      if (direction !== null) {
+        push(`${urlWithRoutes}&direction=${direction}`);
+      } else {
+        push(urlWithRoutes);
+      }
     }
-  }, [push, selectedRoutes, direction, directionNotSetError, setAlert]);
+  }, [
+    push,
+    selectedRoutes,
+    direction,
+    directionNotSetError,
+    setAlert,
+    requireDirection,
+  ]);
 
-  const formIsValid = selectedRoutes.size > 0 && direction !== null;
+  const formIsValid =
+    selectedRoutes.size > 0 && (!requireDirection || direction != null);
   if (isLoading) {
     return <NycSubwayLoadingView />;
   }
@@ -211,7 +219,8 @@ export default function NycSubwayRoutePicker() {
                     return null;
                   }
 
-                  const hasAlerts = alertsByRoute?.has(routeKey) &&
+                  const hasAlerts =
+                    alertsByRoute?.has(routeKey) &&
                     alertsByRoute.get(routeKey)!.length > 0;
 
                   const isFocused = routeKey === focusedRoute;
@@ -242,9 +251,12 @@ export default function NycSubwayRoutePicker() {
                             ref={arrowRef}
                             style={{
                               left: arrowX != null ? `${arrowX}px` : "",
-                              top: placement === "top"
-                                ? arrowY != null ? `${arrowY}px` : ""
-                                : "-4px",
+                              top:
+                                placement === "top"
+                                  ? arrowY != null
+                                    ? `${arrowY}px`
+                                    : ""
+                                  : "-4px",
                               bottom: placement === "top" ? "-4px" : "",
                               position: "absolute",
                               background: MtaColors.Yellow,
@@ -271,9 +283,11 @@ export default function NycSubwayRoutePicker() {
                         width={50}
                         height={50}
                         opacity={isSelected || isFocused ? 1.0 : 0.7}
-                        border={isSelected || isFocused
-                          ? "4px solid white"
-                          : undefined}
+                        border={
+                          isSelected || isFocused
+                            ? "4px solid white"
+                            : undefined
+                        }
                         onClick={() => {
                           // Don't detect a normal click if a long press is happening
                           if (focusedRoute !== undefined) {
