@@ -144,7 +144,7 @@ export default function PathScheduleView() {
 
   // If data is stale, show loading view
   if (
-    !isDisplayingErorRef &&
+    !isDisplayingErorRef.current &&
     nearbyTripsFetching &&
     sanitizedNearbyTripsData?.length === 0
   ) {
