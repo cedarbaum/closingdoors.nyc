@@ -214,7 +214,7 @@ ${
     try {
       const response = await openai.createChatCompletion(
         {
-          model: "gpt-3.5-turbo-0613",
+          model: "gpt-4o-mini",
           messages: allMessages,
           functions: functions,
           function_call: "auto",
