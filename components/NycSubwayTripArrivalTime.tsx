@@ -56,7 +56,7 @@ export const NycSubwayTripArrivalTime: React.FC<
       </div>
       {(props.headsign || props.destination) && (
         <span className="text-white text-sm mt-1 max-w-[min(14rem,calc(50vw))] text-left overflow-hidden whitespace-nowrap text-ellipsis uppercase">
-          → {props.headsign ? props.headsign : props.destination}
+          → {props.destination ? props.destination : props.headsign}
         </span>
       )}
     </div>
